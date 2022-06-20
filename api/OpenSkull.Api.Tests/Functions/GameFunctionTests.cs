@@ -39,13 +39,4 @@ public class GameFunctionTests
         Assert.IsTrue(GameResult.IsFailure);
         GameResult.OnFailure((err) => Assert.AreEqual(GameCreationError.InvalidNumberOfPlayers, err));
     }
-
-    [TestMethod]
-
-    public void ErrorPath_GivenNullPlayers_ErrorsAppropriately()
-    {
-        var GameResult = GameFunctions.CreateNew(null);
-        Assert.IsTrue(GameResult.IsFailure);
-        GameResult.OnFailure((err) => Assert.AreEqual(GameCreationError.InvalidNumberOfPlayers, err));
-    }
 }

@@ -1,6 +1,6 @@
 namespace OpenSkull.Api.DTO;
 
-public class Game {
+public record struct Game {
   public Guid Id;
   public Guid[] PlayerIds;
 }
