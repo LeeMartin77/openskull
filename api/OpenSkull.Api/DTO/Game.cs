@@ -1,6 +1,6 @@
 namespace OpenSkull.Api.DTO;
 
 public class Game {
-  Guid Id;
-  Guid[] PlayerIds;
+  public Guid Id;
+  public Guid[] PlayerIds;
 }
