@@ -139,4 +139,23 @@ public class GameFunctionTests
       Assert.AreEqual(playerCount, game.RoundPlayerCards.First().Length);
     });
   }
+
+  [TestMethod]
+  [DataRow(3)]
+  [DataRow(4)]
+  [DataRow(5)]
+  [DataRow(6)]
+  public void GivenCreateNew_HasFirstBiddingRoundWithRightSizeArray(int playerCount)
+  {
+    Guid[] TestPlayerIds = new Guid[playerCount];
+    for (int i = 0; i < playerCount; i++) {
+      TestPlayerIds[i] = Guid.NewGuid();
+    }
+    var GameResult = GameFunctions.CreateNew(TestPlayerIds);
+    Assert.IsTrue(GameResult.IsSuccess);
+    GameResult.Tap((game) => {
+      Assert.AreEqual(1, game.RoundBids.Count());
+      Assert.AreEqual(playerCount, game.RoundBids.First().Length);
+    });
+  }
 }

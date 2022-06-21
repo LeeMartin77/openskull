@@ -25,4 +25,5 @@ public record struct Game {
   public int ActivePlayerIndex;
   public int[] PlayerPoints;
   public List<List<Card>[]> RoundPlayerCards;
+  public List<int[]> RoundBids;
 }

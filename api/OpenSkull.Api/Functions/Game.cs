@@ -40,7 +40,8 @@ public static class GameFunctions {
       PlayerIds = playerIds,
       PlayerCards = playerCards,
       PlayerPoints = new int[playerIds.Length],
-      RoundPlayerCards = new List<List<Card>[]>() { new List<Card>[playerIds.Length] }
+      RoundPlayerCards = new List<List<Card>[]>() { new List<Card>[playerIds.Length] },
+      RoundBids = new List<int[]>() { new int[playerIds.Length] },
     });
   }
 
