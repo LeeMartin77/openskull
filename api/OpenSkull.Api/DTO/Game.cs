@@ -7,7 +7,9 @@ public enum CardType {
 }
 
 public enum CardState {
-  InHand
+  Hidden,
+  Revealed,
+  Discarded
 }
 
 public record struct Card {
@@ -20,4 +22,7 @@ public record struct Game {
   public Guid Id;
   public Guid[] PlayerIds;
   public Card[][] PlayerCards;
+  public int ActivePlayerIndex;
+  public int[] PlayerPoints;
+  public List<List<Card>[]> RoundPlayerCards;
 }
