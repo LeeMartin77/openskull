@@ -159,7 +159,6 @@ public class GameFunction_CreateNew_Tests
   }
 }
 
-
 [TestClass]
 public class GameFunction_TurnPlayCard_Tests
 {
@@ -208,6 +207,29 @@ public class GameFunction_TurnPlayCard_Tests
   [DataRow(4)]
   [DataRow(5)]
   [DataRow(6)]
+  public void HappyPath_GivenAllPlayersPlayAllCards_Succeeds(int playerCount)
+  {
+    Guid[] TestPlayerIds = new Guid[playerCount];
+    for (int j = 0; j < playerCount; j++) {
+      TestPlayerIds[j] = Guid.NewGuid();
+    }
+    var gameResult = GameFunctions.CreateNew(TestPlayerIds);
+    var game = gameResult.Value;
+    for (int cardIndex = 0; cardIndex < game.PlayerCards[0].Length; cardIndex++) {
+      for (int playerIndex = 0; playerIndex < playerCount; playerIndex++) {
+        var expectedCardGuid = game.PlayerCards[playerIndex][cardIndex].Id;
+        var postTurnGameResult = GameFunctions.TurnPlayCard(game, game.PlayerIds[playerIndex], expectedCardGuid);
+        game = postTurnGameResult.Value;
+        Assert.AreEqual(expectedCardGuid, game.RoundPlayerCardIds[0][playerIndex][cardIndex]);
+      }
+    }
+  }
+
+  [TestMethod]
+  [DataRow(3)]
+  [DataRow(4)]
+  [DataRow(5)]
+  [DataRow(6)]
   public void GivenPlayerTriesToReplayCard_Errors(int playerCount)
   {
     Guid[] TestPlayerIds = new Guid[playerCount];
@@ -227,28 +249,22 @@ public class GameFunction_TurnPlayCard_Tests
     Assert.AreEqual(GameTurnError.InvalidCardId, err);
   }
 
-  
   [TestMethod]
   [DataRow(3)]
   [DataRow(4)]
   [DataRow(5)]
   [DataRow(6)]
-  public void HappyPath_GivenAllPlayersPlayAllCards_Succeeds(int playerCount)
+  public void GivenCardNotHidden_Error(int playerCount)
   {
     Guid[] TestPlayerIds = new Guid[playerCount];
-    for (int j = 0; j < playerCount; j++) {
-      TestPlayerIds[j] = Guid.NewGuid();
+    for (int i = 0; i < playerCount; i++) {
+      TestPlayerIds[i] = Guid.NewGuid();
     }
-    var gameResult = GameFunctions.CreateNew(TestPlayerIds);
-    var game = gameResult.Value;
-    for (int cardIndex = 0; cardIndex < game.PlayerCards[0].Length; cardIndex++) {
-      for (int playerIndex = 0; playerIndex < playerCount; playerIndex++) {
-        var expectedCardGuid = game.PlayerCards[playerIndex][cardIndex].Id;
-        var postTurnGameResult = GameFunctions.TurnPlayCard(game, game.PlayerIds[playerIndex], expectedCardGuid);
-        game = postTurnGameResult.Value;
-        Assert.AreEqual(expectedCardGuid, game.RoundPlayerCardIds[0][playerIndex][cardIndex]);
-      }
-    }
+    var game = GameFunctions.CreateNew(TestPlayerIds).Value;
+    game.PlayerCards[0][0].State = CardState.Discarded;
+    var err = GameFunctions.TurnPlayCard(game, TestPlayerIds[0], game.PlayerCards[0][0].Id).Error;
+    
+    Assert.AreEqual(GameTurnError.InvalidCardId, err);
   }
 
   [TestMethod]

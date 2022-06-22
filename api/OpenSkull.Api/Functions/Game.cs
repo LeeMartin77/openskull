@@ -58,6 +58,7 @@ public static class GameFunctions {
       return GameTurnError.InvalidPlayerId;
     }
     if (!game.PlayerCards[playerIndex].Select(x => x.Id).Contains(cardId)
+      || game.PlayerCards[playerIndex].First(x => x.Id == cardId).State != CardState.Hidden
       || game.RoundPlayerCardIds.Last()[playerIndex].Contains(cardId)) {
       return GameTurnError.InvalidCardId;
     }
