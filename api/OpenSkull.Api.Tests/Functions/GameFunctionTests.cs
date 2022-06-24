@@ -106,7 +106,7 @@ public class GameFunction_CreateNew_Tests
   [DataRow(4)]
   [DataRow(5)]
   [DataRow(6)]
-  public void GivenCreateNew_PlayerPointsIsRightLengthAllZero(int playerCount)
+  public void GivenCreateNew_GameCompleteIsFalse(int playerCount)
   {
       Guid[] TestPlayerIds = new Guid[playerCount];
       for (int i = 0; i < playerCount; i++) {
@@ -115,8 +115,7 @@ public class GameFunction_CreateNew_Tests
       var GameResult = GameFunctions.CreateNew(TestPlayerIds);
       Assert.IsTrue(GameResult.IsSuccess);
       GameResult.Tap((game) => {
-        Assert.AreEqual(playerCount, game.PlayerPoints.Length);
-        Assert.IsTrue(game.PlayerPoints.All(x => x == 0));
+        Assert.IsFalse(game.GameComplete);
       });
   }
 
@@ -156,6 +155,41 @@ public class GameFunction_CreateNew_Tests
       Assert.AreEqual(1, game.RoundBids.Count());
       Assert.AreEqual(playerCount, game.RoundBids.First().Length);
     });
+  }
+
+  [TestMethod]
+  [DataRow(3)]
+  [DataRow(4)]
+  [DataRow(5)]
+  [DataRow(6)]
+  public void GivenCreateNew_HasFirstRevealRound(int playerCount)
+  {
+    Guid[] TestPlayerIds = new Guid[playerCount];
+    for (int i = 0; i < playerCount; i++) {
+      TestPlayerIds[i] = Guid.NewGuid();
+    }
+    var GameResult = GameFunctions.CreateNew(TestPlayerIds);
+    Assert.IsTrue(GameResult.IsSuccess);
+    var game = GameResult.Value;
+    Assert.AreEqual(1, game.RoundRevealedCardPlayerIndexes.Count());
+    Assert.AreEqual(0, game.RoundRevealedCardPlayerIndexes.First().Count());
+  }
+
+  [TestMethod]
+  [DataRow(3)]
+  [DataRow(4)]
+  [DataRow(5)]
+  [DataRow(6)]
+  public void GivenCreateNew_RoundWinsCreatedAndEmpty(int playerCount)
+  {
+    Guid[] TestPlayerIds = new Guid[playerCount];
+    for (int i = 0; i < playerCount; i++) {
+      TestPlayerIds[i] = Guid.NewGuid();
+    }
+    var GameResult = GameFunctions.CreateNew(TestPlayerIds);
+    Assert.IsTrue(GameResult.IsSuccess);
+    var game = GameResult.Value;
+    Assert.AreEqual(0, game.RoundWinPlayerIndexes.Count());
   }
 }
 
@@ -436,8 +470,6 @@ public class GameFunction_TurnPlaceBid_Tests
     Assert.AreEqual(GameTurnError.MaxBidExceeded, resultOfPlaceBid.Error);
   }
 
-  private const int SKIP_BIDDING_VALUE = -1;
-
   [TestMethod]
   [DataRow(3, 2)]
   [DataRow(4, 3)]
@@ -454,9 +486,9 @@ public class GameFunction_TurnPlaceBid_Tests
       game = GameFunctions.TurnPlayCard(game, game.PlayerIds[i], game.PlayerCards[i][0].Id).Value;
     }
     game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[0], startingBid).Value;
-    var gameResult = GameFunctions.TurnPlaceBid(game, game.PlayerIds[1], SKIP_BIDDING_VALUE);
+    var gameResult = GameFunctions.TurnPlaceBid(game, game.PlayerIds[1], GameFunctions.SKIP_BIDDING_VALUE);
     Assert.IsTrue(gameResult.IsSuccess);
-    Assert.AreEqual(SKIP_BIDDING_VALUE, gameResult.Value.RoundBids[0][1]);
+    Assert.AreEqual(GameFunctions.SKIP_BIDDING_VALUE, gameResult.Value.RoundBids[0][1]);
   }
 
   [TestMethod]
@@ -475,7 +507,7 @@ public class GameFunction_TurnPlaceBid_Tests
       game = GameFunctions.TurnPlayCard(game, game.PlayerIds[i], game.PlayerCards[i][1].Id).Value;
     }
     game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[0], 1).Value;
-    game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[1], SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[1], GameFunctions.SKIP_BIDDING_VALUE).Value;
     game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[2], 2).Value;
     game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[3], 3).Value;
     var gameResult = GameFunctions.TurnPlaceBid(game, game.PlayerIds[0], 4);
@@ -500,10 +532,10 @@ public class GameFunction_TurnPlaceBid_Tests
       game = GameFunctions.TurnPlayCard(game, game.PlayerIds[i], game.PlayerCards[i][1].Id).Value;
     }
     game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[0], 3).Value;
-    game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[1], SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[1], GameFunctions.SKIP_BIDDING_VALUE).Value;
     game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[2], 4).Value;
-    game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[3], SKIP_BIDDING_VALUE).Value;
-    game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[0], SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[3], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[0], GameFunctions.SKIP_BIDDING_VALUE).Value;
     Assert.AreEqual(game.ActivePlayerIndex, 2);
     var gameResult = GameFunctions.TurnPlaceBid(game, game.PlayerIds[2], 5);
     Assert.IsTrue(gameResult.IsFailure);
@@ -624,3 +656,233 @@ public class GameFunction_TurnPlaceBid_Tests
     Assert.AreEqual(GameTurnError.CannotBidYet, resultOfPlaceBid.Error);
   }
 }
+
+
+[TestClass]
+public class GameFunction_TurnFlipCard_Tests
+{ 
+  [TestMethod]
+  [DataRow(3)]
+  [DataRow(4)]
+  [DataRow(5)]
+  [DataRow(6)]
+  public void HappyPath_EndOfBidding_CanFlipFirstCard(int playerCount) {
+    Guid[] TestPlayerIds = new Guid[playerCount];
+    for (int j = 0; j < playerCount; j++) {
+      TestPlayerIds[j] = Guid.NewGuid();
+    }
+    var game = GameFunctions.CreateNew(TestPlayerIds).Value;
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnPlayCard(game, game.PlayerIds[i], game.PlayerCards[i][0].Id).Value;
+    }
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnPlayCard(game, game.PlayerIds[i], game.PlayerCards[i][1].Id).Value;
+    }
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[i], i + 1).Value;
+    }
+    game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[0], playerCount + 1).Value;
+    for (int i = 1; i < playerCount; i++) {
+      game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[i], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    }
+    var gameResult = GameFunctions.TurnFlipCard(game, game.PlayerIds[0], 0);
+    Assert.IsTrue(gameResult.IsSuccess);
+    Assert.AreEqual(1, gameResult.Value.RoundRevealedCardPlayerIndexes.First().Count());
+    Assert.AreEqual(0, gameResult.Value.RoundRevealedCardPlayerIndexes.First().First());
+  }
+
+  [TestMethod]
+  [DataRow(3)]
+  [DataRow(4)]
+  [DataRow(5)]
+  [DataRow(6)]
+  public void HappyPath_AllCardsToBetFlipped_NoSkull_StartNewRound(int playerCount) {
+    Guid[] TestPlayerIds = new Guid[playerCount];
+    for (int j = 0; j < playerCount; j++) {
+      TestPlayerIds[j] = Guid.NewGuid();
+    }
+    var game = GameFunctions.CreateNew(TestPlayerIds).Value;
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnPlayCard(game, game.PlayerIds[i], game.PlayerCards[i][0].Id).Value;
+    }
+    game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[0], playerCount).Value;
+    for (int i = 1; i < playerCount; i++) {
+      game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[i], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    }
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnFlipCard(game, game.PlayerIds[0], i).Value;
+    }
+    Assert.AreEqual(0, game.ActivePlayerIndex);
+    Assert.AreEqual(2, game.RoundBids.Count());
+    Assert.AreEqual(2, game.RoundPlayerCardIds.Count());
+    Assert.AreEqual(2, game.RoundRevealedCardPlayerIndexes.Count());
+    Assert.AreEqual(1, game.RoundWinPlayerIndexes.Count());
+    Assert.AreEqual(0, game.RoundWinPlayerIndexes[0]);
+  }
+
+  [TestMethod]
+  [DataRow(3)]
+  [DataRow(4)]
+  [DataRow(5)]
+  [DataRow(6)]
+  public void HappyPath_SkullFlipped_StartNewRound(int playerCount) {
+    Guid[] TestPlayerIds = new Guid[playerCount];
+    for (int j = 0; j < playerCount; j++) {
+      TestPlayerIds[j] = Guid.NewGuid();
+    }
+    var game = GameFunctions.CreateNew(TestPlayerIds).Value;
+    for (int i = 0; i < playerCount - 1; i++) {
+      game = GameFunctions.TurnPlayCard(game, game.PlayerIds[i], game.PlayerCards[i][0].Id).Value;
+    }
+    // Bit hardcodey on this skull ID, but it should be fine - revisit at some point
+    int skullplayer = playerCount - 1;
+    game = GameFunctions.TurnPlayCard(game, game.PlayerIds[skullplayer], game.PlayerCards[skullplayer][3].Id).Value;
+
+    game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[0], playerCount).Value;
+    for (int i = 1; i < playerCount; i++) {
+      game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[i], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    }
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnFlipCard(game, game.PlayerIds[0], i).Value;
+    }
+    Assert.AreEqual(playerCount - 1, game.ActivePlayerIndex);
+    Assert.AreEqual(2, game.RoundBids.Count());
+    Assert.AreEqual(2, game.RoundPlayerCardIds.Count());
+    Assert.AreEqual(2, game.RoundRevealedCardPlayerIndexes.Count());
+    Assert.AreEqual(0, game.RoundWinPlayerIndexes.Count());
+    Assert.AreEqual(3, game.PlayerCards[0].Where(x => x.State != CardState.Discarded).Count());
+  }
+
+  [TestMethod]
+  [DataRow(3)]
+  [DataRow(4)]
+  [DataRow(5)]
+  [DataRow(6)]
+  public void NotActivePlayer_CannotAttemptToFlipCard(int playerCount) {
+    Guid[] TestPlayerIds = new Guid[playerCount];
+    for (int j = 0; j < playerCount; j++) {
+      TestPlayerIds[j] = Guid.NewGuid();
+    }
+    var game = GameFunctions.CreateNew(TestPlayerIds).Value;
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnPlayCard(game, game.PlayerIds[i], game.PlayerCards[i][0].Id).Value;
+    }
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnPlayCard(game, game.PlayerIds[i], game.PlayerCards[i][1].Id).Value;
+    }
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[i], i + 1).Value;
+    }
+    game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[0], playerCount + 1).Value;
+    for (int i = 1; i < playerCount; i++) {
+      game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[i], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    }
+    for (int i = 1; i < playerCount; i++) {
+      var gameResult = GameFunctions.TurnFlipCard(game, game.PlayerIds[i], i);
+      Assert.IsTrue(gameResult.IsFailure);
+      Assert.AreEqual(GameTurnError.InvalidPlayerId, gameResult.Error);
+    }
+  }
+
+  [TestMethod]
+  [DataRow(3)]
+  [DataRow(4)]
+  [DataRow(5)]
+  [DataRow(6)]
+  public void HaveCardsLeftToActivePlayer_CannotFlipOtherPlayersYet(int playerCount) {
+    Guid[] TestPlayerIds = new Guid[playerCount];
+    for (int j = 0; j < playerCount; j++) {
+      TestPlayerIds[j] = Guid.NewGuid();
+    }
+    var game = GameFunctions.CreateNew(TestPlayerIds).Value;
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnPlayCard(game, game.PlayerIds[i], game.PlayerCards[i][0].Id).Value;
+    }
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnPlayCard(game, game.PlayerIds[i], game.PlayerCards[i][1].Id).Value;
+    }
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[i], i + 1).Value;
+    }
+    game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[0], playerCount + 1).Value;
+    for (int i = 1; i < playerCount; i++) {
+      game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[i], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    }
+    for (int i = 1; i < playerCount; i++) {
+      var failResult = GameFunctions.TurnFlipCard(game, game.PlayerIds[0], i);
+      Assert.IsTrue(failResult.IsFailure);
+      Assert.AreEqual(GameTurnError.MustRevealAllOwnCardsFirst, failResult.Error);
+    }
+    game = GameFunctions.TurnFlipCard(game, game.PlayerIds[0], 0).Value;
+    for (int i = 1; i < playerCount; i++) {
+      var failResult = GameFunctions.TurnFlipCard(game, game.PlayerIds[0], i);
+      Assert.IsTrue(failResult.IsFailure);
+      Assert.AreEqual(GameTurnError.MustRevealAllOwnCardsFirst, failResult.Error);
+    }
+  }
+
+  [TestMethod]
+  [DataRow(3)]
+  [DataRow(4)]
+  [DataRow(5)]
+  [DataRow(6)]
+  public void HaveFlippedAllOwnCards_CanFlipOtherPlayersCards(int playerCount) {
+    Guid[] TestPlayerIds = new Guid[playerCount];
+    for (int j = 0; j < playerCount; j++) {
+      TestPlayerIds[j] = Guid.NewGuid();
+    }
+    var game = GameFunctions.CreateNew(TestPlayerIds).Value;
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnPlayCard(game, game.PlayerIds[i], game.PlayerCards[i][0].Id).Value;
+    }
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnPlayCard(game, game.PlayerIds[i], game.PlayerCards[i][1].Id).Value;
+    }
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[i], i + 1).Value;
+    }
+    game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[0], playerCount + 1).Value;
+    for (int i = 1; i < playerCount; i++) {
+      game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[i], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    }
+    game = GameFunctions.TurnFlipCard(game, game.PlayerIds[0], 0).Value;
+    game = GameFunctions.TurnFlipCard(game, game.PlayerIds[0], 0).Value;
+    var gameResult = GameFunctions.TurnFlipCard(game, game.PlayerIds[0], 1);
+    Assert.IsTrue(gameResult.IsSuccess);
+    Assert.AreEqual("0,0,1", string.Join(",", gameResult.Value.RoundRevealedCardPlayerIndexes.Last().Select(x => x.ToString()).ToArray()));
+  }
+
+  [TestMethod]
+  [DataRow(3)]
+  [DataRow(4)]
+  [DataRow(5)]
+  [DataRow(6)]
+  public void NoCardsLeftWithPlayer_Error(int playerCount) {
+    Guid[] TestPlayerIds = new Guid[playerCount];
+    for (int j = 0; j < playerCount; j++) {
+      TestPlayerIds[j] = Guid.NewGuid();
+    }
+    var game = GameFunctions.CreateNew(TestPlayerIds).Value;
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnPlayCard(game, game.PlayerIds[i], game.PlayerCards[i][0].Id).Value;
+    }
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnPlayCard(game, game.PlayerIds[i], game.PlayerCards[i][1].Id).Value;
+    }
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[i], i + 1).Value;
+    }
+    game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[0], playerCount + 1).Value;
+    for (int i = 1; i < playerCount; i++) {
+      game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[i], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    }
+    game = GameFunctions.TurnFlipCard(game, game.PlayerIds[0], 0).Value;
+    game = GameFunctions.TurnFlipCard(game, game.PlayerIds[0], 0).Value;
+    var gameResult = GameFunctions.TurnFlipCard(game, game.PlayerIds[0], 0);
+    Assert.IsTrue(gameResult.IsFailure);
+    Assert.AreEqual(GameTurnError.NoCardsLeftToFlip, gameResult.Error);
+  }
+}
+
+// TODO: Full Game integration to victory
+// Include Handling player with no cards left

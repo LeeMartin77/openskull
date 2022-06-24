@@ -15,7 +15,9 @@ public enum GameTurnError {
   CannotPlayCardAfterBid,
   MaxBidExceeded,
   MinBidNotMet,
-  BiddingHasFinished
+  BiddingHasFinished,
+  MustRevealAllOwnCardsFirst,
+  NoCardsLeftToFlip
 }
 
 public static class GameFunctions {
@@ -23,7 +25,7 @@ public static class GameFunctions {
   private const int MIN_PLAYERS = 3;
   private const int CARD_FLOWER_COUNT = 3;
   private const int CARD_SKULL_COUNT = 1;
-  private const int SKIP_BIDDING_VALUE = -1;
+  public const int SKIP_BIDDING_VALUE = -1;
 
   public static Result<Game, GameCreationError> CreateNew(Guid[] playerIds) {
     if (playerIds == null || playerIds.Length > MAX_PLAYERS || playerIds.Length < MIN_PLAYERS) {
@@ -53,9 +55,10 @@ public static class GameFunctions {
       Id = Guid.NewGuid(),
       PlayerIds = playerIds,
       PlayerCards = playerCards,
-      PlayerPoints = new int[playerIds.Length],
       RoundPlayerCardIds = new List<List<Guid>[]>() { round },
       RoundBids = new List<int[]>() { new int[playerIds.Length] },
+      RoundRevealedCardPlayerIndexes = new List<List<int>>() { new List<int>() },
+      RoundWinPlayerIndexes = new List<int>()
     };
   }
 
@@ -110,6 +113,52 @@ public static class GameFunctions {
     }
     return game;
   }
-  // public static Result<(Game, boolean), GameTurnError> TurnFlipPlayerCard(Game game, Guid player, Guid targetPlayer) {}
-  // public static Game ResolveRound(Game game) {}
+
+  public static Result<Game, GameTurnError> TurnFlipCard(Game game, Guid playerId, int targetPlayerIndex) {
+    int playerIndex = Array.IndexOf(game.PlayerIds, playerId);
+    if (playerIndex == -1 || playerIndex != game.ActivePlayerIndex) {
+      return GameTurnError.InvalidPlayerId;
+    }
+    var currentRoundCards = game.RoundPlayerCardIds.Last();
+    if (targetPlayerIndex != playerIndex && 
+      currentRoundCards[playerIndex].Count() != game.RoundRevealedCardPlayerIndexes.Last().Count(x => x == playerIndex)) {
+      return GameTurnError.MustRevealAllOwnCardsFirst;
+    }
+    if (game.RoundRevealedCardPlayerIndexes.Last().Count(x => x == targetPlayerIndex) >= currentRoundCards[targetPlayerIndex].Count()) {
+      return GameTurnError.NoCardsLeftToFlip;
+    }
+    game.RoundRevealedCardPlayerIndexes.Last().Add(targetPlayerIndex);
+    var cardIndexOfStack = game.RoundRevealedCardPlayerIndexes.Last().Count(x => x == targetPlayerIndex) - 1;
+    var cardId = game.RoundPlayerCardIds.Last()[targetPlayerIndex][cardIndexOfStack];
+    bool cardWasSkull = game.PlayerCards[targetPlayerIndex].First(x => x.Id == cardId).Type == CardType.Skull;
+    if (cardWasSkull) {
+      var round = new List<Guid>[game.PlayerIds.Length];
+      for (int i = 0; i < round.Length; i++) {
+        round[i] = new List<Guid>();
+      }
+      game.RoundPlayerCardIds.Add(round);
+      game.RoundBids.Add(new int[game.PlayerIds.Length]);
+      game.RoundRevealedCardPlayerIndexes.Add(new List<int>());
+      // This is hideous, but random often is.
+      int startingCards = game.PlayerCards[playerIndex].Where(x => x.State != CardState.Discarded).Count();
+      do { 
+        int cardToLose = new Random().Next(0, game.PlayerCards[playerIndex].Count() - 1); 
+        game.PlayerCards[playerIndex][cardToLose].State = CardState.Discarded;
+      }
+      while (startingCards == game.PlayerCards[playerIndex].Where(x => x.State != CardState.Discarded).Count());
+      game.ActivePlayerIndex = targetPlayerIndex;
+    }
+    if (!cardWasSkull && game.RoundBids.Last().Max() == game.RoundRevealedCardPlayerIndexes.Last().Count()) {
+      var round = new List<Guid>[game.PlayerIds.Length];
+      for (int i = 0; i < round.Length; i++) {
+        round[i] = new List<Guid>();
+      }
+      game.RoundPlayerCardIds.Add(round);
+      game.RoundBids.Add(new int[game.PlayerIds.Length]);
+      game.RoundRevealedCardPlayerIndexes.Add(new List<int>());
+      game.RoundWinPlayerIndexes.Add(playerIndex);
+      game.ActivePlayerIndex = playerIndex;
+    }
+    return game;
+  }
 }
