@@ -112,6 +112,10 @@ public static class GameFunctions {
         game.ActivePlayerIndex = 0;
       }
     }
+    // TODO: Need an explicit unit test for this
+    if (game.RoundBids.Last().Count(x => x == GameFunctions.SKIP_BIDDING_VALUE) == game.PlayerIds.Count() - 1){
+      game.ActivePlayerIndex = Array.IndexOf(game.RoundBids.Last(), game.RoundBids.Last().Max());
+    }
     return game;
   }
 

@@ -921,5 +921,57 @@ public class Integration_FullGame {
     var extraResult = GameFunctions.TurnFlipCard(game, game.PlayerIds[0], 0);
     Assert.IsTrue(extraResult.IsFailure);
   }
+
+  [TestMethod]
+  [DataRow(3, 1)]
+  [DataRow(4, 3)]
+  [DataRow(5, 4)]
+  [DataRow(6, 3)]
+  public void HappyPath_ArbitaryPlayerWinsTwice_Complete(int playerCount, int winner) {
+      Guid[] TestPlayerIds = new Guid[playerCount];
+    for (int j = 0; j < playerCount; j++) {
+      TestPlayerIds[j] = Guid.NewGuid();
+    }
+    var game = GameFunctions.CreateNew(TestPlayerIds).Value;
+    for (int r = 0; r < 2; r++) {
+      int initValue = game.ActivePlayerIndex;
+      do {
+        game = GameFunctions.TurnPlayCard(game, game.PlayerIds[game.ActivePlayerIndex], game.PlayerCards[game.ActivePlayerIndex][r].Id).Value;
+      } while (game.ActivePlayerIndex != initValue);
+      bool nowBidding = false;
+      int playerId = game.ActivePlayerIndex;
+      do {
+        if (!nowBidding && playerId != winner) {
+          game = GameFunctions.TurnPlayCard(game, game.PlayerIds[playerId], game.PlayerCards[playerId][r + 1].Id).Value;
+        } 
+        if (nowBidding && playerId != winner) {
+          game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[playerId], GameFunctions.SKIP_BIDDING_VALUE).Value;
+        }
+        if (playerId == winner) {
+          game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[playerId], playerCount).Value;
+          nowBidding = true;
+        }
+        playerId += 1;
+        if(playerId == playerCount) {
+          playerId = 0;
+        }
+      } while (!nowBidding || game.RoundBids.Last().Count(x => x == GameFunctions.SKIP_BIDDING_VALUE) < playerCount - 1);
+      game = GameFunctions.TurnFlipCard(game, game.PlayerIds[winner], winner).Value;
+      for (int i = 0; i < playerCount; i++) {
+        if (i != winner) {
+          game = GameFunctions.TurnFlipCard(game, game.PlayerIds[winner], i).Value;
+        } 
+      }
+    }
+    Assert.AreEqual(winner, game.ActivePlayerIndex);
+    Assert.AreEqual(2, game.RoundBids.Count());
+    Assert.AreEqual(2, game.RoundPlayerCardIds.Count());
+    Assert.AreEqual(2, game.RoundRevealedCardPlayerIndexes.Count());
+    Assert.AreEqual(2, game.RoundWinPlayerIndexes.Count());
+    Assert.AreEqual(2, game.RoundWinPlayerIndexes.Count(x => x == winner));
+    Assert.IsTrue(game.GameComplete);
+    var extraResult = GameFunctions.TurnFlipCard(game, game.PlayerIds[winner], 0);
+    Assert.IsTrue(extraResult.IsFailure);
+  }
 }
 // Include Handling player with no cards left
