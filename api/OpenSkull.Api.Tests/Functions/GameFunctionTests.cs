@@ -885,4 +885,41 @@ public class GameFunction_TurnFlipCard_Tests
 }
 
 // TODO: Full Game integration to victory
+
+[TestClass]
+public class Integration_FullGame {
+  [TestMethod]
+  [DataRow(3)]
+  [DataRow(4)]
+  [DataRow(5)]
+  [DataRow(6)]
+  public void HappyPath_FirstPlayerWinsTwice_Complete(int playerCount) {
+      Guid[] TestPlayerIds = new Guid[playerCount];
+    for (int j = 0; j < playerCount; j++) {
+      TestPlayerIds[j] = Guid.NewGuid();
+    }
+    var game = GameFunctions.CreateNew(TestPlayerIds).Value;
+    for (int r = 0; r < 2; r++) {
+      for (int i = 0; i < playerCount; i++) {
+        game = GameFunctions.TurnPlayCard(game, game.PlayerIds[i], game.PlayerCards[i][r].Id).Value;
+      }
+      game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[0], playerCount).Value;
+      for (int i = 1; i < playerCount; i++) {
+        game = GameFunctions.TurnPlaceBid(game, game.PlayerIds[i], GameFunctions.SKIP_BIDDING_VALUE).Value;
+      }
+      for (int i = 0; i < playerCount; i++) {
+        game = GameFunctions.TurnFlipCard(game, game.PlayerIds[0], i).Value;
+      }
+    }
+    Assert.AreEqual(0, game.ActivePlayerIndex);
+    Assert.AreEqual(2, game.RoundBids.Count());
+    Assert.AreEqual(2, game.RoundPlayerCardIds.Count());
+    Assert.AreEqual(2, game.RoundRevealedCardPlayerIndexes.Count());
+    Assert.AreEqual(2, game.RoundWinPlayerIndexes.Count());
+    Assert.AreEqual(2, game.RoundWinPlayerIndexes.Count(x => x == 0));
+    Assert.IsTrue(game.GameComplete);
+    var extraResult = GameFunctions.TurnFlipCard(game, game.PlayerIds[0], 0);
+    Assert.IsTrue(extraResult.IsFailure);
+  }
+}
 // Include Handling player with no cards left

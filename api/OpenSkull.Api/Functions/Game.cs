@@ -26,6 +26,7 @@ public static class GameFunctions {
   private const int CARD_FLOWER_COUNT = 3;
   private const int CARD_SKULL_COUNT = 1;
   public const int SKIP_BIDDING_VALUE = -1;
+  private const int ROUNDS_TO_WIN = 2;
 
   public static Result<Game, GameCreationError> CreateNew(Guid[] playerIds) {
     if (playerIds == null || playerIds.Length > MAX_PLAYERS || playerIds.Length < MIN_PLAYERS) {
@@ -153,11 +154,15 @@ public static class GameFunctions {
       for (int i = 0; i < round.Length; i++) {
         round[i] = new List<Guid>();
       }
-      game.RoundPlayerCardIds.Add(round);
-      game.RoundBids.Add(new int[game.PlayerIds.Length]);
-      game.RoundRevealedCardPlayerIndexes.Add(new List<int>());
-      game.RoundWinPlayerIndexes.Add(playerIndex);
       game.ActivePlayerIndex = playerIndex;
+      game.RoundWinPlayerIndexes.Add(playerIndex);
+      if (game.RoundWinPlayerIndexes.Count(x => x == playerIndex) == ROUNDS_TO_WIN){
+        game.GameComplete = true;
+      } else {
+        game.RoundPlayerCardIds.Add(round);
+        game.RoundBids.Add(new int[game.PlayerIds.Length]);
+        game.RoundRevealedCardPlayerIndexes.Add(new List<int>());
+      }
     }
     return game;
   }
