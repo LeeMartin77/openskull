@@ -1,4 +1,3 @@
-using System.Linq;
 using OpenSkull.Api.DTO;
 
 namespace OpenSkull.Api.Functions;
@@ -29,6 +28,25 @@ public static class GameFunctions {
   public const int SKIP_BIDDING_VALUE = -1;
   private const int ROUNDS_TO_WIN = 2;
 
+
+  private static List<Guid>[] _GenerateRoundPlayerCardIds(int playerCount) {
+    var round = new List<Guid>[playerCount];
+
+    for (int i = 0; i < round.Length; i++) {
+      round[i] = new List<Guid>();
+    }
+
+    return round;
+  }
+
+  private static Game _IncrementActivePlayer(Game game) {
+      game.ActivePlayerIndex += 1;
+      if (game.ActivePlayerIndex > game.PlayerIds.Length - 1) {
+        game.ActivePlayerIndex = 0;
+      }
+      return game;
+  }
+
   public static Result<Game, GameCreationError> CreateNew(Guid[] playerIds) {
     if (playerIds == null || playerIds.Length > MAX_PLAYERS || playerIds.Length < MIN_PLAYERS) {
       return GameCreationError.InvalidNumberOfPlayers;
@@ -47,17 +65,11 @@ public static class GameFunctions {
       };
     }
 
-    var round = new List<Guid>[playerIds.Length];
-
-    for (int i = 0; i < round.Length; i++) {
-      round[i] = new List<Guid>();
-    }
-
     return new Game {
       Id = Guid.NewGuid(),
       PlayerIds = playerIds,
       PlayerCards = playerCards,
-      RoundPlayerCardIds = new List<List<Guid>[]>() { round },
+      RoundPlayerCardIds = new List<List<Guid>[]>() { _GenerateRoundPlayerCardIds(playerIds.Length) },
       RoundBids = new List<int[]>() { new int[playerIds.Length] },
       RoundRevealedCardPlayerIndexes = new List<List<int>>() { new List<int>() },
       RoundWinPlayerIndexes = new List<int>()
@@ -79,10 +91,7 @@ public static class GameFunctions {
     }
     game.RoundPlayerCardIds.Last()[playerIndex].Add(cardId);
     do {
-      game.ActivePlayerIndex += 1;
-      if (game.ActivePlayerIndex > game.PlayerIds.Length - 1) {
-        game.ActivePlayerIndex = 0;
-      }
+      game = _IncrementActivePlayer(game);
     } while (!game.PlayerCards[game.ActivePlayerIndex].Any(x => x.State == CardState.Hidden));
     return game;
   }
@@ -106,14 +115,18 @@ public static class GameFunctions {
     }
     game.RoundBids.Last()[playerIndex] = bid;
     do {
-      game.ActivePlayerIndex += 1;
-      if (game.ActivePlayerIndex > game.PlayerIds.Length - 1) {
-        game.ActivePlayerIndex = 0;
-      }
+      game = _IncrementActivePlayer(game);
     } while (game.RoundBids.Last()[game.ActivePlayerIndex] == -1 || !game.PlayerCards[game.ActivePlayerIndex].Any(x => x.State == CardState.Hidden));
     if (game.RoundBids.Last().Count(x => x == GameFunctions.SKIP_BIDDING_VALUE) == game.PlayerIds.Length - 1 - game.PlayerCards.Count(x => x.Count(y => y.State == CardState.Discarded) == x.Length)){
       game.ActivePlayerIndex = Array.IndexOf(game.RoundBids.Last(), game.RoundBids.Last().Max());
     }
+    return game;
+  }
+
+  private static Game _AddNewRoundOfPlay(Game game) {
+    game.RoundPlayerCardIds.Add(_GenerateRoundPlayerCardIds(game.PlayerIds.Length));
+    game.RoundBids.Add(new int[game.PlayerIds.Length]);
+    game.RoundRevealedCardPlayerIndexes.Add(new List<int>());
     return game;
   }
 
@@ -137,6 +150,7 @@ public static class GameFunctions {
     var cardIndexOfStack = game.RoundRevealedCardPlayerIndexes.Last().Count(x => x == targetPlayerIndex) - 1;
     var cardId = game.RoundPlayerCardIds.Last()[targetPlayerIndex][cardIndexOfStack];
     bool cardWasSkull = game.PlayerCards[targetPlayerIndex].First(x => x.Id == cardId).Type == CardType.Skull;
+    
     if (cardWasSkull) {
       // This is hideous, but random often is.
       int startingCards = game.PlayerCards[playerIndex].Where(x => x.State != CardState.Discarded).Count();
@@ -154,37 +168,23 @@ public static class GameFunctions {
       }
       game.ActivePlayerIndex = targetPlayerIndex;
       while (!game.PlayerCards[game.ActivePlayerIndex].Any(x => x.State == CardState.Hidden)) {
-        game.ActivePlayerIndex += 1;
-        if (game.ActivePlayerIndex > game.PlayerIds.Length - 1) {
-          game.ActivePlayerIndex = 0;
-        }
+        game = _IncrementActivePlayer(game);
       }
 
       if (game.PlayerCards.Count(x => !x.All(y => y.State == CardState.Discarded)) == 1) {
         game.GameComplete = true;
       } else {
-        var round = new List<Guid>[game.PlayerIds.Length];
-        for (int i = 0; i < round.Length; i++) {
-          round[i] = new List<Guid>();
-        }
-        game.RoundPlayerCardIds.Add(round);
-        game.RoundBids.Add(new int[game.PlayerIds.Length]);
-        game.RoundRevealedCardPlayerIndexes.Add(new List<int>());
+        game = _AddNewRoundOfPlay(game);
       }
     }
+
     if (!cardWasSkull && game.RoundBids.Last().Max() == game.RoundRevealedCardPlayerIndexes.Last().Count()) {
       game.ActivePlayerIndex = playerIndex;
       game.RoundWinPlayerIndexes.Add(playerIndex);
       if (game.RoundWinPlayerIndexes.Count(x => x == playerIndex) == ROUNDS_TO_WIN){
         game.GameComplete = true;
       } else {
-        var round = new List<Guid>[game.PlayerIds.Length];
-        for (int i = 0; i < round.Length; i++) {
-          round[i] = new List<Guid>();
-        }
-        game.RoundPlayerCardIds.Add(round);
-        game.RoundBids.Add(new int[game.PlayerIds.Length]);
-        game.RoundRevealedCardPlayerIndexes.Add(new List<int>());
+        game = _AddNewRoundOfPlay(game);
       }
     }
     return game;
