@@ -893,7 +893,7 @@ public class Integration_FullGame {
   [DataRow(4)]
   [DataRow(5)]
   [DataRow(6)]
-  public void HappyPath_FirstPlayerWinsTwice_Complete(int playerCount) {
+  public void FirstPlayerWinsTwice_Complete(int playerCount) {
       Guid[] TestPlayerIds = new Guid[playerCount];
     for (int j = 0; j < playerCount; j++) {
       TestPlayerIds[j] = Guid.NewGuid();
@@ -927,8 +927,8 @@ public class Integration_FullGame {
   [DataRow(4, 3)]
   [DataRow(5, 4)]
   [DataRow(6, 3)]
-  public void HappyPath_ArbitaryPlayerWinsTwice_Complete(int playerCount, int winner) {
-      Guid[] TestPlayerIds = new Guid[playerCount];
+  public void ArbitaryPlayerWinsTwice_Complete(int playerCount, int winner) {
+    Guid[] TestPlayerIds = new Guid[playerCount];
     for (int j = 0; j < playerCount; j++) {
       TestPlayerIds[j] = Guid.NewGuid();
     }
@@ -973,5 +973,181 @@ public class Integration_FullGame {
     var extraResult = GameFunctions.TurnFlipCard(game, game.PlayerIds[winner], 0);
     Assert.IsTrue(extraResult.IsFailure);
   }
+
+  [TestMethod]
+  public void PlayerWins_Loses_Wins_GameEnds() {
+    int playerCount = 3;
+    Guid[] TestPlayerIds = new Guid[3];
+    for (int j = 0; j < playerCount; j++) {
+      TestPlayerIds[j] = Guid.NewGuid();
+    }
+    var game = GameFunctions.CreateNew(TestPlayerIds).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[0], game.PlayerCards[0][0].Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[1], game.PlayerCards[1][0].Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[2], game.PlayerCards[2][0].Id).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[0], 1).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[1], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[2], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnFlipCard(game, TestPlayerIds[0], 0).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[0], game.PlayerCards[0].First(x => x.Type == CardType.Skull).Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[1], game.PlayerCards[1][0].Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[2], game.PlayerCards[2][0].Id).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[0], 1).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[1], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[2], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnFlipCard(game, TestPlayerIds[0], 0).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[0], game.PlayerCards[0].First(x => x.Type != CardType.Skull && x.State != CardState.Discarded).Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[1], game.PlayerCards[1][0].Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[2], game.PlayerCards[2][0].Id).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[0], 1).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[1], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[2], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnFlipCard(game, TestPlayerIds[0], 0).Value;
+    Assert.IsTrue(game.GameComplete);
+    Assert.AreEqual(1, game.PlayerCards[0].Count(x => x.State == CardState.Discarded));
+  }
+
+  [TestMethod]
+  public void OnePlayerHasLostAllCards_OtherPlayersCanCompleteGame() {
+    int playerCount = 3;
+    Guid[] TestPlayerIds = new Guid[3];
+    for (int j = 0; j < playerCount; j++) {
+      TestPlayerIds[j] = Guid.NewGuid();
+    }
+    var game = GameFunctions.CreateNew(TestPlayerIds).Value;
+    // We need to "engineer" this as it'd take a mix of bad luck and bad play
+    // By having player one only have one card and it be a skull
+    // This is essentially worst-case as it'd mean active player is cardless
+    game.PlayerCards[0] = game.PlayerCards[0].Select(x => {
+      if (x.Type != CardType.Skull) {
+        x.State = CardState.Discarded;
+      }
+      return x;
+    }).ToArray();
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[0], game.PlayerCards[0].First(x => x.Type == CardType.Skull).Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[1], game.PlayerCards[1][0].Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[2], game.PlayerCards[2][0].Id).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[0], 1).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[1], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[2], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnFlipCard(game, TestPlayerIds[0], 0).Value;
+    // "First" Player has now lost all cards - can player 1 now win alone
+    // We will just tick up on player losing all cards
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[1], game.PlayerCards[1][0].Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[2], game.PlayerCards[2][0].Id).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[1], 1).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[2], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnFlipCard(game, TestPlayerIds[1], 1).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[1], game.PlayerCards[1][0].Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[2], game.PlayerCards[2][0].Id).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[1], 1).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[2], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnFlipCard(game, TestPlayerIds[1], 1).Value;
+    Assert.IsTrue(game.GameComplete);
+  }
+
+  [TestMethod]
+  public void TwoPlayersHaveLostAllCards_OtherPlayersCanCompleteGame() {
+    int playerCount = 4;
+    Guid[] TestPlayerIds = new Guid[playerCount];
+    for (int j = 0; j < playerCount; j++) {
+      TestPlayerIds[j] = Guid.NewGuid();
+    }
+    var game = GameFunctions.CreateNew(TestPlayerIds).Value;
+    // We need to "engineer" this as it'd take a mix of bad luck and bad play
+    // By having player one only have one card and it be a skull
+    // This is essentially worst-case as it'd mean active player is cardless
+    game.PlayerCards[0] = game.PlayerCards[0].Select(x => {
+      if (x.Type != CardType.Skull) {
+        x.State = CardState.Discarded;
+      }
+      return x;
+    }).ToArray();
+    game.PlayerCards[2] = game.PlayerCards[2].Select(x => {
+      if (x.Type != CardType.Skull) {
+        x.State = CardState.Discarded;
+      }
+      return x;
+    }).ToArray();
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[0], game.PlayerCards[0].First(x => x.Type == CardType.Skull).Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[1], game.PlayerCards[1][0].Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[2], game.PlayerCards[2].First(x => x.Type == CardType.Skull).Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[3], game.PlayerCards[3][0].Id).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[0], 1).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[1], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[2], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[3], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnFlipCard(game, TestPlayerIds[0], 0).Value;
+
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[1], game.PlayerCards[1][0].Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[2], game.PlayerCards[2].First(x => x.Type == CardType.Skull).Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[3], game.PlayerCards[3][0].Id).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[1], 1).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[2], 2).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[3], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[1], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnFlipCard(game, TestPlayerIds[2], 2).Value;
+
+    // Players one and two have now lost all cards
+    // We will just tick up on player losing all cards
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[3], game.PlayerCards[3][0].Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[1], game.PlayerCards[1][0].Id).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[3], 1).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[1], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnFlipCard(game, TestPlayerIds[3], 3).Value;
+
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[3], game.PlayerCards[3][0].Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[1], game.PlayerCards[1][0].Id).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[3], 1).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[1], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnFlipCard(game, TestPlayerIds[3], 3).Value;
+    Assert.IsTrue(game.GameComplete);
+  }
+
+  [TestMethod]
+  public void OnlyOnePlayerLeft_GameIsComplete() {
+    int playerCount = 3;
+    Guid[] TestPlayerIds = new Guid[3];
+    for (int j = 0; j < playerCount; j++) {
+      TestPlayerIds[j] = Guid.NewGuid();
+    }
+    var game = GameFunctions.CreateNew(TestPlayerIds).Value;
+    // We need to "engineer" this as it'd take a mix of bad luck and bad play
+    // By having player one only have one card and it be a skull
+    // This is essentially worst-case as it'd mean active player is cardless
+    game.PlayerCards[0] = game.PlayerCards[0].Select(x => {
+      if (x.Type != CardType.Skull) {
+        x.State = CardState.Discarded;
+      }
+      return x;
+    }).ToArray();
+    game.PlayerCards[1] = game.PlayerCards[1].Select(x => {
+      if (x.Type != CardType.Skull) {
+        x.State = CardState.Discarded;
+      }
+      return x;
+    }).ToArray();
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[0], game.PlayerCards[0].First(x => x.Type == CardType.Skull).Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[1], game.PlayerCards[1].First(x => x.Type == CardType.Skull).Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[2], game.PlayerCards[2][0].Id).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[0], 1).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[1], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[2], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnFlipCard(game, TestPlayerIds[0], 0).Value;
+    // "First" Player has now lost all cards - can player 1 now win alone
+    // We will just tick up on player losing all cards
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[1], game.PlayerCards[1].First(x => x.Type == CardType.Skull).Id).Value;
+    game = GameFunctions.TurnPlayCard(game, TestPlayerIds[2], game.PlayerCards[2][0].Id).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[1], 1).Value;
+    game = GameFunctions.TurnPlaceBid(game, TestPlayerIds[2], GameFunctions.SKIP_BIDDING_VALUE).Value;
+    game = GameFunctions.TurnFlipCard(game, TestPlayerIds[1], 1).Value;
+    
+    Assert.IsTrue(game.GameComplete);
+
+    var extraTurn = GameFunctions.TurnFlipCard(game, TestPlayerIds[1], 2);
+    Assert.IsTrue(extraTurn.IsFailure);
+    
+    var extraTurn2 = GameFunctions.TurnFlipCard(game, TestPlayerIds[2], 2);
+    Assert.IsTrue(extraTurn2.IsFailure);
+  }
 }
-// Include Handling player with no cards left

@@ -17,7 +17,8 @@ public enum GameTurnError {
   MinBidNotMet,
   BiddingHasFinished,
   MustRevealAllOwnCardsFirst,
-  NoCardsLeftToFlip
+  NoCardsLeftToFlip,
+  GameHasFinished
 }
 
 public static class GameFunctions {
@@ -77,10 +78,12 @@ public static class GameFunctions {
       return GameTurnError.InvalidCardId;
     }
     game.RoundPlayerCardIds.Last()[playerIndex].Add(cardId);
-    game.ActivePlayerIndex += 1;
-    if (game.ActivePlayerIndex > game.PlayerIds.Length - 1) {
-      game.ActivePlayerIndex = 0;
-    }
+    do {
+      game.ActivePlayerIndex += 1;
+      if (game.ActivePlayerIndex > game.PlayerIds.Length - 1) {
+        game.ActivePlayerIndex = 0;
+      }
+    } while (!game.PlayerCards[game.ActivePlayerIndex].Any(x => x.State == CardState.Hidden));
     return game;
   }
   
@@ -89,7 +92,7 @@ public static class GameFunctions {
     if (playerIndex == -1 || playerIndex != game.ActivePlayerIndex) {
       return GameTurnError.InvalidPlayerId;
     }
-    if (!game.RoundPlayerCardIds.Last().All(x => x.Count() > 0)) {
+    if (game.RoundPlayerCardIds.Last().Count(x => x.Count() > 0) < game.PlayerIds.Length - game.PlayerCards.Count(y => y.All(z => z.State == CardState.Discarded))) {
       return GameTurnError.CannotBidYet;
     }
     if (bid > game.RoundPlayerCardIds.Last().Sum(x => x.Count())) {
@@ -102,24 +105,22 @@ public static class GameFunctions {
       return GameTurnError.BiddingHasFinished;
     }
     game.RoundBids.Last()[playerIndex] = bid;
-    game.ActivePlayerIndex += 1;
-    if (game.ActivePlayerIndex > game.PlayerIds.Length - 1) {
-      game.ActivePlayerIndex = 0;
-    }
-    while (game.RoundBids.Last()[game.ActivePlayerIndex] == -1) {
+    do {
       game.ActivePlayerIndex += 1;
       if (game.ActivePlayerIndex > game.PlayerIds.Length - 1) {
         game.ActivePlayerIndex = 0;
       }
-    }
-    // TODO: Need an explicit unit test for this
-    if (game.RoundBids.Last().Count(x => x == GameFunctions.SKIP_BIDDING_VALUE) == game.PlayerIds.Count() - 1){
+    } while (game.RoundBids.Last()[game.ActivePlayerIndex] == -1 || !game.PlayerCards[game.ActivePlayerIndex].Any(x => x.State == CardState.Hidden));
+    if (game.RoundBids.Last().Count(x => x == GameFunctions.SKIP_BIDDING_VALUE) == game.PlayerIds.Length - 1 - game.PlayerCards.Count(x => x.Count(y => y.State == CardState.Discarded) == x.Length)){
       game.ActivePlayerIndex = Array.IndexOf(game.RoundBids.Last(), game.RoundBids.Last().Max());
     }
     return game;
   }
 
   public static Result<Game, GameTurnError> TurnFlipCard(Game game, Guid playerId, int targetPlayerIndex) {
+    if (game.GameComplete) {
+      return GameTurnError.GameHasFinished;
+    }
     int playerIndex = Array.IndexOf(game.PlayerIds, playerId);
     if (playerIndex == -1 || playerIndex != game.ActivePlayerIndex) {
       return GameTurnError.InvalidPlayerId;
@@ -137,32 +138,50 @@ public static class GameFunctions {
     var cardId = game.RoundPlayerCardIds.Last()[targetPlayerIndex][cardIndexOfStack];
     bool cardWasSkull = game.PlayerCards[targetPlayerIndex].First(x => x.Id == cardId).Type == CardType.Skull;
     if (cardWasSkull) {
-      var round = new List<Guid>[game.PlayerIds.Length];
-      for (int i = 0; i < round.Length; i++) {
-        round[i] = new List<Guid>();
-      }
-      game.RoundPlayerCardIds.Add(round);
-      game.RoundBids.Add(new int[game.PlayerIds.Length]);
-      game.RoundRevealedCardPlayerIndexes.Add(new List<int>());
       // This is hideous, but random often is.
       int startingCards = game.PlayerCards[playerIndex].Where(x => x.State != CardState.Discarded).Count();
-      do { 
-        int cardToLose = new Random().Next(0, game.PlayerCards[playerIndex].Count() - 1); 
-        game.PlayerCards[playerIndex][cardToLose].State = CardState.Discarded;
+      if (startingCards > 1) {
+        do { 
+          int cardToLose = new Random().Next(0, game.PlayerCards[playerIndex].Count() - 1); 
+          game.PlayerCards[playerIndex][cardToLose].State = CardState.Discarded;
+        }
+        while (startingCards == game.PlayerCards[playerIndex].Where(x => x.State != CardState.Discarded).Count());
+      } else {
+        game.PlayerCards[playerIndex] = game.PlayerCards[playerIndex].Select(x => {
+          x.State = CardState.Discarded;
+          return x;
+        }).ToArray();
       }
-      while (startingCards == game.PlayerCards[playerIndex].Where(x => x.State != CardState.Discarded).Count());
       game.ActivePlayerIndex = targetPlayerIndex;
+      while (!game.PlayerCards[game.ActivePlayerIndex].Any(x => x.State == CardState.Hidden)) {
+        game.ActivePlayerIndex += 1;
+        if (game.ActivePlayerIndex > game.PlayerIds.Length - 1) {
+          game.ActivePlayerIndex = 0;
+        }
+      }
+
+      if (game.PlayerCards.Count(x => !x.All(y => y.State == CardState.Discarded)) == 1) {
+        game.GameComplete = true;
+      } else {
+        var round = new List<Guid>[game.PlayerIds.Length];
+        for (int i = 0; i < round.Length; i++) {
+          round[i] = new List<Guid>();
+        }
+        game.RoundPlayerCardIds.Add(round);
+        game.RoundBids.Add(new int[game.PlayerIds.Length]);
+        game.RoundRevealedCardPlayerIndexes.Add(new List<int>());
+      }
     }
     if (!cardWasSkull && game.RoundBids.Last().Max() == game.RoundRevealedCardPlayerIndexes.Last().Count()) {
-      var round = new List<Guid>[game.PlayerIds.Length];
-      for (int i = 0; i < round.Length; i++) {
-        round[i] = new List<Guid>();
-      }
       game.ActivePlayerIndex = playerIndex;
       game.RoundWinPlayerIndexes.Add(playerIndex);
       if (game.RoundWinPlayerIndexes.Count(x => x == playerIndex) == ROUNDS_TO_WIN){
         game.GameComplete = true;
       } else {
+        var round = new List<Guid>[game.PlayerIds.Length];
+        for (int i = 0; i < round.Length; i++) {
+          round[i] = new List<Guid>();
+        }
         game.RoundPlayerCardIds.Add(round);
         game.RoundBids.Add(new int[game.PlayerIds.Length]);
         game.RoundRevealedCardPlayerIndexes.Add(new List<int>());
