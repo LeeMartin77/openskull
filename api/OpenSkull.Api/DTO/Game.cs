@@ -18,7 +18,6 @@ public record struct Card {
 }
 
 public record struct Game {
-  public Guid Id;
   public Guid[] PlayerIds;
   public Card[][] PlayerCards;
   public int ActivePlayerIndex;

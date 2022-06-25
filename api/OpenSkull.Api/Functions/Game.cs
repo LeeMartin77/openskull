@@ -66,7 +66,6 @@ public static class GameFunctions {
     }
 
     return new Game {
-      Id = Guid.NewGuid(),
       PlayerIds = playerIds,
       PlayerCards = playerCards,
       RoundPlayerCardIds = new List<List<Guid>[]>() { _GenerateRoundPlayerCardIds(playerIds.Length) },
