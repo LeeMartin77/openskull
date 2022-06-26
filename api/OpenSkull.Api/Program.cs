@@ -1,6 +1,14 @@
+using OpenSkull.Api.Storage;
+using OpenSkull.Api.Functions;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddSingleton<IGameStorage, GameMemoryStorage>();
+builder.Services.AddSingleton<GameCreateNew>(GameFunctions.CreateNew);
+builder.Services.AddSingleton<TurnPlayCard>(GameFunctions.TurnPlayCard);
+builder.Services.AddSingleton<TurnPlaceBid>(GameFunctions.TurnPlaceBid);
+builder.Services.AddSingleton<TurnFlipCard>(GameFunctions.TurnFlipCard);
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

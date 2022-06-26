@@ -20,6 +20,16 @@ public enum GameTurnError {
   GameHasFinished
 }
 
+
+public delegate Result<Game, GameCreationError> GameCreateNew(Guid[] playerIds);
+
+public delegate Result<Game, GameTurnError> TurnPlayCard(Game game, Guid playerId, Guid cardId);
+
+public delegate Result<Game, GameTurnError> TurnPlaceBid(Game game, Guid playerId, int bid);
+
+public delegate Result<Game, GameTurnError> TurnFlipCard(Game game, Guid playerId, int targetPlayerIndex);
+
+
 public static class GameFunctions {
   private const int MAX_PLAYERS = 6;
   private const int MIN_PLAYERS = 3;
