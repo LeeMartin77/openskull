@@ -7,7 +7,7 @@ public enum CardType {
 }
 
 public enum CardState {
-  Hidden,
+  InPlay,
   Discarded
 }
 

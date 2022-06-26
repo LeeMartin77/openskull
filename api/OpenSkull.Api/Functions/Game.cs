@@ -58,10 +58,10 @@ public static class GameFunctions {
     Card[][] playerTurn = new Card[playerIds.Length][];
     for (int i = 0; i < playerCards.Length; i++) {
       playerCards[i] = new Card[CARD_FLOWER_COUNT + CARD_SKULL_COUNT] {
-        new Card { Id = Guid.NewGuid(), Type = CardType.Flower, State = CardState.Hidden },
-        new Card { Id = Guid.NewGuid(), Type = CardType.Flower, State = CardState.Hidden },
-        new Card { Id = Guid.NewGuid(), Type = CardType.Flower, State = CardState.Hidden },
-        new Card { Id = Guid.NewGuid(), Type = CardType.Skull, State = CardState.Hidden },
+        new Card { Id = Guid.NewGuid(), Type = CardType.Flower, State = CardState.InPlay },
+        new Card { Id = Guid.NewGuid(), Type = CardType.Flower, State = CardState.InPlay },
+        new Card { Id = Guid.NewGuid(), Type = CardType.Flower, State = CardState.InPlay },
+        new Card { Id = Guid.NewGuid(), Type = CardType.Skull, State = CardState.InPlay },
       };
     }
 
@@ -84,14 +84,14 @@ public static class GameFunctions {
       return GameTurnError.CannotPlayCardAfterBid;
     }
     if (!game.PlayerCards[playerIndex].Select(x => x.Id).Contains(cardId)
-      || game.PlayerCards[playerIndex].First(x => x.Id == cardId).State != CardState.Hidden
+      || game.PlayerCards[playerIndex].First(x => x.Id == cardId).State != CardState.InPlay
       || game.RoundPlayerCardIds.Last()[playerIndex].Contains(cardId)) {
       return GameTurnError.InvalidCardId;
     }
     game.RoundPlayerCardIds.Last()[playerIndex].Add(cardId);
     do {
       game = _IncrementActivePlayer(game);
-    } while (!game.PlayerCards[game.ActivePlayerIndex].Any(x => x.State == CardState.Hidden));
+    } while (!game.PlayerCards[game.ActivePlayerIndex].Any(x => x.State == CardState.InPlay));
     return game;
   }
   
@@ -115,7 +115,7 @@ public static class GameFunctions {
     game.RoundBids.Last()[playerIndex] = bid;
     do {
       game = _IncrementActivePlayer(game);
-    } while (game.RoundBids.Last()[game.ActivePlayerIndex] == -1 || !game.PlayerCards[game.ActivePlayerIndex].Any(x => x.State == CardState.Hidden));
+    } while (game.RoundBids.Last()[game.ActivePlayerIndex] == -1 || !game.PlayerCards[game.ActivePlayerIndex].Any(x => x.State == CardState.InPlay));
     if (game.RoundBids.Last().Count(x => x == GameFunctions.SKIP_BIDDING_VALUE) == game.PlayerIds.Length - 1 - game.PlayerCards.Count(x => x.Count(y => y.State == CardState.Discarded) == x.Length)){
       game.ActivePlayerIndex = Array.IndexOf(game.RoundBids.Last(), game.RoundBids.Last().Max());
     }
@@ -166,7 +166,7 @@ public static class GameFunctions {
         }).ToArray();
       }
       game.ActivePlayerIndex = targetPlayerIndex;
-      while (!game.PlayerCards[game.ActivePlayerIndex].Any(x => x.State == CardState.Hidden)) {
+      while (!game.PlayerCards[game.ActivePlayerIndex].Any(x => x.State == CardState.InPlay)) {
         game = _IncrementActivePlayer(game);
       }
 

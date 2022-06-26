@@ -77,7 +77,7 @@ public class GameFunction_CreateNew_Tests
           Assert.AreEqual(1, playerCards.Count(x => x.Type == CardType.Skull));
           Assert.AreEqual(3, playerCards.Count(x => x.Type == CardType.Flower));
           Assert.AreEqual(playerCards.Length, playerCards.Select(x => x.Id).Distinct().Count());
-          Assert.AreEqual(playerCards.Length, playerCards.Where(x => x.State == CardState.Hidden).Count());
+          Assert.AreEqual(playerCards.Length, playerCards.Where(x => x.State == CardState.InPlay).Count());
         }
         Assert.AreEqual(game.PlayerCards.Length * 4, game.PlayerCards.SelectMany(x => x.Select(y => y.Id)).Distinct().Count());
       });
