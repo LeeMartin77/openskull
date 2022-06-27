@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 using OpenSkull.Api.DTO;
 using OpenSkull.Api.Functions;
 using OpenSkull.Api.Storage;
@@ -34,11 +35,20 @@ public class GameController : ControllerBase
 
     [Route("games/{gameId}")]
     [HttpGet]
-    public async Task<ActionResult<PublicGame>> GetGame(Guid gameId) {
+    public async Task<ActionResult<IGameView>> GetGame(Guid gameId) {
         var gameResult = await _gameStorage.GetGameById(gameId);
         if (gameResult.IsFailure && gameResult.Error == StorageError.NotFound) {
             return new NotFoundResult();
         }
-        throw new NotImplementedException();
+        StringValues rawPlayerId;
+        Guid playerId;
+        if (Request != null && Request.Headers != null &&
+            Request.Headers.TryGetValue("X-OpenSkull-UserId", out rawPlayerId) &&
+            Guid.TryParse(rawPlayerId.ToString(), out playerId) &&
+            gameResult.Value.Game.PlayerIds.Contains(playerId)
+            ) {
+            return new PlayerGame(playerId, gameResult.Value.Game);
+        }
+        return new PublicGame(gameResult.Value.Game);
     }
 }

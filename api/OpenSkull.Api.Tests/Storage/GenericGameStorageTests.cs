@@ -33,11 +33,11 @@ public class GenericGameStorageTests {
 
     // Act
     var stored = (await storage.StoreNewGame(game)).Value;
-    var retreived = await storage.GetGameById(stored.GameId);
+    var retreived = await storage.GetGameById(stored.Id);
 
     // Assert
     Assert.IsTrue(retreived.IsSuccess);
-    Assert.AreEqual(stored.GameId, retreived.Value.GameId);
+    Assert.AreEqual(stored.Id, retreived.Value.Id);
     Assert.AreEqual(stored.Game, retreived.Value.Game);
   }
 
@@ -75,7 +75,7 @@ public class GenericGameStorageTests {
 
     // Assert
     Assert.IsTrue(updated.IsSuccess);
-    Assert.AreEqual(stored.GameId, updated.Value.GameId);
+    Assert.AreEqual(stored.Id, updated.Value.Id);
     Assert.AreNotEqual(stored.VersionTag, updated.Value.VersionTag);
     Assert.AreNotEqual(stored.Game, updated.Value.Game);
     Assert.AreEqual(updateInput.Game, updated.Value.Game);
@@ -92,9 +92,9 @@ public class GenericGameStorageTests {
 
     // Act
     var stored = (await storage.StoreNewGame(game)).Value;
-    var updateInput = stored with { Game = stored.Game with { ActivePlayerIndex = 9999 }, GameId = Guid.NewGuid() };
+    var updateInput = stored with { Game = stored.Game with { ActivePlayerIndex = 9999 }, Id = Guid.NewGuid() };
     var updated = await storage.UpdateGame(updateInput);
-    var storedAfterUpdate = (await storage.GetGameById(stored.GameId)).Value;
+    var storedAfterUpdate = (await storage.GetGameById(stored.Id)).Value;
 
 
     // Assert
@@ -119,7 +119,7 @@ public class GenericGameStorageTests {
       VersionTag = Guid.NewGuid().ToString() 
       };
     var updated = await storage.UpdateGame(updateInput);
-    var storedAfterUpdate = (await storage.GetGameById(stored.GameId)).Value;
+    var storedAfterUpdate = (await storage.GetGameById(stored.Id)).Value;
 
 
     // Assert

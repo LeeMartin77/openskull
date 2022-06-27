@@ -3,7 +3,7 @@ using OpenSkull.Api.DTO;
 namespace OpenSkull.Api.Storage;
 
 public record struct GameStorage {
-  public Guid GameId;
+  public Guid Id;
   public string VersionTag;
   public Game Game;
 }
@@ -25,7 +25,7 @@ public class GameMemoryStorage : IGameStorage {
   public Task<Result<GameStorage, StorageError>> StoreNewGame(Game game)
   {
     var newGameStorage = new GameStorage {
-      GameId = Guid.NewGuid(),
+      Id = Guid.NewGuid(),
       VersionTag = Guid.NewGuid().ToString(),
       Game = game
     };
@@ -35,7 +35,7 @@ public class GameMemoryStorage : IGameStorage {
 
   public Task<Result<GameStorage, StorageError>> GetGameById(Guid gameId)
   {
-    var gameIndex = _gameStorage.FindIndex(x => x.GameId == gameId);
+    var gameIndex = _gameStorage.FindIndex(x => x.Id == gameId);
     if (gameIndex == -1) {
       return Task.FromResult<Result<GameStorage, StorageError>>(StorageError.NotFound);
     }
@@ -44,7 +44,7 @@ public class GameMemoryStorage : IGameStorage {
 
   public Task<Result<GameStorage, StorageError>> UpdateGame(GameStorage gameStorage)
   {
-    var gameIndex = _gameStorage.FindIndex(x => x.GameId == gameStorage.GameId);
+    var gameIndex = _gameStorage.FindIndex(x => x.Id == gameStorage.Id);
     if (gameIndex == -1) {
       return Task.FromResult<Result<GameStorage, StorageError>>(StorageError.NotFound);
     }

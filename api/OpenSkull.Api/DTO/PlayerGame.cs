@@ -1,6 +1,6 @@
 namespace OpenSkull.Api.DTO;
 
-public record class PlayerGame : PublicGame {
+public record class PlayerGame : PublicGame, IGameView {
   public Guid PlayerId;
   public int PlayerIndex;
   public Card[] PlayerCards;
