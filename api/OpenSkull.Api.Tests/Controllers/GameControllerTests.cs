@@ -12,7 +12,7 @@ namespace OpenSkull.Api.Tests;
 [TestClass]
 public class GameControllerTests {
   [TestMethod]
-  public async Task GameNotFound_Returns404(){
+  public async Task GetGame_GameNotFound_Returns404(){
     // Arrange
     var testGameId = Guid.NewGuid();
     var mockGameStorage = new Mock<IGameStorage>();
@@ -35,7 +35,7 @@ public class GameControllerTests {
   }
 
   [TestMethod]
-  public async Task GameFound_NoUserId_ReturnsPublicGame(){
+  public async Task GetGame_GameFound_NoUserId_ReturnsPublicGame(){
     // Arrange
     var testGameId = Guid.NewGuid();
     var mockGameStorage = new Mock<IGameStorage>();
@@ -63,7 +63,7 @@ public class GameControllerTests {
   }
   
   [TestMethod]
-  public async Task GameFound_UserIdNotInGame_ReturnsPublicGame(){
+  public async Task GetGame_GameFound_UserIdNotInGame_ReturnsPublicGame(){
     // Arrange
     var testGameId = Guid.NewGuid();
     var mockGameStorage = new Mock<IGameStorage>();
@@ -100,7 +100,7 @@ public class GameControllerTests {
   }
 
   [TestMethod]
-  public async Task GameFound_UserIdInGame_ReturnsPlayerGame(){
+  public async Task GetGame_GameFound_UserIdInGame_ReturnsPlayerGame(){
     // Arrange
     var testGameId = Guid.NewGuid();
     var mockGameStorage = new Mock<IGameStorage>();
@@ -137,5 +137,135 @@ public class GameControllerTests {
     var gameValue = result.Value! as PlayerGame;
     Assert.AreEqual(1, gameValue!.PlayerIndex);
     Assert.AreEqual(testGame.PlayerIds[1], gameValue!.PlayerId);
+  }
+
+  [TestMethod]
+  public async Task PlayGameTurn_PlayerIdNotSet_Returns400(){
+    // Arrange
+    var testGameId = Guid.NewGuid();
+    var mockGameStorage = new Mock<IGameStorage>();
+    
+    var httpContext = new DefaultHttpContext();
+    
+    var gameController = new GameController(
+      new Mock<ILogger<GameController>>().Object,
+      mockGameStorage.Object,
+      new Mock<GameCreateNew>().Object,
+      new Mock<TurnPlayCard>().Object,
+      new Mock<TurnPlaceBid>().Object,
+      new Mock<TurnFlipCard>().Object
+    ){ 
+      ControllerContext = new ControllerContext()
+      {
+          HttpContext = httpContext
+      }
+    };
+
+    // Act
+    var result = await gameController.PlayGameTurn(testGameId);
+
+    // Assert
+    Assert.AreEqual(typeof(BadRequestResult), result.Result!.GetType());
+    mockGameStorage.Verify(m => m.GetGameById(testGameId), Times.Never);
+  }
+
+  [TestMethod]
+  public async Task PlayGameTurn_BodyIsNull_Returns400(){
+    // Arrange
+    var testGameId = Guid.NewGuid();
+    var mockGameStorage = new Mock<IGameStorage>();
+    
+    var httpContext = new DefaultHttpContext();
+    httpContext.Request.Headers["X-OpenSkull-UserId"] = Guid.NewGuid().ToString();
+
+    var gameController = new GameController(
+      new Mock<ILogger<GameController>>().Object,
+      mockGameStorage.Object,
+      new Mock<GameCreateNew>().Object,
+      new Mock<TurnPlayCard>().Object,
+      new Mock<TurnPlaceBid>().Object,
+      new Mock<TurnFlipCard>().Object
+    ){ 
+      ControllerContext = new ControllerContext()
+      {
+          HttpContext = httpContext
+      }
+    };
+
+    // Act
+    var result = await gameController.PlayGameTurn(testGameId, null);
+
+    // Assert
+    Assert.AreEqual(typeof(BadRequestResult), result.Result!.GetType());
+    mockGameStorage.Verify(m => m.GetGameById(testGameId), Times.Never);
+  }
+
+  [TestMethod]
+  public async Task PlayGameTurn_GameNotFound_Returns404(){
+    // Arrange
+    var testGameId = Guid.NewGuid();
+    var mockGameStorage = new Mock<IGameStorage>();
+    mockGameStorage.Setup(x => x.GetGameById(testGameId)).ReturnsAsync(StorageError.NotFound);
+
+    var httpContext = new DefaultHttpContext();
+    httpContext.Request.Headers["X-OpenSkull-UserId"] = Guid.NewGuid().ToString();
+
+    var gameController = new GameController(
+      new Mock<ILogger<GameController>>().Object,
+      mockGameStorage.Object,
+      new Mock<GameCreateNew>().Object,
+      new Mock<TurnPlayCard>().Object,
+      new Mock<TurnPlaceBid>().Object,
+      new Mock<TurnFlipCard>().Object
+    ){ 
+      ControllerContext = new ControllerContext()
+      {
+          HttpContext = httpContext
+      }
+    };
+
+    // Act
+    var result = await gameController.PlayGameTurn(testGameId, new PlayCardTurnInputs{ Action = "Something" });
+
+    // Assert
+    Assert.AreEqual(typeof(NotFoundResult), result.Result!.GetType());
+    mockGameStorage.Verify(m => m.GetGameById(testGameId), Times.Once);
+  }
+
+  [TestMethod]
+  public async Task PlayGameTurn_PlayerIdNotInGame_Returns403(){
+    // Arrange
+    var testGameId = Guid.NewGuid();
+    var mockGameStorage = new Mock<IGameStorage>();
+    var testGame = GameFunctions.CreateNew(new Guid[3] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() }).Value;
+    var testGameStorage = new GameStorage {
+      Game = testGame,
+      Id = testGameId
+    };
+    mockGameStorage.Setup(x => x.GetGameById(testGameId)).ReturnsAsync(testGameStorage);
+
+    var httpContext = new DefaultHttpContext();
+    httpContext.Request.Headers["X-OpenSkull-UserId"] = Guid.NewGuid().ToString();
+
+    var gameController = new GameController(
+      new Mock<ILogger<GameController>>().Object,
+      mockGameStorage.Object,
+      new Mock<GameCreateNew>().Object,
+      new Mock<TurnPlayCard>().Object,
+      new Mock<TurnPlaceBid>().Object,
+      new Mock<TurnFlipCard>().Object
+    ){ 
+      ControllerContext = new ControllerContext()
+      {
+          HttpContext = httpContext
+      }
+    };
+
+    // Act
+    var result = await gameController.PlayGameTurn(testGameId, new PlayCardTurnInputs{ Action = "Something" });
+
+    // Assert
+    Assert.AreEqual(typeof(ForbidResult), result.Result!.GetType());
+    mockGameStorage.Verify(m => m.GetGameById(testGameId), Times.Once);
   }
 }

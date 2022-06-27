@@ -6,6 +6,29 @@ using OpenSkull.Api.Storage;
 
 namespace OpenSkull.Api.Controllers;
 
+public interface IGameTurnInputs {
+    string Action { get; set; }
+}
+
+public record struct PlayCardTurnInputs : IGameTurnInputs
+{
+  public string Action { get; set; }
+  public Guid CardId { get; set; }
+}
+
+public record struct PlaceBidTurnInputs : IGameTurnInputs
+{
+  public string Action { get; set; }
+  public int Bid { get; set; }
+}
+
+public record struct FlipCardTurnInputs : IGameTurnInputs
+{
+  public string Action { get; set; }
+  public int TargetPlayerIndex { get; set; }
+}
+
+
 [ApiController]
 public class GameController : ControllerBase
 {
@@ -50,5 +73,33 @@ public class GameController : ControllerBase
             return new PlayerGame(playerId, gameResult.Value.Game);
         }
         return new PublicGame(gameResult.Value.Game);
+    }
+
+    [Route("games/{gameId}/turn")]
+    [HttpPost]
+    public async Task<ActionResult<IGameView>> PlayGameTurn(Guid gameId, [FromBody] IGameTurnInputs? inputs = null) {
+        
+        StringValues rawPlayerId;
+        Guid playerId;
+        if (Request == null || Request.Headers == null ||
+            !Request.Headers.TryGetValue("X-OpenSkull-UserId", out rawPlayerId) ||
+            !Guid.TryParse(rawPlayerId.ToString(), out playerId) ||
+            inputs == null
+            ) {
+            return new BadRequestResult();
+        }
+        
+        var gameResult = await _gameStorage.GetGameById(gameId);
+        if (gameResult.IsFailure && gameResult.Error == StorageError.NotFound) {
+            return new NotFoundResult();
+        }
+
+        var game = gameResult.Value.Game;
+
+        if (!game.PlayerIds.Contains(playerId)) {
+            return new ForbidResult();
+        }
+
+        throw new NotImplementedException();
     }
 }
