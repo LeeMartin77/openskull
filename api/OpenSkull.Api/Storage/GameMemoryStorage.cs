@@ -14,6 +14,14 @@ public enum StorageError {
   VersionMismatch
 }
 
+public static class StorageErrorMessages {
+  public static string[] StringValues = new string[] {
+    "Can't Store Game (System Error)",
+    "Game Not Found",
+    "Version Mismatch (Item already updated)"
+  };
+}
+
 public interface IGameStorage {
   Task<Result<GameStorage, StorageError>> StoreNewGame(Game game);
   Task<Result<GameStorage, StorageError>> GetGameById(Guid gameId);
@@ -22,6 +30,7 @@ public interface IGameStorage {
 
 public class GameMemoryStorage : IGameStorage {
   private List<GameStorage> _gameStorage = new List<GameStorage>();
+
   public Task<Result<GameStorage, StorageError>> StoreNewGame(Game game)
   {
     var newGameStorage = new GameStorage {

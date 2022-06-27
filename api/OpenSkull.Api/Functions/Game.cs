@@ -7,6 +7,7 @@ public enum GameCreationError {
   DuplicatePlayer
 }
 
+
 public enum GameTurnError {
   InvalidPlayerId,
   InvalidCardId,
@@ -38,6 +39,19 @@ public static class GameFunctions {
   public const int SKIP_BIDDING_VALUE = -1;
   private const int ROUNDS_TO_WIN = 2;
 
+
+  public static string[] GameTurnErrorMessage = new string[] {
+    "Invalid Player Id",
+    "Invalid Card Id",
+    "Cannot Bid Yet",
+    "Cannot Play Card After Bid",
+    "Max Bid Exceeded",
+    "Min Bid NotMet",
+    "Bidding Has Finished",
+    "Must Reveal All Own Cards First",
+    "No Cards Left To Flip",
+    "Game Has Finished"
+  };
 
   private static List<Guid>[] _GenerateRoundPlayerCardIds(int playerCount) {
     var round = new List<Guid>[playerCount];

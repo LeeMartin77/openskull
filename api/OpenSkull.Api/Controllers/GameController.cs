@@ -10,21 +10,21 @@ public interface IGameTurnInputs {
     string Action { get; set; }
 }
 
-public record struct PlayCardTurnInputs : IGameTurnInputs
+public record class PlayCardTurnInputs : IGameTurnInputs
 {
-  public string Action { get; set; }
+  public string Action { get; set; } = "Card";
   public Guid CardId { get; set; }
 }
 
-public record struct PlaceBidTurnInputs : IGameTurnInputs
+public record class PlaceBidTurnInputs : IGameTurnInputs
 {
-  public string Action { get; set; }
+  public string Action { get; set; } = "Bid";
   public int Bid { get; set; }
 }
 
-public record struct FlipCardTurnInputs : IGameTurnInputs
+public record class FlipCardTurnInputs : IGameTurnInputs
 {
-  public string Action { get; set; }
+  public string Action { get; set; } = "Flip";
   public int TargetPlayerIndex { get; set; }
 }
 
@@ -38,6 +38,8 @@ public class GameController : ControllerBase
     private readonly TurnPlayCard _turnPlayCard;
     private readonly TurnPlaceBid _turnPlaceBid;
     private readonly TurnFlipCard _turnFlipCard;
+
+    public static string[] ActionStrings = new string[3] { "Card", "Bid", "Flip" };
 
     public GameController(
         ILogger<GameController> logger,
@@ -84,10 +86,13 @@ public class GameController : ControllerBase
         if (Request == null || Request.Headers == null ||
             !Request.Headers.TryGetValue("X-OpenSkull-UserId", out rawPlayerId) ||
             !Guid.TryParse(rawPlayerId.ToString(), out playerId) ||
-            inputs == null
+            inputs == null ||
+            !ActionStrings.Contains(inputs.Action)
             ) {
             return new BadRequestResult();
         }
+
+        // TODO: ValidateFieldsOnActions
         
         var gameResult = await _gameStorage.GetGameById(gameId);
         if (gameResult.IsFailure && gameResult.Error == StorageError.NotFound) {
@@ -100,6 +105,34 @@ public class GameController : ControllerBase
             return new ForbidResult();
         }
 
-        throw new NotImplementedException();
+        Result<Game, GameTurnError> postActionResult;
+        // Want to use a switch statement here somehow
+        // probably want an enum parsing thing
+        if (inputs.Action == GameController.ActionStrings[0]) {
+            postActionResult = _turnPlayCard(game, playerId, (inputs as PlayCardTurnInputs)!.CardId);
+        } else {
+            throw new NotImplementedException();
+        }
+        if (postActionResult.IsFailure) {
+            return new BadRequestObjectResult(GameFunctions.GameTurnErrorMessage[(int)postActionResult.Error]);
+        }
+        var storageResult = await _gameStorage.UpdateGame(gameResult.Value with {
+            Game = postActionResult.Value
+        });
+        if (storageResult.IsFailure) {
+            switch (storageResult.Error) {
+                case StorageError.CantStore:
+                    // There is probably a nicer way of doing this
+                    // But I can't find it right now
+                    var response = new ObjectResult(StorageErrorMessages.StringValues[(int)storageResult.Error]);
+                    response.StatusCode = 500;
+                    return response;
+                case StorageError.VersionMismatch:
+                    return new ConflictObjectResult(StorageErrorMessages.StringValues[(int)storageResult.Error]);
+                default: 
+                    throw new NotImplementedException();
+            }
+        }
+        return new PlayerGame(playerId, storageResult.Value.Game);
     }
 }
