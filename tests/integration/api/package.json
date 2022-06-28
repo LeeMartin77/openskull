@@ -1,0 +1,15 @@
+{
+  "name": "openskull-tests-integration-api",
+  "version": "1.0.0",
+  "description": "Tests for testing a running openskull api",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "axios": "^0.27.2",
+    "jest": "^28.1.1"
+  }
+}
