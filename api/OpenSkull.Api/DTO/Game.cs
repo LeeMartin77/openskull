@@ -12,9 +12,9 @@ public enum CardState {
 }
 
 public record struct Card {
-  public Guid Id;
-  public CardType Type;
-  public CardState State;
+  public Guid Id { get; set; }
+  public CardType Type { get; set; }
+  public CardState State { get; set; }
 }
 
 public record struct Game {
