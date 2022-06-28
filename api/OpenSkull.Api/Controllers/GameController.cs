@@ -48,6 +48,25 @@ public class GameController : ControllerBase
         _turnFlipCard = tfc;
     }
 
+    public class TestGameInput {
+        public List<Guid>? PlayerIds { get; set; }
+    }
+
+    // No tests for this, as this is to enable testing in itself
+    [Route("games/createtestgame")]
+    [HttpPost]
+    public async Task<ActionResult<Guid>> CreateTestGame([FromBody] TestGameInput input) {
+        var result = _gameCreateNew(input.PlayerIds != null ? input.PlayerIds.ToArray() : new Guid[0]);
+        if (result.IsFailure) {
+            return BadRequest();
+        }
+        var storageResult = await _gameStorage.StoreNewGame(result.Value);
+        if (storageResult.IsFailure) {
+            throw new Exception(storageResult.Error.ToString());
+        }
+        return storageResult.Value.Id;
+    }
+
     [Route("games/{gameId}")]
     [HttpGet]
     public async Task<ActionResult<IGameView>> GetGame(Guid gameId) {
