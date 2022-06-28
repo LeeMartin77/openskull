@@ -6,26 +6,18 @@ using OpenSkull.Api.Storage;
 
 namespace OpenSkull.Api.Controllers;
 
-public interface IGameTurnInputs {
-    string Action { get; set; }
+public record class PlayTurnInputs
+{
+  public string? Action;
+  public Guid? CardId;
+  public int? Bid;
+  public int? TargetPlayerIndex;
 }
 
-public record class PlayCardTurnInputs : IGameTurnInputs
-{
-  public string Action { get; set; } = "Card";
-  public Guid CardId { get; set; }
-}
-
-public record class PlaceBidTurnInputs : IGameTurnInputs
-{
-  public string Action { get; set; } = "Bid";
-  public int Bid { get; set; }
-}
-
-public record class FlipCardTurnInputs : IGameTurnInputs
-{
-  public string Action { get; set; } = "Flip";
-  public int TargetPlayerIndex { get; set; }
+public enum TurnAction {
+    Card,
+    Bid,
+    Flip
 }
 
 
@@ -38,8 +30,6 @@ public class GameController : ControllerBase
     private readonly TurnPlayCard _turnPlayCard;
     private readonly TurnPlaceBid _turnPlaceBid;
     private readonly TurnFlipCard _turnFlipCard;
-
-    public static string[] ActionStrings = new string[3] { "Card", "Bid", "Flip" };
 
     public GameController(
         ILogger<GameController> logger,
@@ -79,21 +69,40 @@ public class GameController : ControllerBase
 
     [Route("games/{gameId}/turn")]
     [HttpPost]
-    public async Task<ActionResult<IGameView>> PlayGameTurn(Guid gameId, [FromBody] IGameTurnInputs? inputs = null) {
+    public async Task<ActionResult<IGameView>> PlayGameTurn(Guid gameId, [FromBody] PlayTurnInputs? inputs = null) {
         
         StringValues rawPlayerId;
         Guid playerId;
+        TurnAction action;
         if (Request == null || Request.Headers == null ||
             !Request.Headers.TryGetValue("X-OpenSkull-UserId", out rawPlayerId) ||
             !Guid.TryParse(rawPlayerId.ToString(), out playerId) ||
             inputs == null ||
-            !ActionStrings.Contains(inputs.Action)
+            !Enum.TryParse(inputs.Action, out action)
             ) {
             return new BadRequestResult();
         }
 
-        // TODO: ValidateFieldsOnActions
-        
+        switch(action) {
+            case TurnAction.Card:
+                if (inputs.CardId is null) {
+                    return new BadRequestResult();
+                }
+                break;
+            case TurnAction.Bid:
+                if (inputs.Bid is null) {
+                    return new BadRequestResult();
+                }
+                break;
+            case TurnAction.Flip:
+                if (inputs.TargetPlayerIndex is null) {
+                    return new BadRequestResult();
+                }
+                break;
+            default:
+                throw new NotImplementedException();
+        }
+
         var gameResult = await _gameStorage.GetGameById(gameId);
         if (gameResult.IsFailure && gameResult.Error == StorageError.NotFound) {
             return new NotFoundResult();
@@ -108,14 +117,18 @@ public class GameController : ControllerBase
         Result<Game, GameTurnError> postActionResult;
         // Want to use a switch statement here somehow
         // probably want an enum parsing thing
-        if (inputs.Action == GameController.ActionStrings[0]) {
-            postActionResult = _turnPlayCard(game, playerId, (inputs as PlayCardTurnInputs)!.CardId);
-        } else if (inputs.Action == GameController.ActionStrings[1]) {
-            postActionResult = _turnPlaceBid(game, playerId, (inputs as PlaceBidTurnInputs)!.Bid);
-        } else if (inputs.Action == GameController.ActionStrings[2]) {
-            postActionResult = _turnFlipCard(game, playerId, (inputs as FlipCardTurnInputs)!.TargetPlayerIndex);
-        } else {
-            throw new NotImplementedException();
+        switch(action) {
+            case TurnAction.Card:
+                postActionResult = _turnPlayCard(game, playerId, inputs.CardId ?? throw new Exception());
+                break;
+            case TurnAction.Bid:
+                postActionResult = _turnPlaceBid(game, playerId, inputs.Bid ?? throw new Exception());
+                break;
+            case TurnAction.Flip:
+                postActionResult = _turnFlipCard(game, playerId, inputs.TargetPlayerIndex ?? throw new Exception());
+                break;
+            default:
+                throw new NotImplementedException();
         }
         if (postActionResult.IsFailure) {
             return new BadRequestObjectResult(GameFunctions.GameTurnErrorMessage[(int)postActionResult.Error]);

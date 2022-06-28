@@ -225,7 +225,7 @@ public class GameControllerTests {
     };
 
     // Act
-    var result = await gameController.PlayGameTurn(testGameId, new PlayCardTurnInputs{ Action = GameController.ActionStrings[0] });
+    var result = await gameController.PlayGameTurn(testGameId, new PlayTurnInputs{ Action = TurnAction.Card.ToString(), CardId = Guid.NewGuid() });
 
     // Assert
     Assert.AreEqual(typeof(NotFoundResult), result.Result!.GetType());
@@ -262,7 +262,7 @@ public class GameControllerTests {
     };
 
     // Act
-    var result = await gameController.PlayGameTurn(testGameId, new PlayCardTurnInputs{ Action = GameController.ActionStrings[0] });
+    var result = await gameController.PlayGameTurn(testGameId, new PlayTurnInputs{ Action = TurnAction.Card.ToString(), CardId = Guid.NewGuid() });
 
     // Assert
     Assert.AreEqual(typeof(ForbidResult), result.Result!.GetType());
@@ -299,7 +299,55 @@ public class GameControllerTests {
     };
 
     // Act
-    var result = await gameController.PlayGameTurn(testGameId, new PlayCardTurnInputs{ Action = "SomethingNotValid" });
+    var result = await gameController.PlayGameTurn(testGameId, new PlayTurnInputs{ Action = "SomethingNotValid" });
+
+    // Assert
+    Assert.AreEqual(typeof(BadRequestResult), result.Result!.GetType());
+    mockGameStorage.Verify(m => m.GetGameById(testGameId), Times.Never);
+  }
+
+  [TestMethod]
+  [DataRow(TurnAction.Card)]
+  [DataRow(TurnAction.Bid)]
+  [DataRow(TurnAction.Flip)]
+  public async Task PlayGameTurn_InputNotGiven_Returns400(TurnAction action){
+    // Arrange
+    var testGameId = Guid.NewGuid();
+    var mockGameStorage = new Mock<IGameStorage>();
+    var testGame = GameFunctions.CreateNew(new Guid[3] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() }).Value;
+    var testGameStorage = new GameStorage {
+      Game = testGame,
+      Id = testGameId
+    };
+    mockGameStorage.Setup(x => x.GetGameById(testGameId)).ReturnsAsync(testGameStorage);
+
+    var httpContext = new DefaultHttpContext();
+    httpContext.Request.Headers["X-OpenSkull-UserId"] = testGame.PlayerIds[1].ToString();
+
+    var gameController = new GameController(
+      new Mock<ILogger<GameController>>().Object,
+      mockGameStorage.Object,
+      new Mock<GameCreateNew>().Object,
+      new Mock<TurnPlayCard>().Object,
+      new Mock<TurnPlaceBid>().Object,
+      new Mock<TurnFlipCard>().Object
+    ){ 
+      ControllerContext = new ControllerContext()
+      {
+          HttpContext = httpContext
+      }
+    };
+
+    var input = new PlayTurnInputs
+    { 
+      Action = action.ToString(),
+      CardId = action == TurnAction.Card ? null : Guid.NewGuid(),
+      Bid = action == TurnAction.Bid ? null : 0,
+      TargetPlayerIndex = action == TurnAction.Flip ? null : 0
+    };
+
+    // Act
+    var result = await gameController.PlayGameTurn(testGameId, input);
 
     // Assert
     Assert.AreEqual(typeof(BadRequestResult), result.Result!.GetType());
@@ -345,7 +393,7 @@ public class GameControllerTests {
     };
 
     // Act
-    var result = await gameController.PlayGameTurn(testGameId, new PlayCardTurnInputs{ Action = GameController.ActionStrings[0], CardId = cardIdInput });
+    var result = await gameController.PlayGameTurn(testGameId, new PlayTurnInputs{ Action = TurnAction.Card.ToString(), CardId = cardIdInput });
 
     // Assert
     Assert.AreEqual(typeof(BadRequestObjectResult), result.Result!.GetType());
@@ -396,7 +444,7 @@ public class GameControllerTests {
     };
 
     // Act
-    var result = await gameController.PlayGameTurn(testGameId, new PlayCardTurnInputs{ Action = GameController.ActionStrings[0], CardId = cardIdInput });
+    var result = await gameController.PlayGameTurn(testGameId, new PlayTurnInputs{ Action = TurnAction.Card.ToString(), CardId = cardIdInput });
 
     // Assert
     Assert.AreEqual(expectedStatusCode, (result.Result as ObjectResult)!.StatusCode);
@@ -448,7 +496,7 @@ public class GameControllerTests {
     };
 
     // Act
-    var result = await gameController.PlayGameTurn(testGameId, new PlayCardTurnInputs{ Action = GameController.ActionStrings[0], CardId = cardIdInput });
+    var result = await gameController.PlayGameTurn(testGameId, new PlayTurnInputs{ Action = TurnAction.Card.ToString(), CardId = cardIdInput });
 
     // Assert
     Assert.AreEqual(typeof(PlayerGame), result.Value!.GetType());
@@ -500,7 +548,7 @@ public class GameControllerTests {
     };
 
     // Act
-    var result = await gameController.PlayGameTurn(testGameId, new PlaceBidTurnInputs{ Action = GameController.ActionStrings[1], Bid = bidInput });
+    var result = await gameController.PlayGameTurn(testGameId, new PlayTurnInputs{ Action = TurnAction.Bid.ToString(), Bid = bidInput });
 
     // Assert
     Assert.AreEqual(typeof(BadRequestObjectResult), result.Result!.GetType());
@@ -552,7 +600,7 @@ public class GameControllerTests {
     };
 
     // Act
-    var result = await gameController.PlayGameTurn(testGameId, new PlaceBidTurnInputs{ Action = GameController.ActionStrings[1], Bid = bidInput });
+    var result = await gameController.PlayGameTurn(testGameId, new PlayTurnInputs{ Action = TurnAction.Bid.ToString(), Bid = bidInput });
 
     // Assert
     Assert.AreEqual(expectedStatusCode, (result.Result as ObjectResult)!.StatusCode);
@@ -605,7 +653,7 @@ public class GameControllerTests {
     };
 
     // Act
-    var result = await gameController.PlayGameTurn(testGameId, new PlaceBidTurnInputs{ Action = GameController.ActionStrings[1], Bid = bidInput });
+    var result = await gameController.PlayGameTurn(testGameId, new PlayTurnInputs{ Action = TurnAction.Bid.ToString(), Bid = bidInput });
 
     // Assert
     Assert.AreEqual(typeof(PlayerGame), result.Value!.GetType());
@@ -657,7 +705,7 @@ public class GameControllerTests {
     };
 
     // Act
-    var result = await gameController.PlayGameTurn(testGameId, new FlipCardTurnInputs{ Action = GameController.ActionStrings[2], TargetPlayerIndex = flipInput });
+    var result = await gameController.PlayGameTurn(testGameId, new PlayTurnInputs{ Action = TurnAction.Flip.ToString(), TargetPlayerIndex = flipInput });
 
     // Assert
     Assert.AreEqual(typeof(BadRequestObjectResult), result.Result!.GetType());
@@ -709,7 +757,7 @@ public class GameControllerTests {
     };
 
     // Act
-    var result = await gameController.PlayGameTurn(testGameId, new FlipCardTurnInputs{ Action = GameController.ActionStrings[2], TargetPlayerIndex = flipInput });
+    var result = await gameController.PlayGameTurn(testGameId, new PlayTurnInputs{ Action = TurnAction.Flip.ToString(), TargetPlayerIndex = flipInput });
 
     // Assert
     Assert.AreEqual(expectedStatusCode, (result.Result as ObjectResult)!.StatusCode);
@@ -762,7 +810,7 @@ public class GameControllerTests {
     };
 
     // Act
-    var result = await gameController.PlayGameTurn(testGameId, new FlipCardTurnInputs{ Action = GameController.ActionStrings[2], TargetPlayerIndex = flipInput });
+    var result = await gameController.PlayGameTurn(testGameId, new PlayTurnInputs{ Action = TurnAction.Flip.ToString(), TargetPlayerIndex = flipInput });
 
     // Assert
     Assert.AreEqual(typeof(PlayerGame), result.Value!.GetType());
