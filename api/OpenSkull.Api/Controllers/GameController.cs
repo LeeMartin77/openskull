@@ -110,6 +110,8 @@ public class GameController : ControllerBase
         // probably want an enum parsing thing
         if (inputs.Action == GameController.ActionStrings[0]) {
             postActionResult = _turnPlayCard(game, playerId, (inputs as PlayCardTurnInputs)!.CardId);
+        } else if (inputs.Action == GameController.ActionStrings[1]) {
+            postActionResult = _turnPlaceBid(game, playerId, (inputs as PlaceBidTurnInputs)!.Bid);
         } else {
             throw new NotImplementedException();
         }
@@ -130,7 +132,7 @@ public class GameController : ControllerBase
                 case StorageError.VersionMismatch:
                     return new ConflictObjectResult(StorageErrorMessages.StringValues[(int)storageResult.Error]);
                 default: 
-                    throw new NotImplementedException();
+                    throw new Exception();
             }
         }
         return new PlayerGame(playerId, storageResult.Value.Game);
