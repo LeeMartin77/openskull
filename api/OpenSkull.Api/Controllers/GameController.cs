@@ -8,10 +8,10 @@ namespace OpenSkull.Api.Controllers;
 
 public record class PlayTurnInputs
 {
-  public string? Action;
-  public Guid? CardId;
-  public int? Bid;
-  public int? TargetPlayerIndex;
+  public string? Action { get; set; }
+  public Guid? CardId { get; set; }
+  public int? Bid { get; set; }
+  public int? TargetPlayerIndex { get; set; }
 }
 
 public enum TurnAction {
