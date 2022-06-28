@@ -112,6 +112,8 @@ public class GameController : ControllerBase
             postActionResult = _turnPlayCard(game, playerId, (inputs as PlayCardTurnInputs)!.CardId);
         } else if (inputs.Action == GameController.ActionStrings[1]) {
             postActionResult = _turnPlaceBid(game, playerId, (inputs as PlaceBidTurnInputs)!.Bid);
+        } else if (inputs.Action == GameController.ActionStrings[2]) {
+            postActionResult = _turnFlipCard(game, playerId, (inputs as FlipCardTurnInputs)!.TargetPlayerIndex);
         } else {
             throw new NotImplementedException();
         }
