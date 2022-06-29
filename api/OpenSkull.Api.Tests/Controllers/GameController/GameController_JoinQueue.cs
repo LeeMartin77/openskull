@@ -36,7 +36,7 @@ public class GameController_JoinQueue {
     };
 
     // Act
-    var result = await gameController.JoinQueue();
+    var result = await gameController.JoinQueue(new GameController.GameQueueParameters { GameSize = 3 });
 
     // Assert
     Assert.AreEqual(typeof(NoContentResult), result.Result!.GetType());

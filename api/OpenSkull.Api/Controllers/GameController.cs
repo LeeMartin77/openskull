@@ -71,9 +71,13 @@ public class GameController : ControllerBase
         return storageResult.Value.Id;
     }
 
+    public record struct GameQueueParameters {
+        public int GameSize { get; set; }
+    }
+
     [Route("games/join")]
     [HttpPost]
-    public async Task<ActionResult<IGameView>> JoinQueue([FromQuery] int gameSize = 3)
+    public async Task<ActionResult<IGameView>> JoinQueue(GameQueueParameters queueParams)
     {
         StringValues rawPlayerId;
         Guid playerId;
@@ -81,7 +85,7 @@ public class GameController : ControllerBase
         if (!Guid.TryParse(rawPlayerId.ToString(), out playerId)) {
             return BadRequest("Must have UserId Header");
         }
-        var queueJoinResult = await _gameCreationQueue.JoinGameQueue(playerId, gameSize);
+        var queueJoinResult = await _gameCreationQueue.JoinGameQueue(playerId, queueParams.GameSize);
         if (queueJoinResult.IsFailure) {
             throw new NotImplementedException();
         }
