@@ -32,8 +32,8 @@ public delegate Result<Game, GameTurnError> TurnFlipCard(Game game, Guid playerI
 
 
 public static class GameFunctions {
-  private const int MAX_PLAYERS = 6;
-  private const int MIN_PLAYERS = 3;
+  public const int MAX_PLAYERS = 6;
+  public const int MIN_PLAYERS = 3;
   private const int CARD_FLOWER_COUNT = 3;
   private const int CARD_SKULL_COUNT = 1;
   public const int SKIP_BIDDING_VALUE = -1;
