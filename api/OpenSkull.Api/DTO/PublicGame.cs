@@ -1,6 +1,7 @@
 namespace OpenSkull.Api.DTO;
 
 public interface IGameView {
+  Guid Id { get; set; }
   int ActivePlayerIndex { get; set; }
   int PlayerCount { get; set; }
   int PlayerCardStartingCount { get; set; }
@@ -14,6 +15,7 @@ public interface IGameView {
 }
 
 public record class PublicGame : IGameView {
+  public Guid Id { get; set; }
   public int ActivePlayerIndex { get; set; }
   public int PlayerCount { get; set; }
   public int PlayerCardStartingCount { get; set; }
@@ -25,7 +27,8 @@ public record class PublicGame : IGameView {
   public int[] RoundWinners { get; set; }
   public bool GameComplete { get; set; }
 
-  public PublicGame(Game game) {
+  public PublicGame(Guid gameId, Game game) {
+    Id = gameId;
     ActivePlayerIndex = game.ActivePlayerIndex;
     PlayerCount = game.PlayerIds.Length;
     PlayerCardStartingCount = game.PlayerCards[0].Length;

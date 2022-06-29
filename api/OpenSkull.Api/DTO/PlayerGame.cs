@@ -5,7 +5,7 @@ public record class PlayerGame : PublicGame, IGameView {
   public int PlayerIndex { get; set; }
   public Card[] PlayerCards { get; set; }
   public Guid[][] PlayerRoundCardIdsPlayed { get; set; }
-  public PlayerGame(Guid playerId, Game game) : base(game) {
+  public PlayerGame(Guid gameId, Guid playerId, Game game) : base(gameId, game) {
     int playerIndex = Array.IndexOf(game.PlayerIds, playerId);
     PlayerId = playerId;
     PlayerIndex = playerIndex;

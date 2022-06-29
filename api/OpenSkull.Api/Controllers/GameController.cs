@@ -67,6 +67,30 @@ public class GameController : ControllerBase
         return storageResult.Value.Id;
     }
 
+    [Route("games")]
+    [HttpGet]
+    public async Task<ActionResult<IGameView[]>> SearchGames([FromQuery] Guid[]? playerIds = null, [FromQuery] bool? gameComplete = null)
+    {
+        StringValues rawPlayerId;
+        Guid playerId;
+        Request.Headers.TryGetValue("X-OpenSkull-UserId", out rawPlayerId);
+        Guid.TryParse(rawPlayerId.ToString(), out playerId);
+        if (!Guid.TryParse(rawPlayerId.ToString(), out playerId) && (playerIds == null || playerIds.Length == 0)) {
+            return BadRequest("Must have UserId Header or Specify Player Ids");
+        }
+        var searchResult = await _gameStorage.SearchGames(new GameSearchParameters { PlayerIds = new Guid[]{playerId}, GameComplete = gameComplete });
+        if (searchResult.IsFailure) {
+            // TODO: Right now, this shouldn't ever actually fail...
+            throw new NotImplementedException();
+        }
+        return searchResult.Value.Select(x => {
+            if (x.Game.PlayerIds.Contains(playerId)) {
+                return new PlayerGame(x.Id, playerId, x.Game);
+            }
+            return new PublicGame(x.Id, x.Game);
+        }).ToArray();
+    }
+    
     [Route("games/{gameId}")]
     [HttpGet]
     public async Task<ActionResult<IGameView>> GetGame(Guid gameId) {
@@ -81,9 +105,9 @@ public class GameController : ControllerBase
             Guid.TryParse(rawPlayerId.ToString(), out playerId) &&
             gameResult.Value.Game.PlayerIds.Contains(playerId)
             ) {
-            return new PlayerGame(playerId, gameResult.Value.Game);
+            return new PlayerGame(gameId, playerId, gameResult.Value.Game);
         }
-        return new PublicGame(gameResult.Value.Game);
+        return new PublicGame(gameId, gameResult.Value.Game);
     }
 
     [Route("games/{gameId}/turn")]
@@ -169,6 +193,6 @@ public class GameController : ControllerBase
                     throw new Exception();
             }
         }
-        return new PlayerGame(playerId, storageResult.Value.Game);
+        return new PlayerGame(storageResult.Value.Id, playerId, storageResult.Value.Game);
     }
 }
