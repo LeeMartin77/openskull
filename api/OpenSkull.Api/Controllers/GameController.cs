@@ -71,6 +71,30 @@ public class GameController : ControllerBase
         return storageResult.Value.Id;
     }
 
+    [Route("games/join")]
+    [HttpPost]
+    public async Task<ActionResult<IGameView>> JoinQueue([FromQuery] int gameSize = 3)
+    {
+        StringValues rawPlayerId;
+        Guid playerId;
+        Request.Headers.TryGetValue("X-OpenSkull-UserId", out rawPlayerId);
+        if (!Guid.TryParse(rawPlayerId.ToString(), out playerId)) {
+            return BadRequest("Must have UserId Header");
+        }
+        var queueJoinResult = await _gameCreationQueue.JoinGameQueue(playerId, gameSize);
+        if (queueJoinResult.IsFailure) {
+            throw new NotImplementedException();
+        }
+        if (queueJoinResult.Value == null) {
+            return NoContent();
+        }
+
+        if (queueJoinResult.Value.Value.Game.PlayerIds.Contains(playerId)) {
+            return new PlayerGame(queueJoinResult.Value.Value.Id, playerId, queueJoinResult.Value.Value.Game);
+        }
+        return new PublicGame(queueJoinResult.Value.Value.Id, queueJoinResult.Value.Value.Game);
+    }
+
     [Route("games")]
     [HttpGet]
     public async Task<ActionResult<IGameView[]>> SearchGames([FromQuery] Guid[]? playerIds = null, [FromQuery] bool? gameComplete = null)
