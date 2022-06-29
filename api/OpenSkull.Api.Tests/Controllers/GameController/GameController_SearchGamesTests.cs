@@ -6,6 +6,7 @@ using OpenSkull.Api.Functions;
 using Microsoft.AspNetCore.Mvc;
 using OpenSkull.Api.DTO;
 using Microsoft.AspNetCore.Http;
+using OpenSkull.Api.Queue;
 
 namespace OpenSkull.Api.Tests;
 
@@ -29,6 +30,7 @@ public class GameController_SearchGamesTests {
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
+      new Mock<IGameCreationQueue>().Object,
       new Mock<GameCreateNew>().Object,
       new Mock<TurnPlayCard>().Object,
       new Mock<TurnPlaceBid>().Object,
@@ -71,6 +73,7 @@ public class GameController_SearchGamesTests {
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
+      new Mock<IGameCreationQueue>().Object,
       new Mock<GameCreateNew>().Object,
       new Mock<TurnPlayCard>().Object,
       new Mock<TurnPlaceBid>().Object,
@@ -112,6 +115,7 @@ public class GameController_SearchGamesTests {
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
+      new Mock<IGameCreationQueue>().Object,
       new Mock<GameCreateNew>().Object,
       new Mock<TurnPlayCard>().Object,
       new Mock<TurnPlaceBid>().Object,

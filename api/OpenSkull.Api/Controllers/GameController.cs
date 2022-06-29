@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using OpenSkull.Api.DTO;
 using OpenSkull.Api.Functions;
+using OpenSkull.Api.Queue;
 using OpenSkull.Api.Storage;
 
 namespace OpenSkull.Api.Controllers;
@@ -26,6 +27,7 @@ public class GameController : ControllerBase
 {
     private readonly ILogger<GameController> _logger;
     private readonly IGameStorage _gameStorage;
+    private readonly IGameCreationQueue _gameCreationQueue;
     private readonly GameCreateNew _gameCreateNew;
     private readonly TurnPlayCard _turnPlayCard;
     private readonly TurnPlaceBid _turnPlaceBid;
@@ -34,6 +36,7 @@ public class GameController : ControllerBase
     public GameController(
         ILogger<GameController> logger,
         IGameStorage gameStorage,
+        IGameCreationQueue gameCreationQueue,
         GameCreateNew gcn,
         TurnPlayCard tpc,
         TurnPlaceBid tpb,
@@ -42,6 +45,7 @@ public class GameController : ControllerBase
     {
         _logger = logger;
         _gameStorage = gameStorage;
+        _gameCreationQueue = gameCreationQueue;
         _gameCreateNew = gcn;
         _turnPlayCard = tpc;
         _turnPlaceBid = tpb;
