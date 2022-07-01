@@ -402,7 +402,7 @@ public class GameController_PlayTurnTests {
     mockGameStorage.Verify(m => m.GetGameById(testGameId), Times.Once);
     mockPlayCardTurn.Verify(x => x(testGame, testGame.PlayerIds[1], cardIdInput), Times.Once);
     mockGameStorage.Verify(m => m.UpdateGame(It.IsAny<GameStorage>()), Times.Once);
-    mockGameSocketManager.Verify(m => m.BroadcastToConnectedWebsockets(WebSocketType.Game, testGameId, It.IsAny<object>()), Times.Once);
+    mockGameSocketManager.Verify(m => m.BroadcastToConnectedWebsockets(WebSocketType.Game, testGameId, new OpenskullMessage{ Id = testGameId, Activity = "Turn" }), Times.Once);
   }
 
 
@@ -568,7 +568,7 @@ public class GameController_PlayTurnTests {
     mockGameStorage.Verify(m => m.GetGameById(testGameId), Times.Once);
     mockPlaceBid.Verify(x => x(testGame, testGame.PlayerIds[1], bidInput), Times.Once);
     mockGameStorage.Verify(m => m.UpdateGame(It.IsAny<GameStorage>()), Times.Once);
-    mockGameSocketManager.Verify(m => m.BroadcastToConnectedWebsockets(WebSocketType.Game, testGameId, It.IsAny<object>()), Times.Once);
+    mockGameSocketManager.Verify(m => m.BroadcastToConnectedWebsockets(WebSocketType.Game, testGameId, new OpenskullMessage{ Id = testGameId, Activity = "Turn" }), Times.Once);
   }
 
 
@@ -734,6 +734,6 @@ public class GameController_PlayTurnTests {
     mockGameStorage.Verify(m => m.GetGameById(testGameId), Times.Once);
     mockFlipCard.Verify(x => x(testGame, testGame.PlayerIds[1], flipInput), Times.Once);
     mockGameStorage.Verify(m => m.UpdateGame(It.IsAny<GameStorage>()), Times.Once);
-    mockGameSocketManager.Verify(m => m.BroadcastToConnectedWebsockets(WebSocketType.Game, testGameId, It.IsAny<object>()), Times.Once);
+    mockGameSocketManager.Verify(m => m.BroadcastToConnectedWebsockets(WebSocketType.Game, testGameId, new OpenskullMessage{ Id = testGameId, Activity = "Turn" }), Times.Once);
   }
 }

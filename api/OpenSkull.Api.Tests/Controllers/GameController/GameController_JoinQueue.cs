@@ -59,17 +59,22 @@ public class GameController_JoinQueue {
     var httpContext = new DefaultHttpContext();
     httpContext.Request.Headers["X-OpenSkull-UserId"] = playerId.ToString();
     var mockGameQueue = new Mock<IGameCreationQueue>();
+    var player2 = Guid.NewGuid();
+    var player3 = Guid.NewGuid();
+    var gameId = Guid.NewGuid();
     mockGameQueue.Setup(x => x.JoinGameQueue(playerId, gameSize))
       .ReturnsAsync(new GameStorage{ 
-        Id = Guid.NewGuid(), 
-        Game = GameFunctions.CreateNew(new Guid[3] { playerId, Guid.NewGuid(), Guid.NewGuid() }).Value 
+        Id = gameId, 
+        Game = GameFunctions.CreateNew(new Guid[3] { playerId, player2, player3 }).Value 
         });
+
+    var mockGameSocketManager = new Mock<IWebsocketManager>();
 
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       new Mock<IGameStorage>().Object,
       mockGameQueue.Object,
-      new Mock<IWebsocketManager>().Object,
+      mockGameSocketManager.Object,
       new Mock<GameCreateNew>().Object,
       new Mock<TurnPlayCard>().Object,
       new Mock<TurnPlaceBid>().Object,
@@ -87,5 +92,8 @@ public class GameController_JoinQueue {
     // Assert
     Assert.AreEqual(typeof(PlayerGame), result.Value!.GetType());
     mockGameQueue.Verify(x => x.JoinGameQueue(playerId, gameSize), Times.Once);
+    mockGameSocketManager.Verify(m => m.BroadcastToConnectedWebsockets(WebSocketType.Player, playerId, new OpenskullMessage{ Id = gameId, Activity = "GameCreated" }), Times.Once);
+    mockGameSocketManager.Verify(m => m.BroadcastToConnectedWebsockets(WebSocketType.Player, player2, new OpenskullMessage{ Id = gameId, Activity = "GameCreated" }), Times.Once);
+    mockGameSocketManager.Verify(m => m.BroadcastToConnectedWebsockets(WebSocketType.Player, player3, new OpenskullMessage{ Id = gameId, Activity = "GameCreated" }), Times.Once);
   }
 }

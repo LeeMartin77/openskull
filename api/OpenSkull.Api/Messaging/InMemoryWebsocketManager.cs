@@ -12,9 +12,15 @@ public enum WebSocketType {
   Player
 }
 
+public record struct OpenskullMessage 
+{
+  public Guid Id { get; set; }
+  public string Activity { get; set; }
+}
+
 public interface IWebsocketManager {
   Task<Result<bool, WebSocketAdditionError>> AddWebSocketConnection(WebSocketType type, Guid id, WebSocket websocket);
-  Task BroadcastToConnectedWebsockets(WebSocketType type, Guid id, object message);
+  Task BroadcastToConnectedWebsockets(WebSocketType type, Guid id, OpenskullMessage message);
 }
 
 // This in-memory manager is essentially for demo/testing
@@ -40,7 +46,7 @@ public class InMemoryWebsocketManager : IWebsocketManager {
     return Task.FromResult<Result<bool, WebSocketAdditionError>>(true);
   }
 
-  public async Task BroadcastToConnectedWebsockets(WebSocketType type, Guid id, object message)
+  public async Task BroadcastToConnectedWebsockets(WebSocketType type, Guid id, OpenskullMessage message)
   {
     var index = _managedWebsockets[(int)type].FindIndex(x => x.Item1 == id);
     if (index > -1) {

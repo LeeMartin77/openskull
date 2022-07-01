@@ -96,11 +96,20 @@ public class GameController : ControllerBase
         if (queueJoinResult.Value == null) {
             return NoContent();
         }
-
-        if (queueJoinResult.Value.Value.Game.PlayerIds.Contains(playerId)) {
-            return new PlayerGame(queueJoinResult.Value.Value.Id, playerId, queueJoinResult.Value.Value.Game);
+        var gameStorage = queueJoinResult.Value.Value;
+        try {
+            await Task.WhenAll(gameStorage.Game.PlayerIds
+                .Select(id => 
+                    _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, id, new OpenskullMessage { Id = gameStorage.Id, Activity = "GameCreated" })
+                )
+            );
+        } catch {
+            //Drowning any weird exceptions
         }
-        return new PublicGame(queueJoinResult.Value.Value.Id, queueJoinResult.Value.Value.Game);
+        if (gameStorage.Game.PlayerIds.Contains(playerId)) {
+            return new PlayerGame(gameStorage.Id, playerId, gameStorage.Game);
+        }
+        return new PublicGame(gameStorage.Id, gameStorage.Game);
     }
 
     [Route("games")]
@@ -229,7 +238,7 @@ public class GameController : ControllerBase
                     throw new Exception();
             }
         }
-        await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Game, gameId, new { GameId = gameId, Activity = "Turn" });
+        await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Game, gameId, new OpenskullMessage{ Id = gameId, Activity = "Turn" });
         return new PlayerGame(storageResult.Value.Id, playerId, storageResult.Value.Game);
     }
 }
