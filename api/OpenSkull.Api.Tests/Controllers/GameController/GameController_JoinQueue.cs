@@ -30,7 +30,7 @@ public class GameController_JoinQueue {
       new Mock<ILogger<GameController>>().Object,
       new Mock<IGameStorage>().Object,
       mockGameQueue.Object,
-      new Mock<IWebsocketManager>().Object,
+      new Mock<IWebSocketManager>().Object,
       new Mock<GameCreateNew>().Object,
       new Mock<TurnPlayCard>().Object,
       new Mock<TurnPlaceBid>().Object,
@@ -68,7 +68,7 @@ public class GameController_JoinQueue {
         Game = GameFunctions.CreateNew(new Guid[3] { playerId, player2, player3 }).Value 
         });
 
-    var mockGameSocketManager = new Mock<IWebsocketManager>();
+    var mockGameSocketManager = new Mock<IWebSocketManager>();
 
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,

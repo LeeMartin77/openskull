@@ -18,16 +18,16 @@ public record struct OpenskullMessage
   public string Activity { get; set; }
 }
 
-public interface IWebsocketManager {
+public interface IWebSocketManager {
   Task<Result<bool, WebSocketAdditionError>> AddWebSocketConnection(WebSocketType type, Guid id, WebSocket websocket);
   Task BroadcastToConnectedWebsockets(WebSocketType type, Guid id, OpenskullMessage message);
 }
 
 // This in-memory manager is essentially for demo/testing
 // We will need a distributed message bus at some point
-public class InMemoryWebsocketManager : IWebsocketManager {
+public class InMemoryWebSocketManager : IWebSocketManager {
   private readonly List<(Guid, List<WebSocket>)>[] _managedWebsockets;
-  public InMemoryWebsocketManager() {
+  public InMemoryWebSocketManager() {
     var websocketsToManage = Enum.GetNames(typeof(WebSocketType)).Length;
     _managedWebsockets = new List<(Guid, List<WebSocket>)>[websocketsToManage];
     for (int i = 0; i < websocketsToManage; i++) {

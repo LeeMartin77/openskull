@@ -6,9 +6,9 @@ namespace OpenSkull.Api.Controllers;
 [ApiController]
 public class WebsocketController : ControllerBase
 {
-    private readonly IWebsocketManager _websocketManager;
+    private readonly IWebSocketManager _websocketManager;
 
-    WebsocketController(IWebsocketManager socketManager) {
+    WebsocketController(IWebSocketManager socketManager) {
         _websocketManager = socketManager;
     }
 

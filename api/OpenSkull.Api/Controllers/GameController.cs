@@ -29,7 +29,7 @@ public class GameController : ControllerBase
     private readonly ILogger<GameController> _logger;
     private readonly IGameStorage _gameStorage;
     private readonly IGameCreationQueue _gameCreationQueue;
-    private readonly IWebsocketManager _webSocketManager;
+    private readonly IWebSocketManager _webSocketManager;
     private readonly GameCreateNew _gameCreateNew;
     private readonly TurnPlayCard _turnPlayCard;
     private readonly TurnPlaceBid _turnPlaceBid;
@@ -39,7 +39,7 @@ public class GameController : ControllerBase
         ILogger<GameController> logger,
         IGameStorage gameStorage,
         IGameCreationQueue gameCreationQueue,
-        IWebsocketManager webSocketManager,
+        IWebSocketManager webSocketManager,
         GameCreateNew gcn,
         TurnPlayCard tpc,
         TurnPlaceBid tpb,
