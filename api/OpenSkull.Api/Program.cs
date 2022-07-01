@@ -1,12 +1,14 @@
 using OpenSkull.Api.Storage;
 using OpenSkull.Api.Functions;
 using OpenSkull.Api.Queue;
+using OpenSkull.Api.Messaging;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddSingleton<IGameStorage, GameMemoryStorage>();
 builder.Services.AddSingleton<IGameCreationQueue, GameCreationMemoryQueue>();
+builder.Services.AddSingleton<IWebSocketManager, InMemoryWebSocketManager>();
 builder.Services.AddSingleton<GameCreateNew>(GameFunctions.CreateNew);
 builder.Services.AddSingleton<TurnPlayCard>(GameFunctions.TurnPlayCard);
 builder.Services.AddSingleton<TurnPlaceBid>(GameFunctions.TurnPlaceBid);
