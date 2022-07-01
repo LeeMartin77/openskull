@@ -30,6 +30,8 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.UseWebSockets();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
