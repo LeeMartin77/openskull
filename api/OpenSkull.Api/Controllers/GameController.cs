@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using OpenSkull.Api.DTO;
 using OpenSkull.Api.Functions;
+using OpenSkull.Api.Messaging;
 using OpenSkull.Api.Queue;
 using OpenSkull.Api.Storage;
 
@@ -28,6 +29,7 @@ public class GameController : ControllerBase
     private readonly ILogger<GameController> _logger;
     private readonly IGameStorage _gameStorage;
     private readonly IGameCreationQueue _gameCreationQueue;
+    private readonly IWebsocketManager _webSocketManager;
     private readonly GameCreateNew _gameCreateNew;
     private readonly TurnPlayCard _turnPlayCard;
     private readonly TurnPlaceBid _turnPlaceBid;
@@ -37,6 +39,7 @@ public class GameController : ControllerBase
         ILogger<GameController> logger,
         IGameStorage gameStorage,
         IGameCreationQueue gameCreationQueue,
+        IWebsocketManager webSocketManager,
         GameCreateNew gcn,
         TurnPlayCard tpc,
         TurnPlaceBid tpb,
@@ -46,6 +49,7 @@ public class GameController : ControllerBase
         _logger = logger;
         _gameStorage = gameStorage;
         _gameCreationQueue = gameCreationQueue;
+        _webSocketManager = webSocketManager;
         _gameCreateNew = gcn;
         _turnPlayCard = tpc;
         _turnPlaceBid = tpb;
@@ -225,6 +229,7 @@ public class GameController : ControllerBase
                     throw new Exception();
             }
         }
+        await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Game, gameId, new { GameId = gameId, Activity = "Turn" });
         return new PlayerGame(storageResult.Value.Id, playerId, storageResult.Value.Game);
     }
 }

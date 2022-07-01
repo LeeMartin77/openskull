@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using OpenSkull.Api.DTO;
 using Microsoft.AspNetCore.Http;
 using OpenSkull.Api.Queue;
+using OpenSkull.Api.Messaging;
 
 namespace OpenSkull.Api.Tests;
 
@@ -25,6 +26,7 @@ public class GameController_PlayTurnTests {
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
       new Mock<IGameCreationQueue>().Object,
+      new Mock<IWebsocketManager>().Object,
       new Mock<GameCreateNew>().Object,
       new Mock<TurnPlayCard>().Object,
       new Mock<TurnPlaceBid>().Object,
@@ -57,6 +59,7 @@ public class GameController_PlayTurnTests {
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
       new Mock<IGameCreationQueue>().Object,
+      new Mock<IWebsocketManager>().Object,
       new Mock<GameCreateNew>().Object,
       new Mock<TurnPlayCard>().Object,
       new Mock<TurnPlaceBid>().Object,
@@ -90,6 +93,7 @@ public class GameController_PlayTurnTests {
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
       new Mock<IGameCreationQueue>().Object,
+      new Mock<IWebsocketManager>().Object,
       new Mock<GameCreateNew>().Object,
       new Mock<TurnPlayCard>().Object,
       new Mock<TurnPlaceBid>().Object,
@@ -128,6 +132,7 @@ public class GameController_PlayTurnTests {
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
       new Mock<IGameCreationQueue>().Object,
+      new Mock<IWebsocketManager>().Object,
       new Mock<GameCreateNew>().Object,
       new Mock<TurnPlayCard>().Object,
       new Mock<TurnPlaceBid>().Object,
@@ -166,6 +171,7 @@ public class GameController_PlayTurnTests {
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
       new Mock<IGameCreationQueue>().Object,
+      new Mock<IWebsocketManager>().Object,
       new Mock<GameCreateNew>().Object,
       new Mock<TurnPlayCard>().Object,
       new Mock<TurnPlaceBid>().Object,
@@ -207,6 +213,7 @@ public class GameController_PlayTurnTests {
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
       new Mock<IGameCreationQueue>().Object,
+      new Mock<IWebsocketManager>().Object,
       new Mock<GameCreateNew>().Object,
       new Mock<TurnPlayCard>().Object,
       new Mock<TurnPlaceBid>().Object,
@@ -262,6 +269,7 @@ public class GameController_PlayTurnTests {
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
       new Mock<IGameCreationQueue>().Object,
+      new Mock<IWebsocketManager>().Object,
       new Mock<GameCreateNew>().Object,
       mockPlayCardTurn.Object,
       new Mock<TurnPlaceBid>().Object,
@@ -314,6 +322,7 @@ public class GameController_PlayTurnTests {
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
       new Mock<IGameCreationQueue>().Object,
+      new Mock<IWebsocketManager>().Object,
       new Mock<GameCreateNew>().Object,
       mockPlayCardTurn.Object,
       new Mock<TurnPlaceBid>().Object,
@@ -363,10 +372,13 @@ public class GameController_PlayTurnTests {
       VersionTag = Guid.NewGuid().ToString()
     });
 
+    var mockGameSocketManager = new Mock<IWebsocketManager>();
+
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
       new Mock<IGameCreationQueue>().Object,
+      mockGameSocketManager.Object,
       new Mock<GameCreateNew>().Object,
       mockPlayCardTurn.Object,
       new Mock<TurnPlaceBid>().Object,
@@ -390,6 +402,7 @@ public class GameController_PlayTurnTests {
     mockGameStorage.Verify(m => m.GetGameById(testGameId), Times.Once);
     mockPlayCardTurn.Verify(x => x(testGame, testGame.PlayerIds[1], cardIdInput), Times.Once);
     mockGameStorage.Verify(m => m.UpdateGame(It.IsAny<GameStorage>()), Times.Once);
+    mockGameSocketManager.Verify(m => m.BroadcastToConnectedWebsockets(WebSocketType.Game, testGameId, It.IsAny<object>()), Times.Once);
   }
 
 
@@ -420,6 +433,7 @@ public class GameController_PlayTurnTests {
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
       new Mock<IGameCreationQueue>().Object,
+      new Mock<IWebsocketManager>().Object,
       new Mock<GameCreateNew>().Object,
       new Mock<TurnPlayCard>().Object,
       mockPlaceBid.Object,
@@ -473,6 +487,7 @@ public class GameController_PlayTurnTests {
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
       new Mock<IGameCreationQueue>().Object,
+      new Mock<IWebsocketManager>().Object,
       new Mock<GameCreateNew>().Object,
       new Mock<TurnPlayCard>().Object,
       mockPlaceBid.Object,
@@ -523,10 +538,13 @@ public class GameController_PlayTurnTests {
       VersionTag = Guid.NewGuid().ToString()
     });
 
+    var mockGameSocketManager = new Mock<IWebsocketManager>();
+
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
       new Mock<IGameCreationQueue>().Object,
+      mockGameSocketManager.Object,
       new Mock<GameCreateNew>().Object,
       new Mock<TurnPlayCard>().Object,
       mockPlaceBid.Object,
@@ -550,6 +568,7 @@ public class GameController_PlayTurnTests {
     mockGameStorage.Verify(m => m.GetGameById(testGameId), Times.Once);
     mockPlaceBid.Verify(x => x(testGame, testGame.PlayerIds[1], bidInput), Times.Once);
     mockGameStorage.Verify(m => m.UpdateGame(It.IsAny<GameStorage>()), Times.Once);
+    mockGameSocketManager.Verify(m => m.BroadcastToConnectedWebsockets(WebSocketType.Game, testGameId, It.IsAny<object>()), Times.Once);
   }
 
 
@@ -580,6 +599,7 @@ public class GameController_PlayTurnTests {
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
       new Mock<IGameCreationQueue>().Object,
+      new Mock<IWebsocketManager>().Object,
       new Mock<GameCreateNew>().Object,
       new Mock<TurnPlayCard>().Object,
       new Mock<TurnPlaceBid>().Object,
@@ -633,6 +653,7 @@ public class GameController_PlayTurnTests {
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
       new Mock<IGameCreationQueue>().Object,
+      new Mock<IWebsocketManager>().Object,
       new Mock<GameCreateNew>().Object,
       new Mock<TurnPlayCard>().Object,
       new Mock<TurnPlaceBid>().Object,
@@ -683,10 +704,13 @@ public class GameController_PlayTurnTests {
       VersionTag = Guid.NewGuid().ToString()
     });
 
+    var mockGameSocketManager = new Mock<IWebsocketManager>();
+
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
       new Mock<IGameCreationQueue>().Object,
+      mockGameSocketManager.Object,
       new Mock<GameCreateNew>().Object,
       new Mock<TurnPlayCard>().Object,
       new Mock<TurnPlaceBid>().Object,
@@ -710,5 +734,6 @@ public class GameController_PlayTurnTests {
     mockGameStorage.Verify(m => m.GetGameById(testGameId), Times.Once);
     mockFlipCard.Verify(x => x(testGame, testGame.PlayerIds[1], flipInput), Times.Once);
     mockGameStorage.Verify(m => m.UpdateGame(It.IsAny<GameStorage>()), Times.Once);
+    mockGameSocketManager.Verify(m => m.BroadcastToConnectedWebsockets(WebSocketType.Game, testGameId, It.IsAny<object>()), Times.Once);
   }
 }
