@@ -91,7 +91,13 @@ public class GameController : ControllerBase
         }
         var queueJoinResult = await _gameCreationQueue.JoinGameQueue(playerId, queueParams.GameSize);
         if (queueJoinResult.IsFailure) {
-            throw new NotImplementedException();
+            switch(queueJoinResult.Error) {
+                case QueueJoinError.OutsideGameSize:
+                case QueueJoinError.AlreadyInQueue:
+                    return BadRequest();
+                default:
+                    throw new NotImplementedException();
+            }
         }
         if (queueJoinResult.Value == null) {
             return NoContent();

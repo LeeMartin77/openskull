@@ -6,7 +6,8 @@ namespace OpenSkull.Api.Queue;
 public enum QueueJoinError {
   OutsideGameSize,
   CreationError,
-  StorageError
+  StorageError,
+  AlreadyInQueue
 }
 
 public enum QueueError {
@@ -43,6 +44,12 @@ public class GameCreationMemoryQueue : IGameCreationQueue
   public async Task<Result<GameStorage?, QueueJoinError>> JoinGameQueue(Guid playerId, int gameSize)
   {
     int queueIndex = gameSize - GameFunctions.MIN_PLAYERS;
+    if (queueIndex < 0 || queueIndex > _gameCreationQueue.Length - 1) {
+      return QueueJoinError.OutsideGameSize;
+    }
+    if (_gameCreationQueue.Any(x => x.Contains(playerId))) {
+      return QueueJoinError.AlreadyInQueue;
+    }
     if (_gameCreationQueue[queueIndex].Count >= gameSize - 1) {
       List<Guid> queuedPlayerIds = new List<Guid>();
       for (int i = 0; i < gameSize - 1; i++) {
