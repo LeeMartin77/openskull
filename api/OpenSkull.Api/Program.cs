@@ -2,6 +2,7 @@ using OpenSkull.Api.Storage;
 using OpenSkull.Api.Functions;
 using OpenSkull.Api.Queue;
 using OpenSkull.Api.Messaging;
+using OpenSkull.Api.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,7 @@ builder.Services.AddSingleton<TurnPlaceBid>(GameFunctions.TurnPlaceBid);
 builder.Services.AddSingleton<TurnFlipCard>(GameFunctions.TurnFlipCard);
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -41,9 +43,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment()) {
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthorization();
+
+app.MapHub<PlayerHub>("/player/ws");
+app.MapHub<GameHub>("/game/ws");
 
 app.UseCors(MyAllowSpecificOrigins);
 

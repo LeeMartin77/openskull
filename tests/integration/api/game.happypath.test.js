@@ -5,6 +5,7 @@ const axios = require("axios").create({
   })
 });
 const crypto = require("crypto");
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
 const apiRoot = process.env.OPENSKULL_API_ROOT ?? "http://localhost:5248"
 
