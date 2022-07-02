@@ -14,7 +14,22 @@ public enum QueueError {
   QueueError
 }
 
+public enum PlayerQueueStatusError {
+  PlayerNotInAnyQueues
+}
+
+public enum PlayerQueueLeaveError {
+  PlayerNotInAnyQueues
+}
+
+public record struct PlayerQueueStatus {
+  public int GameSize { get; set; }
+  public int QueueSize { get; set; }
+}
+
 public interface IGameCreationQueue {
+  Task<Result<PlayerQueueStatus, PlayerQueueStatusError>> FindPlayerInQueues(Guid playerId);
+  Task<Result<bool, PlayerQueueLeaveError>> LeaveQueues(Guid playerId);
   Task<Result<int, QueueError>> PlayersInQueue(int gameSize);
   Task<Result<GameStorage?, QueueJoinError>> JoinGameQueue(Guid playerId, int gameSize);
 }
@@ -33,6 +48,29 @@ public class GameCreationMemoryQueue : IGameCreationQueue
     }
     _gameStorage = gameStorage;
     _gameCreateNew = gameCreationFunction;
+  }
+
+  public Task<Result<PlayerQueueStatus, PlayerQueueStatusError>> FindPlayerInQueues(Guid playerId) {
+    int queueIndex = Array.FindIndex(_gameCreationQueue, x => x.Contains(playerId));
+    if(queueIndex == -1) {
+      return Task.FromResult<Result<PlayerQueueStatus, PlayerQueueStatusError>>(PlayerQueueStatusError.PlayerNotInAnyQueues);
+    }
+
+    var status = new PlayerQueueStatus {
+      GameSize = queueIndex + GameFunctions.MIN_PLAYERS,
+      QueueSize = _gameCreationQueue[queueIndex].Count
+    };
+
+    return Task.FromResult<Result<PlayerQueueStatus, PlayerQueueStatusError>>(status);
+  }
+
+  public Task<Result<bool, PlayerQueueLeaveError>> LeaveQueues(Guid playerId) {
+    int queueIndex = Array.FindIndex(_gameCreationQueue, x => x.Contains(playerId));
+    if(queueIndex == -1) {
+      return Task.FromResult<Result<bool, PlayerQueueLeaveError>>(PlayerQueueLeaveError.PlayerNotInAnyQueues);
+    }
+    _gameCreationQueue[queueIndex] = new Queue<Guid>(_gameCreationQueue[queueIndex].Where(x => x != playerId));
+    return Task.FromResult<Result<bool, PlayerQueueLeaveError>>(true);
   }
 
 
