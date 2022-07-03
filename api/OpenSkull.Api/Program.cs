@@ -21,14 +21,15 @@ builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: MyAllowSpecificOrigins,
+    options.AddDefaultPolicy(
                       policy  =>
                       {
-                          policy.WithOrigins("http://localhost:3000");
+                          policy.WithOrigins("http://localhost:3000")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials();
                       });
 });
 
@@ -52,7 +53,7 @@ app.UseAuthorization();
 app.MapHub<PlayerHub>("/player/ws");
 app.MapHub<GameHub>("/game/ws");
 
-app.UseCors(MyAllowSpecificOrigins);
+app.UseCors();
 
 app.MapControllers();
 
