@@ -6,50 +6,16 @@ import {
   BrowserRouter
 } from "react-router-dom";
 import { ThemeProvider } from "@emotion/react";
-import { Container, createTheme, CssBaseline, Box, Card, CardContent, Alert } from "@mui/material";
+import { Container, createTheme, CssBaseline, Box, Card, CardContent } from "@mui/material";
+import { GameQueueComponent } from "./components/queues/GameQueueComponent";
+import { GameComponent } from "./components/game/GameComponent";
+import { GameListComponent } from "./components/game/GameListComponent";
 
 const theme = createTheme({
   palette: {
     mode: 'dark',
   },
 });
-
-
-interface WeatherForecast
-{
-    dateTime: Date,
-    temperatureC: number,
-    temperatureF: number,
-    summary?: string
-}
-
-const API_ROOT_URL = process.env.REACT_APP_API_ROOT_URL;
-
-export async function getFakeWeather(): Promise<WeatherForecast[]> {
-  const response = await fetch(API_ROOT_URL + '/WeatherForecast');
-  if (!response.ok) {
-    throw Error("Something went wrong")
-  }
-  return await response.json();
-}
-
-function WeatherComponent() {
-  const [weather, setWeather] = useState<WeatherForecast[] | undefined>(undefined)
-  const [error, setError] = useState(false)
-
-  useEffect(() => {
-    getFakeWeather().then(setWeather).catch(() => setError(true))
-  }, [setWeather, setError])
-
-  return (
-    <Card>
-      <CardContent>
-        {error && <Alert severity="error">Error</Alert>}
-        {weather && <ul>{weather.map((x, i) => <li key={i}>{x.temperatureC}</li>)}</ul>}
-      </CardContent>
-    </Card>
-    )
-}
 
 function App() {
   const [isDesktop, setDesktop] = useState(window.innerWidth > theme.breakpoints.values.sm);
@@ -75,7 +41,9 @@ function App() {
           <Box component="main" sx={mainSx}>
             <Container maxWidth={'sm'} className={containerClassName} >
             <Routes>
-              <Route path="/" element={<WeatherComponent />} />
+              <Route path="/games/:gameId" element={<GameComponent />} />
+              <Route path="/games" element={<GameListComponent />} />
+              <Route path="/queue" element={<GameQueueComponent />} />
               <Route
                 path="*"
                 element={
