@@ -39,10 +39,10 @@ public class InMemoryWebSocketManager : IWebSocketManager {
   {
     switch (type) {
       case WebSocketType.Game:
-        await _gameHubContext.Clients.Group(id.ToString()).SendAsync("send", message);
+        await _gameHubContext.Clients.Group(id.ToString()).SendCoreAsync("send", new object[]{message});
         break;
       case WebSocketType.Player:
-        await _playerHubContext.Clients.Group(id.ToString()).SendAsync("send", message);
+        await _playerHubContext.Clients.Group(id.ToString()).SendCoreAsync("send", new object[]{message});
         break;
       default:
         throw new NotImplementedException();

@@ -5,16 +5,9 @@ namespace OpenSkull.Api.Hubs;
 
 public class PlayerHub : Hub
 {
-    public override Task OnConnectedAsync()
-    {
-        var httpCtx = Context.GetHttpContext();
-        if (httpCtx != null) {
-            StringValues userId;
-            if (httpCtx.Request.Headers.TryGetValue("X-OpenSkull-UserId", out userId)) {
-                Groups.AddToGroupAsync(Context.ConnectionId, userId.ToString());
-            }
+    public async Task SubscribeToUserId(string userId) {
+        if(userId != null) {
+            await Groups.AddToGroupAsync(Context.ConnectionId, userId);
         }
-
-        return base.OnConnectedAsync();
     }
 }

@@ -28,6 +28,7 @@ builder.Services.AddCors(options =>
                       {
                           policy.WithOrigins("http://localhost:3000")
                             .AllowAnyHeader()
+                            //.WithHeaders(new string[] {"X-OpenSkull-UserId"})
                             .AllowAnyMethod()
                             .AllowCredentials();
                       });
@@ -50,10 +51,10 @@ if (!app.Environment.IsDevelopment()) {
 
 app.UseAuthorization();
 
+app.UseCors();
+
 app.MapHub<PlayerHub>("/player/ws");
 app.MapHub<GameHub>("/game/ws");
-
-app.UseCors();
 
 app.MapControllers();
 

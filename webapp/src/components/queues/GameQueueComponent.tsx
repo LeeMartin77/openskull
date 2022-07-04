@@ -34,23 +34,37 @@ export function GameQueueComponent() {
   const [gameId, setGameId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
+    console.log(USER_ID + " 1")
     const newConnection = new HubConnectionBuilder()
+    .withUrl(API_ROOT_URL + '/player/ws')
     .configureLogging(LogLevel.Debug)
-    .withUrl(`${API_ROOT_URL}/player/ws`, { headers: {
-      [USER_ID_HEADER]: USER_ID
-    } })
     .build()
+
     setConnection(newConnection)
   }, [setConnection])
 
   useEffect(() => {
+    if (gameId) {
+      navigate("/games/" + gameId)
+    }
+  },[gameId, navigate])
+
+  useEffect(() => {
     if (connection) {
-      connection.on("send", msg => {
+      console.log(USER_ID + " 2")
+
+      const msgHnld = (msg: any, fnSetGameId = setGameId) => {
         if (msg.activity === "GameCreated") {
-          setGameId(msg.id);
+          fnSetGameId(msg.id);
         }
-      })
-      connection.start().catch(e => console.log('Connection failed: ', e));
+      }
+      
+      connection.on("send", msg => msgHnld(msg, setGameId))
+  
+      connection.start()
+      .then(() => connection.send("subscribeToUserId", USER_ID))
+      .catch(e => console.log('Connection failed: ', e));
+
     }
     return () => {
       connection && connection.stop();

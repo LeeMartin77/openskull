@@ -6,14 +6,15 @@ const axios = require("axios").create({
   })
 });
 const crypto = require("crypto");
+const { v4 } = require("uuid");
 
 const apiRoot = process.env.OPENSKULL_API_ROOT ?? "http://localhost:5248"
 
 test("Can connect to websockets and get messages", async () => {
   const TEST_PLAYER_IDS = [
-    crypto.randomUUID(),
-    crypto.randomUUID(),
-    crypto.randomUUID()
+    v4(),
+    v4(),
+    v4()
   ]
 
   const messages = [
@@ -28,15 +29,15 @@ test("Can connect to websockets and get messages", async () => {
 
   const connections = await Promise.all(TEST_PLAYER_IDS.map(async (id, i) => {
     let connection = new signalR.HubConnectionBuilder()
-    .withUrl(apiRoot +`/player/ws`, {
-      headers: { "X-OpenSkull-UserId": id}
-    })
+    .withUrl(apiRoot +`/player/ws`)
     .configureLogging(signalR.LogLevel.Error)
     .build();
 
     connection.on("send", msg => responseHandler(i, msg));
 
     await connection.start();
+
+    await connection.send("subscribeToUserId", id)
     return connection;
   }));
 
@@ -94,15 +95,14 @@ test("Can connect to websockets and get messages", async () => {
   
   const gameConnections = await Promise.all(TEST_PLAYER_IDS.map(async (id, i) => {
     let connection = new signalR.HubConnectionBuilder()
-    .withUrl(apiRoot +`/game/ws`, {
-      headers: { "X-OpenSkull-GameId": gameJoinThree.data.id }
-    })
+    .withUrl(apiRoot +`/game/ws`)
     .configureLogging(signalR.LogLevel.Error)
     .build();
 
     connection.on("send", msg => gameResponseHandler(i, msg));
 
     await connection.start();
+    await connection.send("subscribeToGameId", gameId)
     return connection;
   }));
 
@@ -114,7 +114,7 @@ test("Can connect to websockets and get messages", async () => {
 
   // gotta give it a beat here
   await new Promise(resolve => setTimeout(resolve, 500))
-
+  
   expect(gameMessages.every(x => x.every(y => y.id == gameJoinThree.data.id && y.activity == "Turn") && x.length == 1)).toBe(true);
 
   await Promise.all(gameConnections.map(async c => await c.stop()))

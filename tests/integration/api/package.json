@@ -11,6 +11,7 @@
   "devDependencies": {
     "@microsoft/signalr": "^6.0.6",
     "axios": "^0.27.2",
-    "jest": "^28.1.1"
+    "jest": "^28.1.1",
+    "uuid": "^8.3.2"
   }
 }
