@@ -10,12 +10,34 @@ import { Container, createTheme, CssBaseline, Box, Card, CardContent } from "@mu
 import { GameQueueComponent } from "./components/queues/GameQueueComponent";
 import { GameComponent } from "./components/game/GameComponent";
 import { GameListComponent } from "./components/game/GameListComponent";
+import { Link } from "react-router-dom";
+import { List, ListItem, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
+import { Queue, ViewList } from '@mui/icons-material';
 
 const theme = createTheme({
   palette: {
     mode: 'dark',
   },
 });
+
+function HomeComponent() {
+  return <Card>
+      <CardContent>
+        <List>
+          <ListItem>
+          <ListItemButton component={Link} to={"/queue"}>
+            <ListItemIcon><Queue/></ListItemIcon>
+            <ListItemText>Game Queue</ListItemText>
+          </ListItemButton>
+          <ListItemButton component={Link} to={"/games"}>
+            <ListItemIcon><ViewList/></ListItemIcon>
+            <ListItemText>Game List</ListItemText>
+          </ListItemButton>
+        </ListItem>
+      </List>
+    </CardContent>
+  </Card>
+}
 
 function App() {
   const [isDesktop, setDesktop] = useState(window.innerWidth > theme.breakpoints.values.sm);
@@ -44,6 +66,7 @@ function App() {
               <Route path="/games/:gameId" element={<GameComponent />} />
               <Route path="/games" element={<GameListComponent />} />
               <Route path="/queue" element={<GameQueueComponent />} />
+              <Route path="/" element={<HomeComponent />}/>
               <Route
                 path="*"
                 element={
