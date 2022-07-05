@@ -1,4 +1,4 @@
-import { HubConnection, HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
+import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
 import { Alert, Button, Card, CardContent, CircularProgress } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -34,10 +34,8 @@ export function GameQueueComponent() {
   const [gameId, setGameId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    console.log(USER_ID + " 1")
     const newConnection = new HubConnectionBuilder()
     .withUrl(API_ROOT_URL + '/player/ws')
-    .configureLogging(LogLevel.Debug)
     .build()
 
     setConnection(newConnection)
@@ -51,8 +49,6 @@ export function GameQueueComponent() {
 
   useEffect(() => {
     if (connection) {
-      console.log(USER_ID + " 2")
-
       const msgHnld = (msg: any, fnSetGameId = setGameId) => {
         if (msg.activity === "GameCreated") {
           fnSetGameId(msg.id);
