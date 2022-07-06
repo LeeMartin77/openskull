@@ -15,6 +15,14 @@ export enum TurnAction {
   Flip
 }
 
+export enum RoundPhase {
+  PlayFirstCards,
+  PlayCards,
+  Bidding,
+  Flipping
+}
+
+
 export interface Card {
     id: string;
     type: CardType;
@@ -30,6 +38,7 @@ export interface PublicGame
   roundNumber: number;
   currentCountPlayerCardsAvailable: number[];
   currentBids: number[];
+  currentRoundPhase: RoundPhase;
   roundCountPlayerCardsPlayed: number[][];
   roundPlayerCardsRevealed: CardType[][][];
   roundWinners: number[];
