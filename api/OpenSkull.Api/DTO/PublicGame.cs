@@ -1,5 +1,12 @@
 namespace OpenSkull.Api.DTO;
 
+public enum RoundPhase {
+  PlayFirstCards,
+  PlayCards,
+  Bidding,
+  Flipping
+}
+
 public interface IGameView {
   Guid Id { get; set; }
   int ActivePlayerIndex { get; set; }
@@ -8,6 +15,7 @@ public interface IGameView {
   int RoundNumber { get; set; }
   int[] CurrentCountPlayerCardsAvailable { get; set; }
   int[] CurrentBids { get; set; }
+  RoundPhase CurrentRoundPhase { get; set; }
   int[][] RoundCountPlayerCardsPlayed { get; set; }
   CardType[][][] RoundPlayerCardsRevealed { get; set; }
   int[] RoundWinners { get; set; }
@@ -22,6 +30,7 @@ public record class PublicGame : IGameView {
   public int RoundNumber { get; set; }
   public int[] CurrentCountPlayerCardsAvailable { get; set; }
   public int[] CurrentBids { get; set; }
+  public RoundPhase CurrentRoundPhase { get; set; }
   public int[][] RoundCountPlayerCardsPlayed { get; set; }
   public CardType[][][] RoundPlayerCardsRevealed { get; set; }
   public int[] RoundWinners { get; set; }
@@ -39,5 +48,16 @@ public record class PublicGame : IGameView {
     RoundPlayerCardsRevealed = game.RoundPlayerCardIds.Select(x => x.Select((y, playerIndex) => y.Select(z => game.PlayerCards[playerIndex].First(c => c.Id == z).Type).ToArray()).ToArray()).ToArray();
     RoundWinners = game.RoundWinPlayerIndexes.ToArray();
     GameComplete = game.GameComplete;
+    // Test?
+    if (CurrentCountPlayerCardsAvailable.Count(x => x > 0) > RoundCountPlayerCardsPlayed.Last().Count(x => x > 0)) 
+    {
+      CurrentRoundPhase = RoundPhase.PlayFirstCards;
+    } else if (CurrentBids.Count(x => x == 0) == CurrentCountPlayerCardsAvailable.Count(x => x > 0)) {
+      CurrentRoundPhase = RoundPhase.PlayCards;
+    } else if (CurrentBids.Count(x => x == -1) < CurrentCountPlayerCardsAvailable.Count(x => x > 0) - 1) {
+      CurrentRoundPhase = RoundPhase.Bidding;
+    } else {
+      CurrentRoundPhase = RoundPhase.Flipping;
+    }
   }
 }
