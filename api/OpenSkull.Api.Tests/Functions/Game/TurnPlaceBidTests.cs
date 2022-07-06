@@ -88,6 +88,27 @@ public class GameFunction_TurnPlaceBid_Tests
     Assert.AreEqual(GameFunctions.SKIP_BIDDING_VALUE, gameResult.Value.RoundBids[0][1]);
   }
 
+  
+  [TestMethod]
+  [DataRow(3)]
+  [DataRow(4)]
+  [DataRow(5)]
+  [DataRow(6)]
+  public void GivenBiddingNotStarted_CannotSkipBidding(int playerCount)
+  {
+    Guid[] TestPlayerIds = new Guid[playerCount];
+    for (int j = 0; j < playerCount; j++) {
+      TestPlayerIds[j] = Guid.NewGuid();
+    }
+    var game = GameFunctions.CreateNew(TestPlayerIds).Value;
+    for (int i = 0; i < playerCount; i++) {
+      game = GameFunctions.TurnPlayCard(game, game.PlayerIds[i], game.PlayerCards[i][0].Id).Value;
+    }
+    var gameResult = GameFunctions.TurnPlaceBid(game, game.PlayerIds[0], GameFunctions.SKIP_BIDDING_VALUE);
+    Assert.IsTrue(gameResult.IsFailure);
+    Assert.AreEqual(GameTurnError.BiddingHasNotStarted, gameResult.Error);
+  }
+
   [TestMethod]
   public void HappyPath_GivenBidding_SkippedBidPlayersArentActive()
   {

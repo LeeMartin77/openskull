@@ -12,6 +12,7 @@ public enum GameTurnError {
   InvalidPlayerId,
   InvalidCardId,
   CannotBidYet,
+  BiddingHasNotStarted,
   CannotPlayCardAfterBid,
   MaxBidExceeded,
   MinBidNotMet,
@@ -126,6 +127,9 @@ public static class GameFunctions {
     }
     if (game.RoundPlayerCardIds.Last().Count(x => x.Count() > 0) < game.PlayerIds.Length - game.PlayerCards.Count(y => y.All(z => z.State == CardState.Discarded))) {
       return GameTurnError.CannotBidYet;
+    }
+    if (bid == SKIP_BIDDING_VALUE && 0 == game.RoundBids.Last().Max()) {
+      return GameTurnError.BiddingHasNotStarted;
     }
     if (bid > game.RoundPlayerCardIds.Last().Sum(x => x.Count())) {
       return GameTurnError.MaxBidExceeded;
