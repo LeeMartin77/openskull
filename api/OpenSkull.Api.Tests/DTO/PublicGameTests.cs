@@ -46,12 +46,15 @@ public class DTO_PublicGame_Tests
           Assert.AreEqual(RoundPhase.Flipping, publicGame.CurrentRoundPhase);
         }
       }
+      publicGame = new PublicGame(Guid.NewGuid(), game);
+      Assert.IsTrue(publicGame.RoundPlayerCardsRevealed.Last().All(x => x.Length == 0));
       for (int i = 0; i < playerCount; i++) {
         game = GameFunctions.TurnFlipCard(game, game.PlayerIds[0], i).Value;
         publicGame = new PublicGame(Guid.NewGuid(), game);
         if (r == 0 && i == playerCount - 1) {
           Assert.AreEqual(RoundPhase.PlayFirstCards, publicGame.CurrentRoundPhase);
-        } else {
+        } else {          
+          Assert.AreEqual(i + 1, publicGame.RoundPlayerCardsRevealed.Last().Count(x => x.Length > 0));
           Assert.AreEqual(RoundPhase.Flipping, publicGame.CurrentRoundPhase);
         }
       }

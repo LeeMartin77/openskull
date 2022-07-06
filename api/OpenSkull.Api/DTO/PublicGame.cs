@@ -45,7 +45,10 @@ public record class PublicGame : IGameView {
     CurrentCountPlayerCardsAvailable = game.PlayerCards.Select(x => x.Count(y => y.State != CardState.Discarded)).ToArray();
     RoundCountPlayerCardsPlayed = game.RoundPlayerCardIds.Select(x => x.Select(y => y.Count()).ToArray()).ToArray();
     CurrentBids = game.RoundBids.Last().ToArray();
-    RoundPlayerCardsRevealed = game.RoundPlayerCardIds.Select(x => x.Select((y, playerIndex) => y.Select(z => game.PlayerCards[playerIndex].First(c => c.Id == z).Type).ToArray()).ToArray()).ToArray();
+    // This is HORRIFYING but at least it has a test
+    RoundPlayerCardsRevealed = game.RoundPlayerCardIds.Select((x, roundIndex) => x.Select((y, playerIndex) => 
+      y.Where((z, cardIndex) => cardIndex < game.RoundRevealedCardPlayerIndexes[roundIndex].Count(j => j == playerIndex)).Select(z => game.PlayerCards[playerIndex].First(c => c.Id == z).Type).ToArray()).ToArray()
+    ).ToArray();
     RoundWinners = game.RoundWinPlayerIndexes.ToArray();
     GameComplete = game.GameComplete;
     // Test?
