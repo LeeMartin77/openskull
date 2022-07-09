@@ -118,7 +118,7 @@ function PrivatePlayerView({ game }: { game: PlayerGame }) {
   {!game.gameComplete && (game.currentRoundPhase !== RoundPhase.Flipping) && 
   <ListItem key="place-bid">
     <Button 
-      disabled={clicked || game.activePlayerIndex !== game.playerIndex || game.currentRoundPhase === RoundPhase.PlayFirstCards} 
+      disabled={clicked || game.activePlayerIndex !== game.playerIndex || game.currentRoundPhase === RoundPhase.PlayFirstCards || minBid === 1} 
       onClick={() => placebid(SKIP_VALUE)}>Retire</Button>
     {//This is a completely terrible UI  clicked || game.activePlayerIndex !== game.playerIndex
     arrayOfValues.map(bidNumber => {
