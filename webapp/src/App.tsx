@@ -13,6 +13,8 @@ import { GameListComponent } from "./components/game/GameListComponent";
 import { Link } from "react-router-dom";
 import { List, ListItem, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
 import { Queue, ViewList } from '@mui/icons-material';
+import { BottomNavigationComponent } from "./components/navigation/BottomNavigationComponent";
+import { SideNavigationComponent } from "./components/navigation/SideNavigationComponent";
 
 const theme = createTheme({
   palette: {
@@ -60,6 +62,7 @@ function App() {
         <BrowserRouter>
 
           <Box sx={{ display: 'flex' }}>
+          {isDesktop && <SideNavigationComponent />}
           <Box component="main" sx={mainSx}>
             <Container maxWidth={'sm'} className={containerClassName} >
             <Routes>
@@ -80,6 +83,7 @@ function App() {
             </Routes>
             </Container>
           </Box>
+          {!isDesktop && <BottomNavigationComponent />}
           </Box>
         </BrowserRouter>
     </ThemeProvider>
