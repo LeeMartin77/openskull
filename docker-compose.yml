@@ -1,0 +1,17 @@
+services:
+  webapp:
+    build: 
+      context: ./webapp
+      args:
+        APP_ENV: development
+        # This isn't actually being honoured - need to figure out why
+        REACT_APP_API_ROOT: http://localhost:8000
+    ports:
+      - "3021:80"
+  api:
+    build: ./api/OpenSkull.Api
+    ports:
+    # put this on a different port when we can figure out the arg problems above
+      - "5248:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
