@@ -1,5 +1,5 @@
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
-import { Alert, Button, Card, CardContent, CircularProgress } from "@mui/material";
+import { Alert, Button, Card, CardContent, CircularProgress, List, ListItemButton, ListItemText } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_ROOT_URL, USER_ID, USER_ID_HEADER } from "../../config";
@@ -91,7 +91,7 @@ export function GameQueueComponent() {
     return fetch(`${API_ROOT_URL}/games/leave`, { method: "POST", headers: { "Content-Type": "application/json", [USER_ID_HEADER]: USER_ID } })
       .then(() => getQueueStatus(setQueueStatus, setLoading, setError))
   }
-
+  const QUEUE_SIZES = [3, 4, 5, 6];
 
   return (
     <Card>
@@ -100,7 +100,9 @@ export function GameQueueComponent() {
       </CardContent>}
       {!loading && <CardContent>
         {error && <Alert severity="error">Error</Alert>}
-        {!queueStatus && !gameId && <Button onClick={() => joinQueue(3)}>Join 3 Player Queue</Button>}
+        {!queueStatus && !gameId && <List>
+          {QUEUE_SIZES.map(size => <ListItemButton onClick={() => joinQueue(size)}><ListItemText>Join {size} Player Queue</ListItemText></ListItemButton>)}
+          </List>}
         {queueStatus && !gameId && <Button onClick={() => leaveQueue()}>Leave Queue</Button>}
         {gameId && <Button onClick={() => navigate("/games/" + gameId)}>Go to Game</Button>}
       </CardContent>}
