@@ -101,7 +101,10 @@ export function GameQueueComponent() {
       {!loading && <CardContent>
         {error && <Alert severity="error">Error</Alert>}
         {!queueStatus && !gameId && <List>
-          {QUEUE_SIZES.map(size => <ListItemButton onClick={() => joinQueue(size)}><ListItemText>Join {size} Player Queue</ListItemText></ListItemButton>)}
+          {QUEUE_SIZES.map(size => 
+            <ListItemButton key={`${size}-queue-button`} onClick={() => joinQueue(size)}>
+              <ListItemText>Join {size} Player Queue</ListItemText>
+            </ListItemButton>)}
           </List>}
         {queueStatus && !gameId && <Button onClick={() => leaveQueue()}>Leave Queue</Button>}
         {gameId && <Button onClick={() => navigate("/games/" + gameId)}>Go to Game</Button>}
