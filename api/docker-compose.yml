@@ -1,0 +1,7 @@
+services:
+  api:
+    build: OpenSkull.Api
+    ports:
+      - "5248:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
