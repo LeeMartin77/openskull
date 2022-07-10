@@ -74,7 +74,6 @@ public class GameCreationMemoryQueue : IGameCreationQueue
         queuedPlayerIds.ForEach(x => _gameCreationQueue[queueIndex].Enqueue(x));
         return QueueJoinError.StorageError;
       }
-      // TODO - this will need to broadcast creation
       return storedGame.Value;
     }
     _gameCreationQueue[queueIndex].Enqueue(playerId);
