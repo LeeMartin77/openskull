@@ -5,3 +5,4 @@ services:
       - "5248:80"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      OPENSKULL_WEBAPP_HOST: http://localhost:3000
