@@ -30,5 +30,5 @@ public interface IGameCreationQueue {
   Task<Result<PlayerQueueStatus, PlayerQueueStatusError>> FindPlayerInQueues(Guid playerId);
   Task<Result<bool, PlayerQueueLeaveError>> LeaveQueues(Guid playerId);
   Task<Result<int, QueueError>> PlayersInQueue(int gameSize);
-  Task<Result<GameStorage?, QueueJoinError>> JoinGameQueue(Guid playerId, int gameSize);
+  Task<Result<bool, QueueJoinError>> JoinGameQueue(Guid playerId, int gameSize);
 }

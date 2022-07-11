@@ -1,4 +1,5 @@
 using OpenSkull.Api.Functions;
+using OpenSkull.Api.Messaging;
 using OpenSkull.Api.Storage;
 
 namespace OpenSkull.Api.Queue;
@@ -8,8 +9,9 @@ public class GameCreationMemoryQueue : IGameCreationQueue
   private Queue<Guid>[] _gameCreationQueue;
   private readonly GameCreateNew _gameCreateNew;
   private readonly IGameStorage _gameStorage;
+  private readonly IWebSocketManager _webSocketManager;
 
-  public GameCreationMemoryQueue(GameCreateNew gameCreationFunction, IGameStorage gameStorage) {
+  public GameCreationMemoryQueue(GameCreateNew gameCreationFunction, IGameStorage gameStorage, IWebSocketManager webSocketManager) {
     int queuesToCreate = GameFunctions.MAX_PLAYERS - GameFunctions.MIN_PLAYERS + 1;
     _gameCreationQueue = new Queue<Guid>[queuesToCreate];
     for (int i = 0; i < queuesToCreate; i++) {
@@ -17,6 +19,7 @@ public class GameCreationMemoryQueue : IGameCreationQueue
     }
     _gameStorage = gameStorage;
     _gameCreateNew = gameCreationFunction;
+    _webSocketManager = webSocketManager;
   }
 
   public Task<Result<PlayerQueueStatus, PlayerQueueStatusError>> FindPlayerInQueues(Guid playerId) {
@@ -48,7 +51,7 @@ public class GameCreationMemoryQueue : IGameCreationQueue
     return Task.FromResult<Result<int, QueueError>>(_gameCreationQueue[gameSize - GameFunctions.MIN_PLAYERS].Count);
   }
 
-  public async Task<Result<GameStorage?, QueueJoinError>> JoinGameQueue(Guid playerId, int gameSize)
+  public async Task<Result<bool, QueueJoinError>> JoinGameQueue(Guid playerId, int gameSize)
   {
     int queueIndex = gameSize - GameFunctions.MIN_PLAYERS;
     if (queueIndex < 0 || queueIndex > _gameCreationQueue.Length - 1) {
@@ -75,9 +78,18 @@ public class GameCreationMemoryQueue : IGameCreationQueue
         queuedPlayerIds.ForEach(x => _gameCreationQueue[queueIndex].Enqueue(x));
         return QueueJoinError.StorageError;
       }
-      return storedGame.Value;
+      try {
+        await Task.WhenAll(storedGame.Value.Game.PlayerIds
+          .Select(id => 
+              _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, id, new OpenskullMessage { Id = storedGame.Value.Id, Activity = "GameCreated" })
+          )
+        );
+      } catch {
+          //Drowning any weird exceptions
+      }
+      return true;
     }
     _gameCreationQueue[queueIndex].Enqueue(playerId);
-    return null;
+    return false;
   }
 }

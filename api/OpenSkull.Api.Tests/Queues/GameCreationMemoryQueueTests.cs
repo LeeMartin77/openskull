@@ -3,6 +3,7 @@ using OpenSkull.Api.Storage;
 using OpenSkull.Api.Queue;
 using Moq;
 using OpenSkull.Api.DTO;
+using OpenSkull.Api.Messaging;
 
 namespace OpenSkull.Api.Tests;
 
@@ -28,25 +29,33 @@ public class GameCreationMemoryQueueTests
     gameCreationFunction.Setup(x => x(It.IsAny<Guid[]>())).Returns(createdGame);
 
     var gameStorage = new GameStorage {
-      Id = Guid.NewGuid()
+      Id = Guid.NewGuid(),
+      Game = new Game {
+        PlayerIds = testPlayerIds
+      }
     };
     var mockStorage = new Mock<IGameStorage>();
     mockStorage.Setup(x => x.StoreNewGame(createdGame)).ReturnsAsync(gameStorage);
 
+    var mockWebsocketManager = new Mock<IWebSocketManager>();
+
     var creationQueue = new GameCreationMemoryQueue(
       gameCreationFunction.Object,
-      mockStorage.Object
+      mockStorage.Object,
+      mockWebsocketManager.Object
     );
 
     // Act
-    var queueResults = new List<GameStorage?>();
+    var queueResults = new List<bool>();
     for(int i = 0; i < playerCount; i++) {
       queueResults.Add((await creationQueue.JoinGameQueue(testPlayerIds[i], playerCount)).Value);
     }
 
     // Assert
-    Assert.AreEqual(playerCount - 1, queueResults.Count(x => x == null));
-    Assert.AreEqual(gameStorage, queueResults.Last());
+    Assert.AreEqual(playerCount, queueResults.Count());
     mockStorage.Verify(x => x.StoreNewGame(It.IsAny<Game>()), Times.Once);
+    foreach (var playerId in testPlayerIds) {
+      mockWebsocketManager.Verify(x => x.BroadcastToConnectedWebsockets(WebSocketType.Player, playerId, new OpenskullMessage { Id = gameStorage.Id, Activity = "GameCreated" }));
+    }
   }
 }

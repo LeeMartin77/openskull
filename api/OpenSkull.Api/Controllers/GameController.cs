@@ -127,7 +127,7 @@ public class GameController : ControllerBase
 
     [Route("games/join")]
     [HttpPost]
-    public async Task<ActionResult<IGameView>> JoinQueue([FromBody] GameQueueParameters queueParams)
+    public async Task<ActionResult> JoinQueue([FromBody] GameQueueParameters queueParams)
     {
         StringValues rawPlayerId;
         Guid playerId;
@@ -146,23 +146,7 @@ public class GameController : ControllerBase
                     throw new NotImplementedException();
             }
         }
-        if (queueJoinResult.Value == null) {
-            return NoContent();
-        }
-        var gameStorage = queueJoinResult.Value.Value;
-        try {
-            await Task.WhenAll(gameStorage.Game.PlayerIds
-                .Select(id => 
-                    _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, id, new OpenskullMessage { Id = gameStorage.Id, Activity = "GameCreated" })
-                )
-            );
-        } catch {
-            //Drowning any weird exceptions
-        }
-        if (gameStorage.Game.PlayerIds.Contains(playerId)) {
-            return new PlayerGame(gameStorage.Id, playerId, gameStorage.Game);
-        }
-        return new PublicGame(gameStorage.Id, gameStorage.Game);
+        return NoContent();
     }
 
     [Route("games")]

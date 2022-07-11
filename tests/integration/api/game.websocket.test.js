@@ -64,14 +64,13 @@ test("Can connect to websockets and get messages", async () => {
   });
   expect(gameJoinOne.status).toBe(204);
   expect(gameJoinTwo.status).toBe(204);
-  expect(gameJoinThree.status).toBe(200);
+  expect(gameJoinThree.status).toBe(204);
 
   // gotta give it a beat here
   await new Promise(resolve => setTimeout(resolve, 500))
-
-  expect(messages.every(x => x.every(y => y.id == gameJoinThree.data.id && y.activity == "GameCreated") && x.length == 1)).toBe(true);
+  const gameId = messages[0][0].id;
+  expect(messages.every(x => x.every(y => y.id == gameId && y.activity == "GameCreated") && x.length == 1)).toBe(true);
   await Promise.all(connections.map(async c => await c.stop()))
-  const gameId = gameJoinThree.data.id;
   const TEST_PLAYER_CARDS = [];
   for (let id of TEST_PLAYER_IDS) {
     const privateGameData = await axios.get(`${apiRoot}/games/${gameId}`,
@@ -107,7 +106,7 @@ test("Can connect to websockets and get messages", async () => {
   }));
 
 
-  await axios.post(`${apiRoot}/games/${gameJoinThree.data.id}/turn`, 
+  await axios.post(`${apiRoot}/games/${gameId}/turn`, 
     { action: "Card", cardId: TEST_PLAYER_CARDS[0][0].id }, 
     { headers: { "X-OpenSkull-UserId": TEST_PLAYER_IDS[0] }
   });
@@ -115,7 +114,7 @@ test("Can connect to websockets and get messages", async () => {
   // gotta give it a beat here
   await new Promise(resolve => setTimeout(resolve, 500))
   
-  expect(gameMessages.every(x => x.every(y => y.id == gameJoinThree.data.id && y.activity == "Turn") && x.length == 1)).toBe(true);
+  expect(gameMessages.every(x => x.every(y => y.id == gameId && y.activity == "Turn") && x.length == 1)).toBe(true);
 
   await Promise.all(gameConnections.map(async c => await c.stop()))
 });

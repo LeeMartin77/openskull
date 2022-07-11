@@ -1,3 +1,4 @@
+const signalR = require('@microsoft/signalr');
 const https = require('https');
 const axios = require("axios").create({
   httpsAgent: new https.Agent({  
@@ -102,7 +103,24 @@ test("Happy Path :: Create Game using Queue Then Play It Through", async () => {
     crypto.randomUUID(),
     crypto.randomUUID(),
     crypto.randomUUID()
-  ] 
+  ]
+
+  const messages = [];
+  const responseHandler = (msg, msgs = messages) => {
+    msgs.push(msg)
+  }
+
+  let connection = new signalR.HubConnectionBuilder()
+  .withUrl(apiRoot +`/player/ws`)
+  .configureLogging(signalR.LogLevel.Error)
+  .build();
+
+  connection.on("send", msg => responseHandler(msg));
+
+  await connection.start();
+
+  await connection.send("subscribeToUserId", TEST_PLAYER_IDS[0])
+
   const gameJoinOne = await axios.post(apiRoot + "/games/join", {
     gameSize: 3
   }, {
@@ -126,8 +144,16 @@ test("Happy Path :: Create Game using Queue Then Play It Through", async () => {
   });
   expect(gameJoinOne.status).toBe(204);
   expect(gameJoinTwo.status).toBe(204);
-  expect(gameJoinThree.status).toBe(200);
-  const gameId = gameJoinThree.data.id;
+  expect(gameJoinThree.status).toBe(204);
+
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  expect(messages[0].activity).toBe("GameCreated");
+
+  const gameId = messages[0].id;
+
+  await connection.stop();
+
   const TEST_PLAYER_CARDS = [];
   for (let id of TEST_PLAYER_IDS) {
     const privateGameData = await axios.get(`${apiRoot}/games/${gameId}`,
