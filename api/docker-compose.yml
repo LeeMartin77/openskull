@@ -8,8 +8,37 @@ services:
       OPENSKULL_WEBAPP_HOST: http://localhost:3000
       STORAGE_SERVICE: POSTGRES
       POSTGRES_CONNECTION_STRING: Host=postgresdb:5432;Username=openskull;Password=openskull;Database=openskull;SSL Mode=Disable
+      QUEUE_SERVICE: KAFKA
+      KAFKA_CONNECTION_STRING: kafka:19092
     depends_on:
       - postgresdb
+      - kafka
+  kfkzookeeper:
+    image: confluentinc/cp-zookeeper:7.2.0
+    ports:
+      - 3181:2181
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_SERVERS: kfkzookeeper:2888:3888
+  kafka:
+    image: confluentinc/cp-kafka:7.2.0
+    ports:
+      - 3492:19092
+      - 29092:29092
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:3492,DOCKER://host.docker.internal:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,DOCKER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: "kfkzookeeper:2181"
+      KAFKA_BROKER_ID: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
+    depends_on:
+      - kfkzookeeper
   postgresdb:
     image: postgres:14
     ports:

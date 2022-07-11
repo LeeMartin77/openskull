@@ -3,6 +3,8 @@ using OpenSkull.Api.Functions;
 using OpenSkull.Api.Queue;
 using OpenSkull.Api.Messaging;
 using OpenSkull.Api.Hubs;
+using Confluent.Kafka;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,11 +13,34 @@ builder.Services.AddSingleton<TurnPlayCard>(GameFunctions.TurnPlayCard);
 builder.Services.AddSingleton<TurnPlaceBid>(GameFunctions.TurnPlaceBid);
 builder.Services.AddSingleton<TurnFlipCard>(GameFunctions.TurnFlipCard);
 
-builder.Services.AddSingleton<IWebSocketManager, InMemoryWebSocketManager>();
 
 builder.Services.AddSingleton<IGameCreationQueue, GameCreationMemoryQueue>();
 
-// Add services to the container.
+switch (System.Environment.GetEnvironmentVariable("QUEUE_SERVICE") ?? "MEMORY") {
+    case "KAFKA":
+        var kafkaString = System.Environment.GetEnvironmentVariable("KAFKA_CONNECTION_STRING");
+        if (kafkaString is null) {
+            throw new InvalidOperationException("Must provide a KAFKA_CONNECTION_STRING value");
+        }
+        builder.Services.AddSingleton<ProducerConfig>(new ProducerConfig
+            {
+                BootstrapServers = kafkaString,
+                ClientId = Dns.GetHostName(),
+            });
+        builder.Services.AddSingleton<ConsumerConfig>(new ConsumerConfig
+            {
+                BootstrapServers = kafkaString,
+                GroupId = Dns.GetHostName(),
+                AutoOffsetReset = AutoOffsetReset.Earliest
+            });
+        builder.Services.AddSingleton<IWebSocketManager, KafkaWebSocketManager>();
+        break;
+    case "MEMORY":
+    default:
+        builder.Services.AddSingleton<IWebSocketManager, InMemoryWebSocketManager>();
+        break;
+}
+
 switch (System.Environment.GetEnvironmentVariable("STORAGE_SERVICE") ?? "MEMORY") {
     case "POSTGRES":
         var hostStrings = System.Environment.GetEnvironmentVariable("POSTGRES_CONNECTION_STRING");
