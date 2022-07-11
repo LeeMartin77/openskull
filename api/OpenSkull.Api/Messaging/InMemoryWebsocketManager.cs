@@ -1,28 +1,7 @@
-using System.Net.WebSockets;
-using System.Text;
 using Microsoft.AspNetCore.SignalR;
 using OpenSkull.Api.Hubs;
 
 namespace OpenSkull.Api.Messaging;
-
-public enum WebSocketAdditionError {
-
-}
-
-public enum WebSocketType {
-  Game,
-  Player
-}
-
-public record struct OpenskullMessage 
-{
-  public Guid Id { get; set; }
-  public string Activity { get; set; }
-}
-
-public interface IWebSocketManager {
-  Task BroadcastToConnectedWebsockets(WebSocketType type, Guid id, OpenskullMessage message);
-}
 
 // This in-memory manager is essentially for demo/testing
 // We will need a distributed message bus at some point
@@ -30,22 +9,35 @@ public class InMemoryWebSocketManager : IWebSocketManager {
   private readonly IHubContext<PlayerHub> _playerHubContext;
   private readonly IHubContext<GameHub> _gameHubContext;
 
+  private readonly Queue<(WebSocketType, Guid, OpenskullMessage)> _messages = new Queue<(WebSocketType, Guid, OpenskullMessage)>();
+
   public InMemoryWebSocketManager(IHubContext<PlayerHub> playerHubContext, IHubContext<GameHub> gameHubContext) {
     _playerHubContext = playerHubContext;
     _gameHubContext = gameHubContext;
   }
 
-  public async Task BroadcastToConnectedWebsockets(WebSocketType type, Guid id, OpenskullMessage message)
+  public Task BroadcastToConnectedWebsockets(WebSocketType type, Guid id, OpenskullMessage message)
   {
-    switch (type) {
-      case WebSocketType.Game:
-        await _gameHubContext.Clients.Group(id.ToString()).SendCoreAsync("send", new object[]{message});
-        break;
-      case WebSocketType.Player:
-        await _playerHubContext.Clients.Group(id.ToString()).SendCoreAsync("send", new object[]{message});
-        break;
-      default:
-        throw new NotImplementedException();
+    _messages.Enqueue((type, id, message));
+    return Task.CompletedTask;
+  }
+
+  public async Task WebsocketMessageSenderThread()
+  {
+    (WebSocketType, Guid, OpenskullMessage) message;
+    while (true) {
+      if (_messages.TryDequeue(out message)) {
+        switch (message.Item1) {
+          case WebSocketType.Game:
+            await _gameHubContext.Clients.Group(message.Item2.ToString()).SendCoreAsync("send", new object[]{message.Item3});
+            break;
+          case WebSocketType.Player:
+            await _playerHubContext.Clients.Group(message.Item2.ToString()).SendCoreAsync("send", new object[]{message.Item3});
+            break;
+          default:
+            throw new NotImplementedException();
+        }
+      }
     }
   }
 }

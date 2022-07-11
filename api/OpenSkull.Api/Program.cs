@@ -43,7 +43,6 @@ builder.Services.AddCors(options =>
                       {
                           policy.WithOrigins(System.Environment.GetEnvironmentVariable("OPENSKULL_WEBAPP_HOST") ?? "https://play.openskull.dev")
                             .AllowAnyHeader()
-                            //.WithHeaders(new string[] {"X-OpenSkull-UserId"})
                             .AllowAnyMethod()
                             .AllowCredentials();
                       });
@@ -70,6 +69,14 @@ app.UseCors();
 
 app.MapHub<PlayerHub>("/player/ws");
 app.MapHub<GameHub>("/game/ws");
+
+using (var serviceScope = app.Services.CreateScope())
+{
+    var services = serviceScope.ServiceProvider;
+
+    var webSocketManager = services.GetRequiredService<IWebSocketManager>();
+    Task.Run(async () =>  await webSocketManager.WebsocketMessageSenderThread());
+}
 
 app.MapControllers();
 
