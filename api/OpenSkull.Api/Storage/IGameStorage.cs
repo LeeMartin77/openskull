@@ -23,7 +23,8 @@ public record struct GameSearchParameters {
 public enum StorageError {
   CantStore,
   NotFound,
-  VersionMismatch
+  VersionMismatch,
+  SystemError
 }
 
 public static class StorageErrorMessages {

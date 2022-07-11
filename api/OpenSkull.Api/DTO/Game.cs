@@ -18,12 +18,12 @@ public record struct Card {
 }
 
 public record struct Game {
-  public Guid[] PlayerIds;
-  public Card[][] PlayerCards;
-  public int ActivePlayerIndex;
-  public List<List<Guid>[]> RoundPlayerCardIds;
-  public List<int[]> RoundBids;
-  public List<List<int>> RoundRevealedCardPlayerIndexes;
-  public List<int> RoundWinPlayerIndexes;
-  public bool GameComplete;
+  public Guid[] PlayerIds { get; set; }
+  public Card[][] PlayerCards { get; set; }
+  public int ActivePlayerIndex { get; set; }
+  public List<List<Guid>[]> RoundPlayerCardIds { get; set; }
+  public List<int[]> RoundBids { get; set; }
+  public List<List<int>> RoundRevealedCardPlayerIndexes { get; set; }
+  public List<int> RoundWinPlayerIndexes { get; set; }
+  public bool GameComplete { get; set; }
 }

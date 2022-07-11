@@ -6,3 +6,15 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       OPENSKULL_WEBAPP_HOST: http://localhost:3000
+      STORAGE_SERVICE: POSTGRES
+      POSTGRES_CONNECTION_STRING: Host=postgresdb:5432;Username=openskull;Password=openskull;Database=openskull;SSL Mode=Disable
+    depends_on:
+      - postgresdb
+  postgresdb:
+    image: postgres:14
+    ports:
+      - 3245:5432 
+    environment:
+      - POSTGRES_USER=openskull
+      - POSTGRES_DB=openskull
+      - POSTGRES_PASSWORD=openskull
