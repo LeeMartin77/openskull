@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS games (id UUID PRIMARY KEY, player_ids UUID[], version_tag text, game json);

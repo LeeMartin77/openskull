@@ -18,3 +18,5 @@ services:
       - POSTGRES_USER=openskull
       - POSTGRES_DB=openskull
       - POSTGRES_PASSWORD=openskull
+    volumes:
+      - ./storage/postgres/migration:/docker-entrypoint-initdb.d:ro

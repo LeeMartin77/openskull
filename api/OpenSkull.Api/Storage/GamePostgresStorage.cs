@@ -10,7 +10,6 @@ public class GamePostgresStorage : IGameStorage {
   private readonly string _connectionString;
   public GamePostgresStorage(string connectionString){
     _connectionString = connectionString;
-    Initialise();
   }
 
   private class PostgresGameStorage {
@@ -41,22 +40,6 @@ public class GamePostgresStorage : IGameStorage {
 
   private record PostgresSearchParameters {
     public Guid player_id { get; set; }
-  }
-
-  private void Initialise() {
-    // In a sane world we'd have migrations.
-    // This just gets us started.
-    try {
-      using (var connection = new NpgsqlConnection(_connectionString))
-      {
-        connection.Execute("CREATE TABLE IF NOT EXISTS games (id UUID PRIMARY KEY, player_ids UUID[], version_tag text, game json)");
-      }
-    } catch (Exception ex) {
-      Console.Error.WriteLine(ex.Message);
-      Console.Error.WriteLine(ex.StackTrace);
-      Thread.Sleep(5000);
-      Initialise();
-    }
   }
 
   public async Task<Result<GameStorage, StorageError>> StoreNewGame(Game game)
