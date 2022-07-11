@@ -6,6 +6,15 @@ using OpenSkull.Api.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSingleton<GameCreateNew>(GameFunctions.CreateNew);
+builder.Services.AddSingleton<TurnPlayCard>(GameFunctions.TurnPlayCard);
+builder.Services.AddSingleton<TurnPlaceBid>(GameFunctions.TurnPlaceBid);
+builder.Services.AddSingleton<TurnFlipCard>(GameFunctions.TurnFlipCard);
+
+builder.Services.AddSingleton<IWebSocketManager, InMemoryWebSocketManager>();
+
+builder.Services.AddSingleton<IGameCreationQueue, GameCreationMemoryQueue>();
+
 // Add services to the container.
 switch (System.Environment.GetEnvironmentVariable("STORAGE_SERVICE") ?? "MEMORY") {
     case "POSTGRES":
@@ -20,12 +29,6 @@ switch (System.Environment.GetEnvironmentVariable("STORAGE_SERVICE") ?? "MEMORY"
         builder.Services.AddSingleton<IGameStorage, GameMemoryStorage>();
         break;
 }
-builder.Services.AddSingleton<IGameCreationQueue, GameCreationMemoryQueue>();
-builder.Services.AddSingleton<IWebSocketManager, InMemoryWebSocketManager>();
-builder.Services.AddSingleton<GameCreateNew>(GameFunctions.CreateNew);
-builder.Services.AddSingleton<TurnPlayCard>(GameFunctions.TurnPlayCard);
-builder.Services.AddSingleton<TurnPlaceBid>(GameFunctions.TurnPlaceBid);
-builder.Services.AddSingleton<TurnFlipCard>(GameFunctions.TurnFlipCard);
 
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
