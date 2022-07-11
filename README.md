@@ -1,6 +1,6 @@
 # OpenSkull
 
-I love the card game [Skull](https://www.youtube.com/watch?v=Lu_IgiU4lh8). This is an attempt to make a web based version of this game.
+I love the card game [Skull](https://www.youtube.com/watch?v=Lu_IgiU4lh8). This is an attempt to make an open source, web based version of this game.
 
 ## The Game
 
@@ -46,7 +46,7 @@ The way the application should work:
 
 ### Web Client
 
-The web client is to be a Test-driven react app.
+The web client is to be a react app.
 - No signin
 - Localstorage for userid/secret
 
@@ -55,5 +55,11 @@ The web client is to be a Test-driven react app.
 The API is to be a Test-driven C# API using dotnet 6
 
 - Stateless
-- Primarily functional
-- Sufficiently abstract data storage to allow for different ways of storing data (postgres to start?)
+- Functional for game logic
+- Sufficiently abstract data storage to allow for different ways of storing data
+
+# TODO:
+- API Needs to move queues/websocket messaging out of memory (kafka? rabbitmq?)
+  - This sounds casual but is intense, probably needs adding a message handler to the API, and then maybe pull it to it's own service?
+- Should add user secrets + display names
+- Should add "Rooms" for allowing known users to start games together
