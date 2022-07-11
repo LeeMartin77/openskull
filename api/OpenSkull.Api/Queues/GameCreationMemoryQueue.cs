@@ -58,7 +58,11 @@ public class GameCreationMemoryQueue : IGameCreationQueue
       return QueueJoinError.AlreadyInQueue;
     }
     if (_gameCreationQueue[queueIndex].Count >= gameSize - 1) {
-      var queuedPlayerIds = _gameCreationQueue[queueIndex].Take(gameSize - 1).ToList();
+      
+      var queuedPlayerIds = new List<Guid>();
+      while(queuedPlayerIds.Count < gameSize -1) {
+        queuedPlayerIds.Add(_gameCreationQueue[queueIndex].Dequeue());
+      }
       var playerIds = queuedPlayerIds.ToList();
       playerIds.Add(playerId);
       var createdGame = _gameCreateNew(playerIds.ToArray());
