@@ -40,8 +40,7 @@ public class GamePostgresStorage : IGameStorage {
   }
 
   private record PostgresSearchParameters {
-    public Guid[] player_ids = new Guid[0];
-    public bool? game_complete;
+    public Guid player_id { get; set; }
   }
 
   private void Initialise() {
@@ -102,24 +101,20 @@ public class GamePostgresStorage : IGameStorage {
   {
     try {
       var pgparameters = new PostgresSearchParameters {
-        player_ids = parameters.PlayerIds,
-        game_complete = parameters.GameComplete
+        player_id = parameters.PlayerId
       };
       using (var connection = new NpgsqlConnection(_connectionString))
       {
         var result = await connection.QueryAsync<PostgresGameStorage>(
           @"SELECT id, version_tag, game 
-            FROM games"
+            FROM games
+            WHERE @player_id = ANY (player_ids)"
           , pgparameters);
         if (result is null) {
           return StorageError.NotFound;
         }
         // This can absolutely be done in SQL but I'm fighting it right now
-        return result.Select(PostgresGameStorage.ToGameStorage).Where(x => {
-          return (pgparameters.player_ids.Length == 0 || x.Game.PlayerIds.Any(x => pgparameters.player_ids.Contains(x))) &&
-            (pgparameters.game_complete is null || x.Game.GameComplete == pgparameters.game_complete);
-        }
-        ).ToArray();
+        return result.Select(PostgresGameStorage.ToGameStorage).ToArray();
       }
     } catch (Exception ex) {
       Console.Error.WriteLine(ex.Message);

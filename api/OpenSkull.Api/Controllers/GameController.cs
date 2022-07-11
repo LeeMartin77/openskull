@@ -176,7 +176,7 @@ public class GameController : ControllerBase
         if (!Guid.TryParse(rawPlayerId.ToString(), out playerId) && (playerIds == null || playerIds.Length == 0)) {
             return BadRequest("Must have UserId Header or Specify Player Ids");
         }
-        var searchResult = await _gameStorage.SearchGames(new GameSearchParameters { PlayerIds = new Guid[]{playerId}, GameComplete = gameComplete });
+        var searchResult = await _gameStorage.SearchGames(new GameSearchParameters { PlayerId = playerId });
         if (searchResult.IsFailure) {
             // TODO: Right now, this shouldn't ever actually fail...
             throw new NotImplementedException();

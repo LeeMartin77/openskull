@@ -43,83 +43,32 @@ public class GenericGameStorageTests {
 
 
   [TestMethod]
-  [DataRow("cb660fda-7ed8-4cd5-9d63-db84f2da732a", true)]
-  [DataRow("cb660fda-7ed8-4cd5-9d63-db84f2da732a", false)]
-  public async Task CanStoreAndSearchForGames(string testPlayerId, bool testActiveGame) {
+  [DataRow("cb660fda-7ed8-4cd5-9d63-db84f2da732a")]
+  public async Task CanStoreAndSearchForGames(string testPlayerId) {
     // Arrange
     var storage = new GameMemoryStorage();
     Guid testPlayerGuid = Guid.Parse(testPlayerId);
     // Setting a mad value for identification
     var foundGame = new Game {
       ActivePlayerIndex = 999,
-      PlayerIds = new Guid[] { testPlayerGuid },
-      GameComplete = testActiveGame
+      PlayerIds = new Guid[] { testPlayerGuid }
     };
 
     // Act
     await storage.StoreNewGame(foundGame);
     await storage.StoreNewGame(new Game {
-      ActivePlayerIndex = 2,
-      PlayerIds = new Guid[] { testPlayerGuid },
-      GameComplete = !testActiveGame
-    });
-    await storage.StoreNewGame(new Game {
       ActivePlayerIndex = 1,
-      PlayerIds = new Guid[] { Guid.NewGuid() },
-      GameComplete = testActiveGame
+      PlayerIds = new Guid[] { Guid.NewGuid() }
     });
 
     var searchResults = await storage.SearchGames(new GameSearchParameters {
-      PlayerIds = new Guid[] { testPlayerGuid },
-      GameComplete = testActiveGame
+      PlayerId = testPlayerGuid
     });
 
     // Assert
     Assert.IsTrue(searchResults.IsSuccess);
     Assert.AreEqual(foundGame, searchResults.Value[0].Game);
     Assert.AreEqual(1, searchResults.Value.Length);
-  }
-
-  [TestMethod]
-  public async Task SearchWithNoCompleteParameter_ReturnsBothTypes() {
-    // Arrange
-    var storage = new GameMemoryStorage();
-    Guid testPlayerGuid = Guid.Parse("cb660fda-7ed8-4cd5-9d63-db84f2da732a");
-    // Setting a mad value for identification
-    var completeGame = new Game {
-      ActivePlayerIndex = 999,
-      PlayerIds = new Guid[] { testPlayerGuid },
-      GameComplete = true
-    };
-    var incompleteGame = new Game {
-      ActivePlayerIndex = 2,
-      PlayerIds = new Guid[] { testPlayerGuid },
-      GameComplete = false
-    };
-
-    // Act
-    await storage.StoreNewGame(completeGame);
-    await storage.StoreNewGame(incompleteGame);
-    await storage.StoreNewGame(new Game {
-      ActivePlayerIndex = 1,
-      PlayerIds = new Guid[] { Guid.NewGuid() },
-      GameComplete = true
-    });
-    await storage.StoreNewGame(new Game {
-      ActivePlayerIndex = 1,
-      PlayerIds = new Guid[] { Guid.NewGuid() },
-      GameComplete = false
-    });
-
-    var searchResults = await storage.SearchGames(new GameSearchParameters {
-      PlayerIds = new Guid[] { testPlayerGuid }
-    });
-
-    // Assert
-    Assert.IsTrue(searchResults.IsSuccess);
-    Assert.IsTrue(searchResults.Value.Select(x => x.Game).Contains(completeGame));
-    Assert.IsTrue(searchResults.Value.Select(x => x.Game).Contains(incompleteGame));
-    Assert.AreEqual(2, searchResults.Value.Length);
   }
 
   [TestMethod]
@@ -130,7 +79,7 @@ public class GenericGameStorageTests {
 
     // Act
     var searchResults = await storage.SearchGames(new GameSearchParameters {
-      PlayerIds = new Guid[] { testPlayerGuid }
+      PlayerId = testPlayerGuid
     });
 
     // Assert

@@ -28,10 +28,7 @@ public class GameMemoryStorage : IGameStorage {
 
   public Task<Result<GameStorage[], StorageError>> SearchGames(GameSearchParameters parameters) 
   {
-    var playerGames = _gameStorage.Where(x => parameters.PlayerIds.Any(y => x.Game.PlayerIds.Contains(y)));
-    if (parameters.GameComplete != null) {
-      playerGames = playerGames.Where(x => x.Game.GameComplete == parameters.GameComplete);
-    }
+    var playerGames = _gameStorage.Where(x => x.Game.PlayerIds.Contains(parameters.PlayerId));
     return Task.FromResult<Result<GameStorage[], StorageError>>(playerGames.ToArray());
   }
 

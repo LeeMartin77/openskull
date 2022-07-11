@@ -16,8 +16,7 @@ public record struct GameStorage {
 }
 
 public record struct GameSearchParameters {
-  public Guid[] PlayerIds;
-  public bool? GameComplete;
+  public Guid PlayerId;
 }
 
 public enum StorageError {
@@ -31,6 +30,7 @@ public static class StorageErrorMessages {
   public static string[] StringValues = new string[] {
     "Can't Store Game (System Error)",
     "Game Not Found",
-    "Version Mismatch (Item already updated)"
+    "Version Mismatch (Item already updated)",
+    "System Error"
   };
 }
