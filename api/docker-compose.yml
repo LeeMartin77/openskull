@@ -9,7 +9,9 @@ services:
       STORAGE_SERVICE: POSTGRES
       POSTGRES_CONNECTION_STRING: Host=postgresdb:5432;Username=openskull;Password=openskull;Database=openskull;SSL Mode=Disable
       QUEUE_SERVICE: KAFKA
+      GAME_CREATION_SERVICE: KAFKA
       KAFKA_CONNECTION_STRING: kafka:19092
+      GAME_MASTER: "true"
     depends_on:
       - postgresdb
       - kafka

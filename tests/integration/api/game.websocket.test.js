@@ -10,6 +10,8 @@ const { v4 } = require("uuid");
 
 const apiRoot = process.env.OPENSKULL_API_ROOT ?? "http://localhost:5248"
 
+jest.setTimeout(30000);
+
 test("Can connect to websockets and get messages", async () => {
   const TEST_PLAYER_IDS = [
     v4(),

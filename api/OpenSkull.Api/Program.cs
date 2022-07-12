@@ -14,26 +14,40 @@ builder.Services.AddSingleton<TurnPlaceBid>(GameFunctions.TurnPlaceBid);
 builder.Services.AddSingleton<TurnFlipCard>(GameFunctions.TurnFlipCard);
 
 
-builder.Services.AddSingleton<IGameCreationQueue, GameCreationMemoryQueue>();
+var kafkaString = System.Environment.GetEnvironmentVariable("KAFKA_CONNECTION_STRING");
+if (kafkaString is not null) {
+    builder.Services.AddSingleton<ProducerConfig>(new ProducerConfig
+        {
+            BootstrapServers = kafkaString,
+            ClientId = Dns.GetHostName(),
+        });
+    builder.Services.AddSingleton<ConsumerConfig>(new ConsumerConfig
+        {
+            BootstrapServers = kafkaString,
+            GroupId = Dns.GetHostName(),
+            AutoOffsetReset = AutoOffsetReset.Earliest,
+            AllowAutoCreateTopics = true
+        });
+}
 
-switch (System.Environment.GetEnvironmentVariable("QUEUE_SERVICE") ?? "MEMORY") {
+switch (System.Environment.GetEnvironmentVariable("GAME_CREATION_SERVICE") ?? "MEMORY") {
     case "KAFKA":
-        var kafkaString = System.Environment.GetEnvironmentVariable("KAFKA_CONNECTION_STRING");
         if (kafkaString is null) {
             throw new InvalidOperationException("Must provide a KAFKA_CONNECTION_STRING value");
         }
-        builder.Services.AddSingleton<ProducerConfig>(new ProducerConfig
-            {
-                BootstrapServers = kafkaString,
-                ClientId = Dns.GetHostName(),
-            });
-        builder.Services.AddSingleton<ConsumerConfig>(new ConsumerConfig
-            {
-                BootstrapServers = kafkaString,
-                GroupId = Dns.GetHostName(),
-                AutoOffsetReset = AutoOffsetReset.Earliest,
-                AllowAutoCreateTopics = true
-            });
+        builder.Services.AddSingleton<IGameCreationQueue, KafkaGameCreationQueue>();
+        break;
+    case "MEMORY":
+    default:
+        builder.Services.AddSingleton<IGameCreationQueue, GameCreationMemoryQueue>();
+        break;
+}
+
+switch (System.Environment.GetEnvironmentVariable("QUEUE_SERVICE") ?? "MEMORY") {
+    case "KAFKA":
+        if (kafkaString is null) {
+            throw new InvalidOperationException("Must provide a KAFKA_CONNECTION_STRING value");
+        }
         builder.Services.AddSingleton<IWebSocketManager, KafkaWebSocketManager>();
         break;
     case "MEMORY":

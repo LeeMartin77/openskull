@@ -10,6 +10,8 @@ process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
 const apiRoot = process.env.OPENSKULL_API_ROOT ?? "http://localhost:5248"
 
+jest.setTimeout(30000);
+
 test("Happy Path :: Create Test Game Then Play It Through", async () => {
   const TEST_PLAYER_IDS = [
     crypto.randomUUID(),
