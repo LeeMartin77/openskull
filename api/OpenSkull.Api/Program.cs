@@ -101,7 +101,7 @@ using (var serviceScope = app.Services.CreateScope())
     var services = serviceScope.ServiceProvider;
 
     var webSocketManager = services.GetRequiredService<IWebSocketManager>();
-    Task.Run(async () =>  await webSocketManager.WebsocketMessageSenderThread());
+    Task.Run(webSocketManager.WebsocketMessageSenderThread);
 }
 
 app.MapControllers();
