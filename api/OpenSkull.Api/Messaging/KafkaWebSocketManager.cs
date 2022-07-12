@@ -75,8 +75,7 @@ public class KafkaWebSocketManager : IWebSocketManager
       {
         var consumeResult = consumer.Consume();
         var message = JsonSerializer.Deserialize<OpenskullSocketKafkaMessage>(consumeResult.Message.Value);
-        // I don't know why, but removing this writeline breaks this...
-        Console.WriteLine(message);
+        
         if (message != null && consumeResult.Topic == gameTopic) {
           await _gameHubContext.Clients.Group(message.Id.ToString()).SendCoreAsync("send", new object[]{message.Message});
         }
