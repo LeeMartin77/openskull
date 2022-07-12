@@ -92,4 +92,10 @@ public class GameCreationMemoryQueue : IGameCreationQueue
     _gameCreationQueue[queueIndex].Enqueue(playerId);
     return false;
   }
+
+  public Task GameMasterThread() {
+    // Not implemented for memory queue, which creates immediately.
+    // As it has no concept of multi-system
+    return Task.CompletedTask;
+  }
 }

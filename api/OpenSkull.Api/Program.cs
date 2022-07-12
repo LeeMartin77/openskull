@@ -102,6 +102,12 @@ using (var serviceScope = app.Services.CreateScope())
 
     var webSocketManager = services.GetRequiredService<IWebSocketManager>();
     Task.Run(webSocketManager.WebsocketMessageSenderThread);
+    bool isGameMaster = false;
+    if(bool.TryParse(System.Environment.GetEnvironmentVariable("GAME_MASTER") ?? "false", out isGameMaster) && isGameMaster) {
+        Console.WriteLine("Is GameMaster API");
+        var gameCreationQueue = services.GetRequiredService<IGameCreationQueue>();
+        Task.Run(gameCreationQueue.GameMasterThread);
+    }
 }
 
 app.MapControllers();
