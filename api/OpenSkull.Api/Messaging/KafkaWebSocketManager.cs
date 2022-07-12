@@ -1,4 +1,5 @@
 using Confluent.Kafka;
+using Confluent.Kafka.Admin;
 using Microsoft.AspNetCore.SignalR;
 using OpenSkull.Api.Hubs;
 using System.Text.Json;
@@ -29,37 +30,68 @@ public class KafkaWebSocketManager : IWebSocketManager
     _consumerConfig = consumerConfig;
   }
 
+  // Doing this because I think they're listening to different topics.
+  private static string GetKafkaTopic(WebSocketType type) {
+    switch (type) {
+      case WebSocketType.Game:
+        return "Game";
+      case WebSocketType.Player:
+        return "Player";
+      default:
+        throw new NotImplementedException();
+    }
+  }
+
   public async Task BroadcastToConnectedWebsockets(WebSocketType type, Guid id, OpenskullMessage message)
   {
-    using (var producer = new ProducerBuilder<Null, string>(_producerConfig).Build())
-    {
-      
-      await producer.ProduceAsync(type.ToString(), new Message<Null, string> { Value=JsonSerializer.Serialize(new OpenskullSocketKafkaMessage {
-        Id = id,
-        Message = message
-      })});
+    try {
+      using (var producer = new ProducerBuilder<Null, string>(_producerConfig).Build())
+      {
+        await producer.ProduceAsync(GetKafkaTopic(type), new Message<Null, string> { Value=JsonSerializer.Serialize(new OpenskullSocketKafkaMessage {
+          Id = id,
+          Message = message
+        })});
+      }  
+    } catch (Exception ex) {
+      Console.Error.WriteLine("Error Sending Kafka Message: " + ex.Message);
     }
   }
 
   public async Task WebsocketMessageSenderThread()
   {
-    using (var consumer = new ConsumerBuilder<Ignore, string>(_consumerConfig).Build())
-    {
-      var gameTopic =  WebSocketType.Game.ToString();
-      var playerTopic =  WebSocketType.Player.ToString();
-      consumer.Subscribe(new string[] { gameTopic, playerTopic });
-
-      while (true)
+    var gameTopic =  GetKafkaTopic(WebSocketType.Game);
+    var playerTopic =  GetKafkaTopic(WebSocketType.Player);
+    try {
+      using (var producer = new ProducerBuilder<Null, string>(_producerConfig).Build())
       {
-        var consumeResult = consumer.Consume();
-        var message = JsonSerializer.Deserialize<OpenskullSocketKafkaMessage>(consumeResult.Message.Value);
-        if (message is not null && consumeResult.Topic == gameTopic) {
-          await _gameHubContext.Clients.Group(message.Id.ToString()).SendCoreAsync("send", new object[]{message.Message});
-        }
-        if (message is not null && consumeResult.Topic == playerTopic) {
-          await _playerHubContext.Clients.Group(message.Id.ToString()).SendCoreAsync("send", new object[]{message.Message});
+        await producer.ProduceAsync(gameTopic, new Message<Null, string> { Value=JsonSerializer.Serialize(new OpenskullSocketKafkaMessage {
+          Id = Guid.Empty,
+          Message = new OpenskullMessage{ Id = Guid.Empty, Activity = "ApiJoined"}
+        })});
+        await producer.ProduceAsync(playerTopic, new Message<Null, string> { Value=JsonSerializer.Serialize(new OpenskullSocketKafkaMessage {
+          Id = Guid.Empty,
+          Message = new OpenskullMessage{ Id = Guid.Empty, Activity = "ApiJoined"}
+        })});
+      }
+      using (var consumer = new ConsumerBuilder<Ignore, string>(_consumerConfig).Build())
+      {
+        consumer.Subscribe(new string[] { gameTopic, playerTopic });
+        while (true)
+        {
+          var consumeResult = consumer.Consume();
+          var message = JsonSerializer.Deserialize<OpenskullSocketKafkaMessage>(consumeResult.Message.Value);
+          // I don't know why, but removing this writeline breaks this...
+          Console.WriteLine(message);
+          if (message != null && consumeResult.Topic == gameTopic) {
+            await _gameHubContext.Clients.Group(message.Id.ToString()).SendCoreAsync("send", new object[]{message.Message});
+          }
+          if (message != null && consumeResult.Topic == playerTopic) {
+            await _playerHubContext.Clients.Group(message.Id.ToString()).SendCoreAsync("send", new object[]{message.Message});
+          }
         }
       }
+    } catch (Exception ex) {
+      Console.Error.WriteLine("Kafka Subscriptions Errored: " + ex.Message);
     }
   }
 }

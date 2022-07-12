@@ -31,7 +31,8 @@ switch (System.Environment.GetEnvironmentVariable("QUEUE_SERVICE") ?? "MEMORY") 
             {
                 BootstrapServers = kafkaString,
                 GroupId = Dns.GetHostName(),
-                AutoOffsetReset = AutoOffsetReset.Earliest
+                AutoOffsetReset = AutoOffsetReset.Earliest,
+                AllowAutoCreateTopics = true
             });
         builder.Services.AddSingleton<IWebSocketManager, KafkaWebSocketManager>();
         break;
