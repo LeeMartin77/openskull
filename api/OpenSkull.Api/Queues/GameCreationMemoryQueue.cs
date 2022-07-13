@@ -60,7 +60,6 @@ public class GameCreationMemoryQueue : IGameCreationQueue
 
   public async Task JoinGameQueue(Guid playerId, int gameSize)
   {
-    Console.WriteLine(playerId);
     int queueIndex = gameSize - GameFunctions.MIN_PLAYERS;
     if ((queueIndex < 0 || queueIndex > _gameCreationQueue.Length - 1) || 
       (_gameCreationQueue.Any(x => x.Contains(playerId)))) {
