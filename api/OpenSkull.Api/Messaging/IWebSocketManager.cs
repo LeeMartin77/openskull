@@ -9,6 +9,7 @@ public record struct OpenskullMessage
 {
   public Guid Id { get; set; }
   public string Activity { get; set; }
+  public string? Details { get; set; }
 }
 
 public interface IWebSocketManager {

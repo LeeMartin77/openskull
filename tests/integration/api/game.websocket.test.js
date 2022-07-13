@@ -10,7 +10,7 @@ const { v4 } = require("uuid");
 
 const apiRoot = process.env.OPENSKULL_API_ROOT ?? "http://localhost:5248"
 
-jest.setTimeout(30000);
+jest.setTimeout(10000);
 
 test("Can connect to websockets and get messages", async () => {
   const TEST_PLAYER_IDS = [
@@ -43,34 +43,21 @@ test("Can connect to websockets and get messages", async () => {
     return connection;
   }));
 
-  const gameJoinOne = await axios.post(apiRoot + "/games/join", {
-    gameSize: 3
-  }, {
-    headers: {
-      "X-OpenSkull-UserId": TEST_PLAYER_IDS[0]
-    }
-  });
-  const gameJoinTwo = await axios.post(apiRoot + "/games/join", {
-    gameSize: 3
-  }, {
-    headers: {
-      "X-OpenSkull-UserId": TEST_PLAYER_IDS[1]
-    }
-  });
-  const gameJoinThree = await axios.post(apiRoot + "/games/join", {
-    gameSize: 3
-  }, {
-    headers: {
-      "X-OpenSkull-UserId": TEST_PLAYER_IDS[2]
-    }
-  });
-  expect(gameJoinOne.status).toBe(204);
-  expect(gameJoinTwo.status).toBe(204);
-  expect(gameJoinThree.status).toBe(204);
+  TEST_PLAYER_IDS.forEach(async (id, i) => {
+    await connections[i].send("joinQueue", id, 3)
+  })
 
-  // gotta give it a beat here
-  await new Promise(resolve => setTimeout(resolve, 500))
-  const gameId = messages[0][0].id;
+  var waiting = true;
+  while (waiting) {
+    await new Promise(resolve => setTimeout(resolve, 100))
+    waiting = !messages[0].map(x => x.activity).includes("GameCreated");
+  }
+  
+  var createdMessageIndex = messages[0].map(x => x.activity).findIndex(x => x == "GameCreated")
+  expect(createdMessageIndex).not.toBe(-1);
+
+  const gameId = messages[0][createdMessageIndex].id;
+
   expect(messages.every(x => x.every(y => y.id == gameId && y.activity == "GameCreated") && x.length == 1)).toBe(true);
   await Promise.all(connections.map(async c => await c.stop()))
   const TEST_PLAYER_CARDS = [];

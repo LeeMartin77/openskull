@@ -27,9 +27,8 @@ public record struct PlayerQueueStatus {
 }
 
 public interface IGameCreationQueue {
-  Task<Result<PlayerQueueStatus, PlayerQueueStatusError>> FindPlayerInQueues(Guid playerId);
-  Task<Result<bool, PlayerQueueLeaveError>> LeaveQueues(Guid playerId);
-  Task<Result<int, QueueError>> PlayersInQueue(int gameSize);
-  Task<Result<bool, QueueJoinError>> JoinGameQueue(Guid playerId, int gameSize);
+  Task FindPlayerInQueues(Guid playerId);
+  Task LeaveQueues(Guid playerId);
+  Task JoinGameQueue(Guid playerId, int gameSize);
   Task GameMasterThread();
 }

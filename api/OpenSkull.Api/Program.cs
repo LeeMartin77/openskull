@@ -35,8 +35,9 @@ switch (System.Environment.GetEnvironmentVariable("GAME_CREATION_SERVICE") ?? "M
         if (kafkaString is null) {
             throw new InvalidOperationException("Must provide a KAFKA_CONNECTION_STRING value");
         }
-        builder.Services.AddSingleton<IGameCreationQueue, KafkaGameCreationQueue>();
-        break;
+        throw new NotImplementedException();
+        //builder.Services.AddSingleton<IGameCreationQueue, KafkaGameCreationQueue>();
+        //break;
     case "MEMORY":
     default:
         builder.Services.AddSingleton<IGameCreationQueue, GameCreationMemoryQueue>();

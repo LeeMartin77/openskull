@@ -10,7 +10,7 @@ process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
 const apiRoot = process.env.OPENSKULL_API_ROOT ?? "http://localhost:5248"
 
-jest.setTimeout(30000);
+jest.setTimeout(10000);
 
 test("Happy Path :: Create Test Game Then Play It Through", async () => {
   const TEST_PLAYER_IDS = [
@@ -123,36 +123,20 @@ test("Happy Path :: Create Game using Queue Then Play It Through", async () => {
 
   await connection.send("subscribeToUserId", TEST_PLAYER_IDS[0])
 
-  const gameJoinOne = await axios.post(apiRoot + "/games/join", {
-    gameSize: 3
-  }, {
-    headers: {
-      "X-OpenSkull-UserId": TEST_PLAYER_IDS[0]
-    }
-  });
-  const gameJoinTwo = await axios.post(apiRoot + "/games/join", {
-    gameSize: 3
-  }, {
-    headers: {
-      "X-OpenSkull-UserId": TEST_PLAYER_IDS[1]
-    }
-  });
-  const gameJoinThree = await axios.post(apiRoot + "/games/join", {
-    gameSize: 3
-  }, {
-    headers: {
-      "X-OpenSkull-UserId": TEST_PLAYER_IDS[2]
-    }
-  });
-  expect(gameJoinOne.status).toBe(204);
-  expect(gameJoinTwo.status).toBe(204);
-  expect(gameJoinThree.status).toBe(204);
+  await connection.send("joinQueue", TEST_PLAYER_IDS[0], 3)
+  await connection.send("joinQueue", TEST_PLAYER_IDS[1], 3)
+  await connection.send("joinQueue", TEST_PLAYER_IDS[2], 3)
 
-  await new Promise(resolve => setTimeout(resolve, 500));
+  var waiting = true;
+  while (waiting) { 
+    await new Promise(resolve => setTimeout(resolve, 100))
+    waiting = !messages.map(x => x.activity).includes("GameCreated");
+  }
 
-  expect(messages[0].activity).toBe("GameCreated");
+  var createdMessageIndex = messages.map(x => x.activity).findIndex(x => x == "GameCreated")
+  expect(createdMessageIndex).not.toBe(-1);
 
-  const gameId = messages[0].id;
+  const gameId = messages[createdMessageIndex].id;
 
   await connection.stop();
 

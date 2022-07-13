@@ -61,28 +61,28 @@ export function GameQueueComponent() {
       .then(() => connection.send("subscribeToUserId", USER_ID))
       .catch(e => console.log('Connection failed: ', e));
 
+      setLoading(false);
     }
     return () => {
       connection && connection.stop();
     }
-  }, [connection, setGameId]);
+  }, [connection, setGameId, setLoading]);
 
   useEffect(() => {
-    getQueueStatus(setQueueStatus, setLoading, setError)
+    //getQueueStatus(setQueueStatus, setLoading, setError)
   }, [setLoading, setError, setQueueStatus])
 
   const joinQueue = (gameSize: number) => {
-    setLoading(true);
-    return fetch(`${API_ROOT_URL}/games/join`, { method: "POST",  headers: { "Content-Type": "application/json", [USER_ID_HEADER]: USER_ID }, body: JSON.stringify({ GameSize: gameSize }) })
-      .then(res => {
-        if (res.status === 204) {
-          getQueueStatus(setQueueStatus, setLoading, setError)
-        }
-        if (res.status === 200) {
-          // Game was created!
-          res.json().then(game => navigate("/games/" + game.id));
-        }
-      })
+    if (connection) {
+      setLoading(true);
+      connection.send("JoinQueue", USER_ID, gameSize)
+    }
+    // return fetch(`${API_ROOT_URL}/games/join`, { method: "POST",  headers: { "Content-Type": "application/json", [USER_ID_HEADER]: USER_ID }, body: JSON.stringify({ GameSize: gameSize }) })
+    //   .then(res => {
+    //     if (res.status === 204) {
+    //       //getQueueStatus(setQueueStatus, setLoading, setError)
+    //     }
+    //   })
   }
 
   
