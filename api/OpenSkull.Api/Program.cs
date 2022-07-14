@@ -30,7 +30,9 @@ if (kafkaString is not null) {
         });
 }
 
-switch (System.Environment.GetEnvironmentVariable("GAME_CREATION_SERVICE") ?? "MEMORY") {
+var gameCreationService = System.Environment.GetEnvironmentVariable("GAME_CREATION_SERVICE") ?? "MEMORY";
+
+switch (gameCreationService) {
     case "KAFKA":
         if (kafkaString is null) {
             throw new InvalidOperationException("Must provide a KAFKA_CONNECTION_STRING value");
@@ -43,9 +45,7 @@ switch (System.Environment.GetEnvironmentVariable("GAME_CREATION_SERVICE") ?? "M
         break;
 }
 
-var queueServiceType = System.Environment.GetEnvironmentVariable("QUEUE_SERVICE") ?? "MEMORY";
-
-switch (queueServiceType) {
+switch (System.Environment.GetEnvironmentVariable("WEBSOCKET_SERVICE") ?? "MEMORY") {
     case "KAFKA":
         if (kafkaString is null) {
             throw new InvalidOperationException("Must provide a KAFKA_CONNECTION_STRING value");
@@ -119,7 +119,7 @@ using (var serviceScope = app.Services.CreateScope())
     var webSocketManager = services.GetRequiredService<IWebSocketManager>();
     Task.Run(webSocketManager.WebsocketMessageSenderThread);
     bool isGameMaster = false;
-    if(queueServiceType == "MEMORY" || bool.TryParse(System.Environment.GetEnvironmentVariable("GAME_MASTER") ?? "false", out isGameMaster) && isGameMaster) {
+    if(gameCreationService == "MEMORY" || bool.TryParse(System.Environment.GetEnvironmentVariable("GAME_MASTER") ?? "false", out isGameMaster) && isGameMaster) {
         Console.WriteLine("Is GameMaster API");
         var gameCreationQueue = services.GetRequiredService<IGameCreationQueue>();
         Task.Run(gameCreationQueue.GameMasterThread);

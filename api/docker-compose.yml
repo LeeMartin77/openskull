@@ -8,7 +8,7 @@ services:
       OPENSKULL_WEBAPP_HOST: http://localhost:3000
       STORAGE_SERVICE: POSTGRES
       POSTGRES_CONNECTION_STRING: Host=postgresdb:5432;Username=openskull;Password=openskull;Database=openskull;SSL Mode=Disable
-      QUEUE_SERVICE: KAFKA
+      WEBSOCKET_SERVICE: KAFKA
       GAME_CREATION_SERVICE: KAFKA
       KAFKA_CONNECTION_STRING: kafka:19092
       GAME_MASTER: "true"

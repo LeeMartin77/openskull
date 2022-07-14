@@ -40,8 +40,7 @@ public class KafkaGameCreationQueue : IGameCreationQueue
   private enum GameCreationMessageType {
     Join,
     Leave,
-    Find,
-    Count
+    Find
   }
 
   private record GameCreationMessage {
@@ -49,13 +48,6 @@ public class KafkaGameCreationQueue : IGameCreationQueue
     public Guid PlayerId { get; set; }
     public int GameSize { get; set; }
   }
-
-  private record GameCreationResponseMessage {
-    public Guid PlayerId { get; set; }
-    public bool ResponseSuccess { get; set; }
-    public string ResponseString { get; set; } = "";
-  }
-
 
   private async Task _SendEventMessage(GameCreationMessage message) {
     using (var producer = new ProducerBuilder<Null, string>(_producerConfig).Build())
@@ -186,7 +178,6 @@ public class KafkaGameCreationQueue : IGameCreationQueue
                     Activity = "QueueJoinFailure",
                     Details = JsonSerializer.Serialize(new { GameSize = singleParsedMessage.GameSize })
                     });
-                  return;
                 }
                 break;
               case GameCreationMessageType.Find:
