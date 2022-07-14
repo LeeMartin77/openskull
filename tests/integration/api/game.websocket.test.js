@@ -107,3 +107,5 @@ test("Can connect to websockets and get messages", async () => {
 
   await Promise.all(gameConnections.map(async c => await c.stop()))
 });
+
+// TODO: Test Status/Queue/Leave/Status loop
