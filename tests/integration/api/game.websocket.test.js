@@ -109,3 +109,70 @@ test("Can connect to websockets and get messages", async () => {
 });
 
 // TODO: Test Status/Queue/Leave/Status loop
+
+test("Can query, queue, query, leave, query", async () => {
+  const playerId = v4();
+
+  const messages = [];
+
+  const messageHandler = (msg, msgs = messages) => {
+    msgs.push(msg);
+  }
+
+  let connection = new signalR.HubConnectionBuilder()
+  .withUrl(apiRoot +`/player/ws`)
+  .configureLogging(signalR.LogLevel.Error)
+  .build();
+
+  connection.on("send", messageHandler);
+
+  await connection.start();
+
+  await connection.send("subscribeToUserId", playerId)
+
+
+  await connection.send("getQueueStatus", playerId)
+
+  while (messages.length < 1) {
+    await new Promise(resolve => setTimeout(resolve, 10))
+  }
+
+  expect(messages[0].activity).toBe("QueueStatus")
+  expect(JSON.parse(messages[0].details).GameSize).toBe(0)
+  expect(JSON.parse(messages[0].details).QueueSize).toBe(0)
+
+  await connection.send("joinQueue", playerId, 4)
+
+  // TODO: we probably want to send an actual reply for joining queues
+  // even if it doesn't fail?
+
+  await new Promise(resolve => setTimeout(resolve, 1000))
+
+  await connection.send("getQueueStatus", playerId)
+
+  while (messages.length < 2) {
+    await new Promise(resolve => setTimeout(resolve, 10))
+  }
+
+  expect(messages[1].activity).toBe("QueueStatus")
+  expect(JSON.parse(messages[1].details).GameSize).toBe(4)
+  expect(JSON.parse(messages[1].details).QueueSize).toBe(1)
+
+  await connection.send("leaveQueues", playerId)
+
+  // TODO: we probably want to send an actual reply for leaving queues
+
+  await new Promise(resolve => setTimeout(resolve, 1000))
+
+  await connection.send("getQueueStatus", playerId)
+
+  while (messages.length < 3) {
+    await new Promise(resolve => setTimeout(resolve, 10))
+  }
+
+  expect(messages[2].activity).toBe("QueueStatus")
+  expect(JSON.parse(messages[2].details).GameSize).toBe(0)
+  expect(JSON.parse(messages[2].details).QueueSize).toBe(0)
+
+  await connection.stop();
+})
