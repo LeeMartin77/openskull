@@ -10,7 +10,7 @@ const { v4 } = require("uuid");
 
 const apiRoot = process.env.OPENSKULL_API_ROOT ?? "http://localhost:5248"
 
-jest.setTimeout(10000);
+jest.setTimeout(20000);
 
 test("Can connect to websockets and get messages", async () => {
   const TEST_PLAYER_IDS = [
@@ -43,14 +43,15 @@ test("Can connect to websockets and get messages", async () => {
     return connection;
   }));
 
-  TEST_PLAYER_IDS.forEach(async (id, i) => {
-    await connections[i].send("joinQueue", id, 3)
-  })
+  for (var i = 0; i++; i < TEST_PLAYER_IDS.length) {
+    await new Promise(resolved => setTimeout(resolved, 100));
+    await connections[i].send("joinQueue", TEST_PLAYER_IDS[i], 3)
+  }
 
   var waiting = true;
   while (waiting) {
     await new Promise(resolve => setTimeout(resolve, 100))
-    waiting = !messages[0].map(x => x.activity).includes("GameCreated");
+    waiting = !messages.every(y => y.map(x => x.activity).includes("GameCreated"));
   }
   
   var createdMessageIndex = messages[0].map(x => x.activity).findIndex(x => x == "GameCreated")
@@ -58,7 +59,7 @@ test("Can connect to websockets and get messages", async () => {
 
   const gameId = messages[0][createdMessageIndex].id;
 
-  expect(messages.every(x => x.every(y => y.id == gameId && y.activity == "GameCreated") && x.length == 1)).toBe(true);
+  expect(messages.every(x => x.filter(y => y.id == gameId && y.activity == "GameCreated").length == 1)).toBe(true);
   await Promise.all(connections.map(async c => await c.stop()))
   const TEST_PLAYER_CARDS = [];
   for (let id of TEST_PLAYER_IDS) {
@@ -130,7 +131,6 @@ test("Can query, queue, query, leave, query", async () => {
 
   await connection.send("subscribeToUserId", playerId)
 
-
   await connection.send("getQueueStatus", playerId)
 
   while (messages.length < 1) {
@@ -138,31 +138,18 @@ test("Can query, queue, query, leave, query", async () => {
   }
 
   expect(messages[0].activity).toBe("QueueStatus")
-  expect(JSON.parse(messages[0].details).GameSize).toBe(0)
-  expect(JSON.parse(messages[0].details).QueueSize).toBe(0)
+  expect(messages[0].details.gameSize).toBe(0)
+  expect(messages[0].details.queueSize).toBe(0)
 
   await connection.send("joinQueue", playerId, 4)
-
-  // TODO: we probably want to send an actual reply for joining queues
-  // even if it doesn't fail?
-
-  await new Promise(resolve => setTimeout(resolve, 1000))
-
-  await connection.send("getQueueStatus", playerId)
 
   while (messages.length < 2) {
     await new Promise(resolve => setTimeout(resolve, 10))
   }
 
-  expect(messages[1].activity).toBe("QueueStatus")
-  expect(JSON.parse(messages[1].details).GameSize).toBe(4)
-  expect(JSON.parse(messages[1].details).QueueSize).toBe(1)
-
-  await connection.send("leaveQueues", playerId)
-
-  // TODO: we probably want to send an actual reply for leaving queues
-
-  await new Promise(resolve => setTimeout(resolve, 1000))
+  expect(messages[1].activity).toBe("QueueJoined")
+  expect(messages[1].details.gameSize).toBe(4)
+  expect(messages[1].details.queueSize).toBe(1)
 
   await connection.send("getQueueStatus", playerId)
 
@@ -171,8 +158,27 @@ test("Can query, queue, query, leave, query", async () => {
   }
 
   expect(messages[2].activity).toBe("QueueStatus")
-  expect(JSON.parse(messages[2].details).GameSize).toBe(0)
-  expect(JSON.parse(messages[2].details).QueueSize).toBe(0)
+  expect(messages[2].details.gameSize).toBe(4)
+  expect(messages[2].details.queueSize).toBe(1)
+
+  await connection.send("leaveQueues", playerId)
+
+  while (messages.length < 4) {
+    await new Promise(resolve => setTimeout(resolve, 10))
+  }
+
+  expect(messages[3].activity).toBe("QueueLeft")
+  //expect(messages[3].details.gameSize).toBe(4)
+
+  await connection.send("getQueueStatus", playerId)
+
+  while (messages.length < 5) {
+    await new Promise(resolve => setTimeout(resolve, 10))
+  }
+
+  expect(messages[4].activity).toBe("QueueStatus")
+  expect(messages[4].details.gameSize).toBe(0)
+  expect(messages[4].details.queueSize).toBe(0)
 
   await connection.stop();
 })

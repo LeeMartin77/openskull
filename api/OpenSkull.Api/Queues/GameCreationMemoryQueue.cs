@@ -29,10 +29,10 @@ public class GameCreationMemoryQueue : IGameCreationQueue
       await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, playerId, new OpenskullMessage { 
         Id = playerId, 
         Activity = "QueueStatus",
-        Details = JsonSerializer.Serialize(new PlayerQueueStatus {
+        Details = new PlayerQueueStatus {
           GameSize = 0,
           QueueSize = 0
-        })
+        }
         });
       return;
     }
@@ -45,17 +45,21 @@ public class GameCreationMemoryQueue : IGameCreationQueue
     await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, playerId, new OpenskullMessage { 
         Id = playerId, 
         Activity = "QueueStatus",
-        Details = JsonSerializer.Serialize(status)
+        Details = status
       });
   }
 
-  public Task LeaveQueues(Guid playerId) {
+  public async Task LeaveQueues(Guid playerId) {
     int queueIndex = Array.FindIndex(_gameCreationQueue, x => x.Contains(playerId));
     if(queueIndex == -1) {
-      return Task.CompletedTask;
+      return;
     }
     _gameCreationQueue[queueIndex] = new Queue<Guid>(_gameCreationQueue[queueIndex].Where(x => x != playerId));
-    return Task.CompletedTask;
+    await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, playerId, new OpenskullMessage { 
+      Id = playerId, 
+      Activity = "QueueLeft",
+      Details = new { GameSize = queueIndex + 1 }
+    });
   }
 
   public async Task JoinGameQueue(Guid playerId, int gameSize)
@@ -66,10 +70,11 @@ public class GameCreationMemoryQueue : IGameCreationQueue
       await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, playerId, new OpenskullMessage { 
         Id = playerId, 
         Activity = "QueueJoinFailure",
-        Details = JsonSerializer.Serialize(new { GameSize = gameSize })
+        Details = new { GameSize = gameSize }
         });
       return;
     }
+    Console.WriteLine(_gameCreationQueue[queueIndex].Count);
     if (_gameCreationQueue[queueIndex].Count >= gameSize - 1) {
       var queuedPlayerIds = new List<Guid>();
       while(queuedPlayerIds.Count < gameSize -1) {
@@ -83,7 +88,7 @@ public class GameCreationMemoryQueue : IGameCreationQueue
         await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, playerId, new OpenskullMessage { 
           Id = playerId, 
           Activity = "QueueJoinFailure",
-          Details = JsonSerializer.Serialize(new { GameSize = gameSize })
+          Details = new { GameSize = gameSize }
           });
         return;
       }
@@ -93,7 +98,7 @@ public class GameCreationMemoryQueue : IGameCreationQueue
         await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, playerId, new OpenskullMessage { 
           Id = playerId, 
           Activity = "QueueJoinFailure",
-          Details = JsonSerializer.Serialize(new { GameSize = gameSize })
+          Details = new { GameSize = gameSize }
           });
         return;
       }
@@ -109,6 +114,11 @@ public class GameCreationMemoryQueue : IGameCreationQueue
       return;
     }
     _gameCreationQueue[queueIndex].Enqueue(playerId);
+    await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, playerId, new OpenskullMessage { 
+      Id = playerId, 
+      Activity = "QueueJoined",
+      Details = new { GameSize = gameSize, QueueSize = _gameCreationQueue[queueIndex].Count }
+    });
   }
 
   public Task GameMasterThread() {
