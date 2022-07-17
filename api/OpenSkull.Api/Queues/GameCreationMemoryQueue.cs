@@ -74,7 +74,6 @@ public class GameCreationMemoryQueue : IGameCreationQueue
         });
       return;
     }
-    Console.WriteLine(_gameCreationQueue[queueIndex].Count);
     if (_gameCreationQueue[queueIndex].Count >= gameSize - 1) {
       var queuedPlayerIds = new List<Guid>();
       while(queuedPlayerIds.Count < gameSize -1) {
