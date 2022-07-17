@@ -89,12 +89,17 @@ public class KafkaGameCreationQueue : IGameCreationQueue
     await _SendEventMessage(sendMessage);
   }
 
-  private void _LeaveMemoryQueues(Guid playerId) {
+  private async Task  _LeaveMemoryQueues(Guid playerId) {
     int queueIndex = Array.FindIndex(_gameCreationQueue, x => x.Contains(playerId));
     if(queueIndex == -1) {
       return;
     }
     _gameCreationQueue[queueIndex] = new Queue<Guid>(_gameCreationQueue[queueIndex].Where(x => x != playerId));
+    await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, playerId, new OpenskullMessage { 
+      Id = playerId, 
+      Activity = "QueueLeft",
+      Details = new PlayerQueueStatus { GameSize = queueIndex + 1 }
+    });
   }
 
   public async Task JoinGameQueue(Guid playerId, int gameSize)
@@ -127,12 +132,20 @@ public class KafkaGameCreationQueue : IGameCreationQueue
       var createdGame = _gameCreateNew(playerIds.ToArray());
       if (createdGame.IsFailure) {
         queuedPlayerIds.ForEach(x => _gameCreationQueue[queueIndex].Enqueue(x));
-        Console.Error.WriteLine(QueueJoinError.CreationError);
+        await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, playerId, new OpenskullMessage { 
+            Id = playerId, 
+            Activity = "QueueJoinFailure",
+            Details = new PlayerQueueStatus { GameSize = gameSize }
+            });
       }
       var storedGame = await _gameStorage.StoreNewGame(createdGame.Value);
       if (storedGame.IsFailure) {
         queuedPlayerIds.ForEach(x => _gameCreationQueue[queueIndex].Enqueue(x));
-        Console.Error.WriteLine(QueueJoinError.StorageError);
+        await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, playerId, new OpenskullMessage { 
+            Id = playerId, 
+            Activity = "QueueJoinFailure",
+            Details = new PlayerQueueStatus { GameSize = gameSize }
+            });
       }
       try {
         await Task.WhenAll(storedGame.Value.Game.PlayerIds
@@ -149,6 +162,11 @@ public class KafkaGameCreationQueue : IGameCreationQueue
       return true;
     }
     _gameCreationQueue[queueIndex].Enqueue(playerId);
+    await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, playerId, new OpenskullMessage { 
+      Id = playerId, 
+      Activity = "QueueJoined",
+      Details = new PlayerQueueStatus { GameSize = gameSize, QueueSize = _gameCreationQueue[queueIndex].Count }
+    });
     return false;
   }
 
@@ -166,7 +184,6 @@ public class KafkaGameCreationQueue : IGameCreationQueue
         var singleMessage = consumer.Consume().Message.Value;
         if (singleMessage is not null) {
           var singleParsedMessage = JsonSerializer.Deserialize<GameCreationMessage>(singleMessage);
-          Console.WriteLine(singleParsedMessage);
           if (singleParsedMessage is not null) {
             // This probably needs a relook
             switch (singleParsedMessage.Type) {
@@ -176,7 +193,7 @@ public class KafkaGameCreationQueue : IGameCreationQueue
                   await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, singleParsedMessage.PlayerId, new OpenskullMessage { 
                     Id = singleParsedMessage.PlayerId, 
                     Activity = "QueueJoinFailure",
-                    Details = JsonSerializer.Serialize(new { GameSize = singleParsedMessage.GameSize })
+                    Details = new PlayerQueueStatus { GameSize = singleParsedMessage.GameSize }
                     });
                 }
                 break;
@@ -185,11 +202,11 @@ public class KafkaGameCreationQueue : IGameCreationQueue
                 await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, singleParsedMessage.PlayerId, new OpenskullMessage { 
                     Id = singleParsedMessage.PlayerId, 
                     Activity = "QueueStatus",
-                    Details = JsonSerializer.Serialize(findResult)
+                    Details = findResult
                   });
                 break;
               case GameCreationMessageType.Leave:
-                _LeaveMemoryQueues(singleParsedMessage.PlayerId);
+                await _LeaveMemoryQueues(singleParsedMessage.PlayerId);
                 break;
               default:
                 throw new NotImplementedException("Unknown Game Creation Message Type");

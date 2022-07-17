@@ -58,7 +58,7 @@ public class GameCreationMemoryQueue : IGameCreationQueue
     await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, playerId, new OpenskullMessage { 
       Id = playerId, 
       Activity = "QueueLeft",
-      Details = new { GameSize = queueIndex + 1 }
+      Details = new PlayerQueueStatus { GameSize = queueIndex + GameFunctions.MIN_PLAYERS }
     });
   }
 
@@ -70,7 +70,7 @@ public class GameCreationMemoryQueue : IGameCreationQueue
       await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, playerId, new OpenskullMessage { 
         Id = playerId, 
         Activity = "QueueJoinFailure",
-        Details = new { GameSize = gameSize }
+        Details = new PlayerQueueStatus { GameSize = gameSize }
         });
       return;
     }
@@ -87,7 +87,7 @@ public class GameCreationMemoryQueue : IGameCreationQueue
         await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, playerId, new OpenskullMessage { 
           Id = playerId, 
           Activity = "QueueJoinFailure",
-          Details = new { GameSize = gameSize }
+          Details = new PlayerQueueStatus { GameSize = gameSize }
           });
         return;
       }
@@ -97,7 +97,7 @@ public class GameCreationMemoryQueue : IGameCreationQueue
         await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, playerId, new OpenskullMessage { 
           Id = playerId, 
           Activity = "QueueJoinFailure",
-          Details = new { GameSize = gameSize }
+          Details = new PlayerQueueStatus { GameSize = gameSize }
           });
         return;
       }
@@ -116,7 +116,7 @@ public class GameCreationMemoryQueue : IGameCreationQueue
     await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Player, playerId, new OpenskullMessage { 
       Id = playerId, 
       Activity = "QueueJoined",
-      Details = new { GameSize = gameSize, QueueSize = _gameCreationQueue[queueIndex].Count }
+      Details = new PlayerQueueStatus { GameSize = gameSize, QueueSize = _gameCreationQueue[queueIndex].Count }
     });
   }
 

@@ -1,3 +1,5 @@
+using OpenSkull.Api.Queue;
+
 namespace OpenSkull.Api.Messaging;
 
 public enum WebSocketType {
@@ -9,7 +11,7 @@ public record struct OpenskullMessage
 {
   public Guid Id { get; set; }
   public string Activity { get; set; }
-  public object? Details { get; set; }
+  public PlayerQueueStatus Details { get; set; }
 }
 
 public interface IWebSocketManager {
