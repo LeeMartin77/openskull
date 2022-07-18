@@ -5,12 +5,12 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'api/*'
+      - 'api/**'
       - .github/workflows/api-docker-build-and-test.yml
   pull_request:
     branches: [ "main" ]
     paths:
-      - 'api/*'
+      - 'api/**'
       - .github/workflows/api-docker-build-and-test.yml
 
 jobs:
