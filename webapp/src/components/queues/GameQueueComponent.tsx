@@ -2,7 +2,7 @@ import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
 import { Alert, Button, Card, CardContent, CircularProgress, List, ListItemButton, ListItemText } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_ROOT_URL, USER_ID, USER_ID_HEADER } from "../../config";
+import { API_ROOT_URL, USER_ID } from "../../config";
 import { IQueueStatus } from "../../models/Queue";
 
 export function GameQueueComponent() {
@@ -39,7 +39,7 @@ export function GameQueueComponent() {
         }
         if (msg.activity === "QueueStatus" || msg.activity === "QueueJoined") {
           setLoading(false);
-          if (msg.details.gameSize == 0) {
+          if (msg.details.gameSize === 0) {
             setQueueStatus(undefined)
           } else {
             setQueueStatus(msg.details)
