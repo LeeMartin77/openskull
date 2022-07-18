@@ -1,0 +1,40 @@
+name: WebApp Build and Publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'webapp/**'
+      - .github/workflows/webapp-build-and-push.yml
+
+jobs:
+  build-publish-test:
+
+    runs-on: ubuntu-latest
+
+    name: Build and upload
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '16'
+    - name: Install Dependencies
+      working-directory: webapp
+      run: npm install
+    - name: Test
+      working-directory: webapp
+      run: npm test
+    - name: Build
+      working-directory: webapp
+      run: REACT_APP_API_ROOT_URL=https://api.openskull.dev npm run build
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.OPENSKULL_WEBAPP_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.OPENSKULL_WEBAPP_AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Upload files to S3 with AWS CLI
+      run: |
+        aws s3 sync webapp/build/ s3://${{ secrets.OPENSKULL_WEBAPP_BUCKET }} --delete 
