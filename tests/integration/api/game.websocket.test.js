@@ -14,6 +14,9 @@ jest.setTimeout(20000);
 
 // This has proven to be way too fragile.
 // Figure it out...
+// split into two tests:
+// "Create game and see GameCreated messages"
+// Create game with test endpoint and check game subscription
 test.skip("Can connect to websockets and get messages", async () => {
   const TEST_PLAYER_IDS = [
     v4(),
@@ -62,7 +65,20 @@ test.skip("Can connect to websockets and get messages", async () => {
   const gameId = messages[0][createdMessageIndex].id;
 
   expect(messages.every(x => x.filter(y => y.id == gameId && y.activity == "GameCreated").length == 1)).toBe(true);
-  await Promise.all(connections.map(async c => await c.stop()))
+});
+  
+test("Game Turns Played :: Get websocket turn notification", async () => {
+  const TEST_PLAYER_IDS = [
+    crypto.randomUUID(),
+    crypto.randomUUID(),
+    crypto.randomUUID()
+  ] 
+  const gameCreateResponse = await axios.post(apiRoot + "/games/createtestgame", {
+    playerIds: TEST_PLAYER_IDS
+  });
+  expect(gameCreateResponse.status).toBe(200);
+  const gameId = gameCreateResponse.data;
+
   const TEST_PLAYER_CARDS = [];
   for (let id of TEST_PLAYER_IDS) {
     const privateGameData = await axios.get(`${apiRoot}/games/${gameId}`,
