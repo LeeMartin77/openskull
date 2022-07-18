@@ -1,7 +1,8 @@
 name: API Build, Test, Publish
 
 on:
-  workflow_dispatch:
+  release:
+    types: [published]
 
 jobs:
   build-and-test:
@@ -50,5 +51,5 @@ jobs:
       working-directory: ./api/OpenSkull.Api
       run: |
         export REPOSITORY="leemartin77/openskull-api"
-        export VERSION=v0.0.0 #figure out getting this from workflow after testing
+        export VERSION=${{ github.event.release.tag_name }}
         docker buildx build --platform linux/arm/v7,linux/arm64/v8,linux/amd64 -t "$REPOSITORY:latest" -t "$REPOSITORY:$VERSION" --push .
