@@ -1,4 +1,4 @@
-name: .NET
+name: API Build and Test
 
 on:
   workflow_dispatch:
