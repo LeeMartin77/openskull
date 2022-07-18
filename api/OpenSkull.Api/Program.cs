@@ -83,7 +83,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
                       policy  =>
                       {
-                          policy.WithOrigins(System.Environment.GetEnvironmentVariable("OPENSKULL_WEBAPP_HOST") ?? "https://play.openskull.dev")
+                          policy.WithOrigins(System.Environment.GetEnvironmentVariable("OPENSKULL_WEBAPP_HOST") ?? "http://localhost:3000")
                             .AllowAnyHeader()
                             .AllowAnyMethod()
                             .AllowCredentials();

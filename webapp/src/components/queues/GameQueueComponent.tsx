@@ -5,26 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { API_ROOT_URL, USER_ID, USER_ID_HEADER } from "../../config";
 import { IQueueStatus } from "../../models/Queue";
 
-const getQueueStatus = (
-  setQueueStatus: React.Dispatch<React.SetStateAction<IQueueStatus | undefined>>, 
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>, 
-  setError: React.Dispatch<React.SetStateAction<boolean>>, 
-  fnFetch = fetch
-  ) => {
-  setLoading(true);
-  return fnFetch(`${API_ROOT_URL}/games/join`, { headers: { "Content-Type": "application/json", [USER_ID_HEADER]: USER_ID }})
-  .then(res => {
-    if (res.status === 204) {
-      setQueueStatus(undefined);
-    }
-    if (res.status === 200) {
-      res.json().then(setQueueStatus);
-    }
-  })
-  .catch(() => setError(true))
-  .finally(() => setLoading(false))
-}
-
 export function GameQueueComponent() {
   const navigate = useNavigate();
   const [connection, setConnection] = useState<HubConnection | undefined>(undefined);
@@ -49,47 +29,48 @@ export function GameQueueComponent() {
 
   useEffect(() => {
     if (connection) {
-      const msgHnld = (msg: any, fnSetGameId = setGameId) => {
+      const msgHnld = (msg: any) => {
         if (msg.activity === "GameCreated") {
-          fnSetGameId(msg.id);
+          setGameId(msg.id);
+        }
+        if (msg.activity === "QueueLeft") {
+          setLoading(false);
+          setQueueStatus(undefined);
+        }
+        if (msg.activity === "QueueStatus" || msg.activity === "QueueJoined") {
+          setLoading(false);
+          if (msg.details.gameSize == 0) {
+            setQueueStatus(undefined)
+          } else {
+            setQueueStatus(msg.details)
+          }
         }
       }
       
-      connection.on("send", msg => msgHnld(msg, setGameId))
+      connection.on("send", msg => msgHnld(msg))
   
       connection.start()
       .then(() => connection.send("subscribeToUserId", USER_ID))
-      .catch(e => console.log('Connection failed: ', e));
-
-      setLoading(false);
+      .then(() => connection.send("getQueueStatus", USER_ID))
+      .catch(() => { setError(true); setLoading(false); });
     }
     return () => {
       connection && connection.stop();
     }
-  }, [connection, setGameId, setLoading]);
-
-  useEffect(() => {
-    //getQueueStatus(setQueueStatus, setLoading, setError)
-  }, [setLoading, setError, setQueueStatus])
+  }, [connection, setGameId, setLoading, setError, setQueueStatus]);
 
   const joinQueue = (gameSize: number) => {
     if (connection) {
       setLoading(true);
       connection.send("JoinQueue", USER_ID, gameSize)
     }
-    // return fetch(`${API_ROOT_URL}/games/join`, { method: "POST",  headers: { "Content-Type": "application/json", [USER_ID_HEADER]: USER_ID }, body: JSON.stringify({ GameSize: gameSize }) })
-    //   .then(res => {
-    //     if (res.status === 204) {
-    //       //getQueueStatus(setQueueStatus, setLoading, setError)
-    //     }
-    //   })
   }
 
-  
   const leaveQueue = () => {
-    setLoading(true);
-    return fetch(`${API_ROOT_URL}/games/leave`, { method: "POST", headers: { "Content-Type": "application/json", [USER_ID_HEADER]: USER_ID } })
-      .then(() => getQueueStatus(setQueueStatus, setLoading, setError))
+    if (connection) {
+      setLoading(true);
+      connection.send("LeaveQueues", USER_ID)
+    }
   }
   const QUEUE_SIZES = [3, 4, 5, 6];
 
