@@ -10,18 +10,11 @@ const { v4 } = require("uuid");
 
 const apiRoot = process.env.OPENSKULL_API_ROOT ?? "http://localhost:5248"
 
-jest.setTimeout(20000);
-
-// This has proven to be way too fragile.
-// Figure it out...
-// split into two tests:
-// "Create game and see GameCreated messages"
-// Create game with test endpoint and check game subscription
-test.skip("Can connect to websockets and get messages", async () => {
+test("Can connect to websockets and get messages", async () => {
   const TEST_PLAYER_IDS = [
-    v4(),
-    v4(),
-    v4()
+    crypto.randomUUID(),
+    crypto.randomUUID(),
+    crypto.randomUUID()
   ]
 
   const messages = [
@@ -34,7 +27,9 @@ test.skip("Can connect to websockets and get messages", async () => {
     msgs[index].push(msg)
   }
 
-  const connections = await Promise.all(TEST_PLAYER_IDS.map(async (id, i) => {
+  const connections = [];
+
+  TEST_PLAYER_IDS.forEach(async (id, i) => {
     let connection = new signalR.HubConnectionBuilder()
     .withUrl(apiRoot +`/player/ws`)
     .configureLogging(signalR.LogLevel.Error)
@@ -45,26 +40,23 @@ test.skip("Can connect to websockets and get messages", async () => {
     await connection.start();
 
     await connection.send("subscribeToUserId", id)
-    return connection;
-  }));
 
-  for (var i = 0; i++; i < TEST_PLAYER_IDS.length) {
-    await new Promise(resolved => setTimeout(resolved, 100));
-    await connections[i].send("joinQueue", TEST_PLAYER_IDS[i], 3)
+    await connection.send("joinQueue", id, 3)
+
+    connections.push(connection);
+  });
+
+  while (messages.reduce((prev, curr) => [...prev, ...curr.filter(x => x.activity == "GameCreated")], []).length < 3) {
+    await new Promise(resolve => setTimeout(resolve, 10))
   }
 
-  var waiting = true;
-  while (waiting) {
-    await new Promise(resolve => setTimeout(resolve, 100))
-    waiting = !messages.every(y => y.map(x => x.activity).includes("GameCreated"));
-  }
-  
   var createdMessageIndex = messages[0].map(x => x.activity).findIndex(x => x == "GameCreated")
   expect(createdMessageIndex).not.toBe(-1);
 
   const gameId = messages[0][createdMessageIndex].id;
 
   expect(messages.every(x => x.filter(y => y.id == gameId && y.activity == "GameCreated").length == 1)).toBe(true);
+  await Promise.all(connections.map(async c => await c.stop()))
 });
   
 test("Game Turns Played :: Get websocket turn notification", async () => {
@@ -120,8 +112,11 @@ test("Game Turns Played :: Get websocket turn notification", async () => {
   });
 
   // gotta give it a beat here
-  await new Promise(resolve => setTimeout(resolve, 500))
-  
+
+  while (gameMessages.reduce((prev, curr) => [...prev, ...curr], []).length < 3) {
+    await new Promise(resolve => setTimeout(resolve, 10))
+  }
+
   expect(gameMessages.every(x => x.every(y => y.id == gameId && y.activity == "Turn") && x.length == 1)).toBe(true);
 
   await Promise.all(gameConnections.map(async c => await c.stop()))
