@@ -14,12 +14,12 @@ public class PlayerPostgresStorage : IPlayerStorage
 
   private class PostgresPlayerStorageItem {
     public Guid id { get; set; }
-    public string hashed_secret { get; set; } = "";
+    public byte[] hashed_secret { get; set; } = new byte[0];
     public string salt { get; set; } = "";
     public string nickname { get; set; }
     public PostgresPlayerStorageItem() {
       id = Guid.Empty;
-      hashed_secret = "";
+      hashed_secret = new byte[0];
       salt = "";
       nickname = "";
     }
@@ -42,7 +42,7 @@ public class PlayerPostgresStorage : IPlayerStorage
   public async Task<Result<Player, StorageError>> CreatePlayer(Player player)
   {
     try {
-      var newPlayerStorage = new PostgresPlayerStorageItem(player);
+      PostgresPlayerStorageItem newPlayerStorage = new PostgresPlayerStorageItem(player);
       using (var connection = new NpgsqlConnection(_connectionString))
       {
         await connection.ExecuteAsync(@"
@@ -63,7 +63,7 @@ public class PlayerPostgresStorage : IPlayerStorage
     try {
       using (var connection = new NpgsqlConnection(_connectionString))
       {
-        var result = await connection.QueryFirstAsync<PostgresPlayerStorageItem>(
+        var result = await connection.QueryFirstOrDefaultAsync<PostgresPlayerStorageItem>(
           @"SELECT id, hashed_secret, salt, nickname
             FROM players WHERE id = @player_id"
           , new { player_id = id }

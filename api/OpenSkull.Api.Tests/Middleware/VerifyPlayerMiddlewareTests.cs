@@ -174,7 +174,7 @@ public class VerifyPlayerMiddlewareTests
 
     Assert.IsNotNull(storedPlayer);
     Assert.AreEqual(playerId, storedPlayer.Id);
-    Assert.AreEqual(VerifyPlayerMiddleware.HashSecret(secret, salt), storedPlayer.HashedSecret);
+    Assert.IsTrue(VerifyPlayerMiddleware.HashSecret(secret, salt).SequenceEqual(storedPlayer.HashedSecret));
     Assert.AreEqual(salt, storedPlayer.Salt);
 
     Assert.IsNotNull(nextContext);

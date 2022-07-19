@@ -55,7 +55,7 @@ public class VerifyPlayerMiddleware
       var player = await _playerStorage.GetPlayerById(playerId);
       if (player.IsSuccess)
       {
-        if (player.Value.HashedSecret == HashSecret(secret, player.Value.Salt))
+        if (player.Value.HashedSecret.SequenceEqual(HashSecret(secret, player.Value.Salt)))
         {
           // Is the real player - set the context
           return playerId;
@@ -68,7 +68,8 @@ public class VerifyPlayerMiddleware
         var createResult = await _playerStorage.CreatePlayer(new Player {
           Id = playerId,
           HashedSecret = HashSecret(secret, salt),
-          Salt = salt
+          Salt = salt,
+          Nickname = "New Player"
         });
         if (createResult.IsSuccess) {
           return playerId;
@@ -77,13 +78,11 @@ public class VerifyPlayerMiddleware
       return null;
     }
 
-    public static string HashSecret(string secret, string salt) 
+    public static byte[] HashSecret(string secret, string salt) 
     {
       using (var sha = SHA256.Create()) {
 
-        return Encoding.ASCII.GetString(
-          sha.ComputeHash(Encoding.ASCII.GetBytes(secret + salt))
-        );
+        return sha.ComputeHash(Encoding.UTF8.GetBytes(secret + salt));
       }
     }
 

@@ -3,7 +3,7 @@ namespace OpenSkull.Api.Storage;
 public record Player 
 {
   public Guid Id { get; set; }
-  public string HashedSecret { get; set; } = "";
+  public byte[] HashedSecret { get; set; } = new byte[0];
   public string Salt { get; set; } = "";
   public string Nickname { get; set; } = "";
 }
