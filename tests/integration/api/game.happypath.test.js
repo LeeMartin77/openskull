@@ -164,12 +164,11 @@ test("Happy Path :: Create Game using Queue Then Play It Through", async () => {
 
   await connection.start();
 
-  await connection.send("subscribeToUserId", TEST_PLAYER_IDS[0][0])
+  await connection.send("subscribeToUserId", TEST_PLAYER_IDS[0][0], TEST_PLAYER_IDS[0][1])
   
-  // TODO: This needs updating to use secret too...
-  await connection.send("joinQueue", TEST_PLAYER_IDS[0][0], 3)
-  await connection.send("joinQueue", TEST_PLAYER_IDS[1][0], 3)
-  await connection.send("joinQueue", TEST_PLAYER_IDS[2][0], 3)
+  await connection.send("joinQueue", TEST_PLAYER_IDS[0][0], TEST_PLAYER_IDS[0][1], 3)
+  await connection.send("joinQueue", TEST_PLAYER_IDS[1][0], TEST_PLAYER_IDS[1][1], 3)
+  await connection.send("joinQueue", TEST_PLAYER_IDS[2][0], TEST_PLAYER_IDS[2][1], 3)
 
   var waiting = true;
   while (waiting) { 

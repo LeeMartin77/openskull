@@ -10,7 +10,7 @@ const { v4 } = require("uuid");
 
 const apiRoot = process.env.OPENSKULL_API_ROOT ?? "http://localhost:5248"
 
-test("Can connect to websockets and get messages", async () => {
+test("Join Game :: Can connect to websockets and get game created", async () => {
   const TEST_PLAYER_IDS = [
     [crypto.randomUUID(), crypto.randomUUID()],
     [crypto.randomUUID(), crypto.randomUUID()],
@@ -39,9 +39,11 @@ test("Can connect to websockets and get messages", async () => {
 
     await connection.start();
 
-    await connection.send("subscribeToUserId", id[0])
-    // TODO: Needs update to use secret
-    await connection.send("joinQueue", id[0], 3)
+    await connection.send("subscribeToUserId", id[0], id[1])
+
+    await new Promise(resolved => setTimeout(resolved, 50))
+
+    await connection.send("joinQueue", id[0], id[1], 3)
 
     connections.push(connection);
   });
@@ -127,6 +129,7 @@ test("Game Turns Played :: Get websocket turn notification", async () => {
 
 test("Can query, queue, query, leave, query", async () => {
   const playerId = v4();
+  const secret = v4();
 
   const messages = [];
 
@@ -143,10 +146,9 @@ test("Can query, queue, query, leave, query", async () => {
 
   await connection.start();
 
-  // TODO these all need to use secrets
-  await connection.send("subscribeToUserId", playerId)
+  await connection.send("subscribeToUserId", playerId, secret)
 
-  await connection.send("getQueueStatus", playerId)
+  await connection.send("getQueueStatus", playerId, secret)
 
   while (messages.length < 1) {
     await new Promise(resolve => setTimeout(resolve, 10))
@@ -156,7 +158,7 @@ test("Can query, queue, query, leave, query", async () => {
   expect(messages[0].details.gameSize).toBe(0)
   expect(messages[0].details.queueSize).toBe(0)
 
-  await connection.send("joinQueue", playerId, 4)
+  await connection.send("joinQueue", playerId, secret, 4)
 
   while (messages.length < 2) {
     await new Promise(resolve => setTimeout(resolve, 10))
@@ -166,7 +168,7 @@ test("Can query, queue, query, leave, query", async () => {
   expect(messages[1].details.gameSize).toBe(4)
   expect(messages[1].details.queueSize).toBe(1)
 
-  await connection.send("getQueueStatus", playerId)
+  await connection.send("getQueueStatus", playerId, secret)
 
   while (messages.length < 3) {
     await new Promise(resolve => setTimeout(resolve, 10))
@@ -176,7 +178,7 @@ test("Can query, queue, query, leave, query", async () => {
   expect(messages[2].details.gameSize).toBe(4)
   expect(messages[2].details.queueSize).toBe(1)
 
-  await connection.send("leaveQueues", playerId)
+  await connection.send("leaveQueues", playerId, secret)
 
   while (messages.length < 4) {
     await new Promise(resolve => setTimeout(resolve, 10))
@@ -184,7 +186,7 @@ test("Can query, queue, query, leave, query", async () => {
 
   expect(messages[3].activity).toBe("QueueLeft")
 
-  await connection.send("getQueueStatus", playerId)
+  await connection.send("getQueueStatus", playerId, secret)
 
   while (messages.length < 5) {
     await new Promise(resolve => setTimeout(resolve, 10))

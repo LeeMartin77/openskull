@@ -12,6 +12,7 @@ public delegate string VerificationSaltGenerator();
 public class VerifyPlayerMiddleware
 {
     public static string PlayerInfoKey = "ValidatedPlayerId";
+    public static VerificationSaltGenerator DefaultSaltGenerator = Guid.NewGuid().ToString;
 
     private readonly RequestDelegate _next;
     private readonly IPlayerStorage _playerStorage;
@@ -28,7 +29,7 @@ public class VerifyPlayerMiddleware
         if (saltGenerator != null) {
           _saltGenerator = saltGenerator;
         } else {
-          _saltGenerator = Guid.NewGuid().ToString;
+          _saltGenerator = DefaultSaltGenerator;
         }
     }
 
@@ -41,29 +42,39 @@ public class VerifyPlayerMiddleware
         var gotSecret = context.Request.Headers.TryGetValue("X-OpenSkull-UserSecret", out rawPlayerSecret);
         if (gotUserId && gotSecret && Guid.TryParse(rawPlayerId.ToString(), out playerId)) {
           // Validate it
-          var player = await _playerStorage.GetPlayerById(playerId);
-          if (player.IsSuccess)
-          {
-            if (player.Value.HashedSecret == HashSecret(rawPlayerSecret, player.Value.Salt))
-            {
-              // Is the real player - set the context
-              context.Items[PlayerInfoKey] = playerId;
-            }
-          }
-          if (player.IsFailure && player.Error == StorageError.NotFound)
-          {
-            string salt = _saltGenerator();
-            // New Player - save them
-            await _playerStorage.CreatePlayer(new Player {
-              Id = playerId,
-              HashedSecret = HashSecret(rawPlayerSecret, salt),
-              Salt = salt
-            });
-            context.Items[PlayerInfoKey] = playerId;
+          var parsedPlayerId = await ValidatePlayerId(_playerStorage, _saltGenerator, playerId, rawPlayerSecret);
+          if (parsedPlayerId != null) {
+            context.Items[PlayerInfoKey] = parsedPlayerId;
           }
         }
         // Call the next delegate/middleware in the pipeline.
         await _next(context);
+    }
+
+    public static async Task<Guid?> ValidatePlayerId(IPlayerStorage _playerStorage, VerificationSaltGenerator _saltGenerator, Guid playerId, string secret) {
+      var player = await _playerStorage.GetPlayerById(playerId);
+      if (player.IsSuccess)
+      {
+        if (player.Value.HashedSecret == HashSecret(secret, player.Value.Salt))
+        {
+          // Is the real player - set the context
+          return playerId;
+        }
+      }
+      if (player.IsFailure && player.Error == StorageError.NotFound)
+      {
+        string salt = _saltGenerator();
+        // New Player - save them
+        var createResult = await _playerStorage.CreatePlayer(new Player {
+          Id = playerId,
+          HashedSecret = HashSecret(secret, salt),
+          Salt = salt
+        });
+        if (createResult.IsSuccess) {
+          return playerId;
+        }
+      }
+      return null;
     }
 
     public static string HashSecret(string secret, string salt) 
