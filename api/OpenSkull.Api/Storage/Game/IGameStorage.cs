@@ -19,13 +19,6 @@ public record struct GameSearchParameters {
   public Guid PlayerId;
 }
 
-public enum StorageError {
-  CantStore,
-  NotFound,
-  VersionMismatch,
-  SystemError
-}
-
 public static class StorageErrorMessages {
   public static string[] StringValues = new string[] {
     "Can't Store Game (System Error)",

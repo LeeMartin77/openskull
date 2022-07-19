@@ -65,10 +65,12 @@ switch (System.Environment.GetEnvironmentVariable("STORAGE_SERVICE") ?? "MEMORY"
             throw new InvalidOperationException("Must provide a POSTGRES_CONNECTION_STRING value");
         }
         builder.Services.AddSingleton<IGameStorage>(new GamePostgresStorage(hostStrings));
+        builder.Services.AddSingleton<IPlayerStorage>(new PlayerPostgresStorage(hostStrings));
         break;
     case "MEMORY":
     default:
         builder.Services.AddSingleton<IGameStorage, GameMemoryStorage>();
+        builder.Services.AddSingleton<IPlayerStorage, PlayerMemoryStorage>();
         break;
 }
 

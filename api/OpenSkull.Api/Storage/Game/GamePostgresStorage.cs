@@ -6,7 +6,6 @@ using Dapper;
 namespace OpenSkull.Api.Storage;
 
 public class GamePostgresStorage : IGameStorage {
-  // private List<GameStorage> _gameStorage = new List<GameStorage>();
   private readonly string _connectionString;
   public GamePostgresStorage(string connectionString){
     _connectionString = connectionString;
