@@ -149,39 +149,42 @@ test("Happy Path :: Create Game using Queue Then Play It Through", async () => {
     [crypto.randomUUID(), crypto.randomUUID()],
     [crypto.randomUUID(), crypto.randomUUID()]
   ] 
-
-  const messages = [];
-  const responseHandler = (msg, msgs = messages) => {
-    msgs.push(msg)
-  }
-
-  let connection = new signalR.HubConnectionBuilder()
-  .withUrl(apiRoot +`/player/ws`)
-  .configureLogging(signalR.LogLevel.Error)
-  .build();
-
-  connection.on("send", msg => responseHandler(msg));
-
-  await connection.start();
-
-  await connection.send("subscribeToUserId", TEST_PLAYER_IDS[0][0], TEST_PLAYER_IDS[0][1])
+  var gameId;
+  let i = 0;
+  for(const [id, secret] of TEST_PLAYER_IDS) {
+    const messages = [];
+    const responseHandler = (msg, msgs = messages) => {
+      msgs.push(msg)
+    }
   
-  await connection.send("joinQueue", TEST_PLAYER_IDS[0][0], TEST_PLAYER_IDS[0][1], 3)
-  await connection.send("joinQueue", TEST_PLAYER_IDS[1][0], TEST_PLAYER_IDS[1][1], 3)
-  await connection.send("joinQueue", TEST_PLAYER_IDS[2][0], TEST_PLAYER_IDS[2][1], 3)
+    let connection = new signalR.HubConnectionBuilder()
+    .withUrl(apiRoot +`/player/ws`)
+    .configureLogging(signalR.LogLevel.Error)
+    .build();
+  
+    connection.on("send", msg => responseHandler(msg));
+  
+    await connection.start();
+  
+    await connection.send("subscribeToUserId", id, secret)
+  
+    while(!messages.map(x => x.activity).includes("Subscribed")) {
+      await new Promise(resolve => setTimeout(resolve, 10))
+    }
+  
+    await connection.send("joinQueue", id, secret, 3)
+  
+    while(!messages.map(x => x.activity).includes("GameCreated") && !messages.map(x => x.activity).includes("QueueJoined")) {
+      await new Promise(resolve => setTimeout(resolve, 10))
+    }
 
-  var waiting = true;
-  while (waiting) { 
-    await new Promise(resolve => setTimeout(resolve, 100))
-    waiting = !messages.map(x => x.activity).includes("GameCreated");
+    var createdMessageIndex = messages.map(x => x.activity).findIndex(x => x == "GameCreated")
+    if (createdMessageIndex != -1) {
+      gameId = messages[createdMessageIndex].id;
+    }
+  
+    await connection.stop();
   }
-
-  var createdMessageIndex = messages.map(x => x.activity).findIndex(x => x == "GameCreated")
-  expect(createdMessageIndex).not.toBe(-1);
-
-  const gameId = messages[createdMessageIndex].id;
-
-  await connection.stop();
 
   const TEST_PLAYER_CARDS = [];
   for (let id of TEST_PLAYER_IDS) {

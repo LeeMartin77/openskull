@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
+using OpenSkull.Api.Messaging;
 using OpenSkull.Api.Middleware;
 using OpenSkull.Api.Queue;
 using OpenSkull.Api.Storage;
@@ -25,6 +26,7 @@ public class PlayerHub : Hub
             Guid.TryParse(userId, out playerId) && 
             (await VerifyPlayerMiddleware.ValidatePlayerId(_playerStorage, VerifyPlayerMiddleware.DefaultSaltGenerator, playerId, userSecret)) != null) {
             await Groups.AddToGroupAsync(Context.ConnectionId, userId);
+            await Clients.Caller.SendCoreAsync("send", new object[]{ new OpenskullMessage { Activity = "Subscribed", Id = playerId } });
         }
     }
 

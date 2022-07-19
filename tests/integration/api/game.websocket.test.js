@@ -41,7 +41,9 @@ test("Join Game :: Can connect to websockets and get game created", async () => 
 
     await connection.send("subscribeToUserId", id[0], id[1])
 
-    await new Promise(resolved => setTimeout(resolved, 50))
+    while(!messages[i].map(x => x.activity).includes("Subscribed")) {
+      await new Promise(resolve => setTimeout(resolve, 10))
+    }
 
     await connection.send("joinQueue", id[0], id[1], 3)
 
@@ -147,6 +149,14 @@ test("Can query, queue, query, leave, query", async () => {
   await connection.start();
 
   await connection.send("subscribeToUserId", playerId, secret)
+
+  while (messages.length < 1) {
+    await new Promise(resolve => setTimeout(resolve, 10))
+  }
+
+  expect(messages[0].activity).toBe("Subscribed")
+
+  messages.pop()
 
   await connection.send("getQueueStatus", playerId, secret)
 
