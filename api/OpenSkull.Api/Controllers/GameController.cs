@@ -3,6 +3,7 @@ using Microsoft.Extensions.Primitives;
 using OpenSkull.Api.DTO;
 using OpenSkull.Api.Functions;
 using OpenSkull.Api.Messaging;
+using OpenSkull.Api.Middleware;
 using OpenSkull.Api.Queue;
 using OpenSkull.Api.Storage;
 
@@ -81,15 +82,13 @@ public class GameController : ControllerBase
 
     [Route("games")]
     [HttpGet]
-    public async Task<ActionResult<IGameView[]>> SearchGames([FromQuery] Guid[]? playerIds = null, [FromQuery] bool? gameComplete = null)
+    public async Task<ActionResult<IGameView[]>> SearchGames([FromQuery] bool? gameComplete = null)
     {
-        StringValues rawPlayerId;
-        Guid playerId;
-        Request.Headers.TryGetValue("X-OpenSkull-UserId", out rawPlayerId);
-        Guid.TryParse(rawPlayerId.ToString(), out playerId);
-        if (!Guid.TryParse(rawPlayerId.ToString(), out playerId) && (playerIds == null || playerIds.Length == 0)) {
-            return BadRequest("Must have UserId Header or Specify Player Ids");
+        Guid? seekPlayerId = VerifyPlayerMiddleware.GetValidatedPlayerIdFromContext(HttpContext);
+        if (seekPlayerId == null) {
+            return BadRequest("Must have UserId Header");
         }
+        Guid playerId = (Guid)seekPlayerId;
         var searchResult = await _gameStorage.SearchGames(new GameSearchParameters { PlayerId = playerId });
         if (searchResult.IsFailure) {
             // TODO: Right now, this shouldn't ever actually fail...
@@ -110,14 +109,12 @@ public class GameController : ControllerBase
         if (gameResult.IsFailure && gameResult.Error == StorageError.NotFound) {
             return new NotFoundResult();
         }
-        StringValues rawPlayerId;
-        Guid playerId;
-        if (Request != null && Request.Headers != null &&
-            Request.Headers.TryGetValue("X-OpenSkull-UserId", out rawPlayerId) &&
-            Guid.TryParse(rawPlayerId.ToString(), out playerId) &&
-            gameResult.Value.Game.PlayerIds.Contains(playerId)
+        
+        Guid? playerId = VerifyPlayerMiddleware.GetValidatedPlayerIdFromContext(HttpContext);
+        if (playerId != null &&
+            gameResult.Value.Game.PlayerIds.Contains((Guid)playerId)
             ) {
-            return new PlayerGame(gameId, playerId, gameResult.Value.Game);
+            return new PlayerGame(gameId, (Guid)playerId, gameResult.Value.Game);
         }
         return new PublicGame(gameId, gameResult.Value.Game);
     }
@@ -125,19 +122,14 @@ public class GameController : ControllerBase
     [Route("games/{gameId}/turn")]
     [HttpPost]
     public async Task<ActionResult<IGameView>> PlayGameTurn(Guid gameId, [FromBody] PlayTurnInputs? inputs = null) {
-        
-        StringValues rawPlayerId;
-        Guid playerId;
+        Guid? seekPlayerId = VerifyPlayerMiddleware.GetValidatedPlayerIdFromContext(HttpContext);
         TurnAction action;
-        if (Request == null || Request.Headers == null ||
-            !Request.Headers.TryGetValue("X-OpenSkull-UserId", out rawPlayerId) ||
-            !Guid.TryParse(rawPlayerId.ToString(), out playerId) ||
-            inputs == null ||
+        if (seekPlayerId == null || inputs == null ||
             !Enum.TryParse(inputs.Action, out action)
             ) {
             return new BadRequestResult();
         }
-
+        Guid playerId = (Guid)seekPlayerId;
         switch(action) {
             case TurnAction.Card:
                 if (inputs.CardId is null) {

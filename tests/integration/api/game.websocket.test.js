@@ -12,10 +12,10 @@ const apiRoot = process.env.OPENSKULL_API_ROOT ?? "http://localhost:5248"
 
 test("Can connect to websockets and get messages", async () => {
   const TEST_PLAYER_IDS = [
-    crypto.randomUUID(),
-    crypto.randomUUID(),
-    crypto.randomUUID()
-  ]
+    [crypto.randomUUID(), crypto.randomUUID()],
+    [crypto.randomUUID(), crypto.randomUUID()],
+    [crypto.randomUUID(), crypto.randomUUID()]
+  ] 
 
   const messages = [
     [],
@@ -39,9 +39,9 @@ test("Can connect to websockets and get messages", async () => {
 
     await connection.start();
 
-    await connection.send("subscribeToUserId", id)
-
-    await connection.send("joinQueue", id, 3)
+    await connection.send("subscribeToUserId", id[0])
+    // TODO: Needs update to use secret
+    await connection.send("joinQueue", id[0], 3)
 
     connections.push(connection);
   });
@@ -61,12 +61,12 @@ test("Can connect to websockets and get messages", async () => {
   
 test("Game Turns Played :: Get websocket turn notification", async () => {
   const TEST_PLAYER_IDS = [
-    crypto.randomUUID(),
-    crypto.randomUUID(),
-    crypto.randomUUID()
+    [crypto.randomUUID(), crypto.randomUUID()],
+    [crypto.randomUUID(), crypto.randomUUID()],
+    [crypto.randomUUID(), crypto.randomUUID()]
   ] 
   const gameCreateResponse = await axios.post(apiRoot + "/games/createtestgame", {
-    playerIds: TEST_PLAYER_IDS
+    playerIds: TEST_PLAYER_IDS.map(x => x[0])
   });
   expect(gameCreateResponse.status).toBe(200);
   const gameId = gameCreateResponse.data;
@@ -76,7 +76,8 @@ test("Game Turns Played :: Get websocket turn notification", async () => {
     const privateGameData = await axios.get(`${apiRoot}/games/${gameId}`,
     {
       headers: {
-        "X-OpenSkull-UserId": id
+        "X-OpenSkull-UserId": id[0],
+        "X-OpenSkull-UserSecret": id[1]
       }
     })
     TEST_PLAYER_CARDS.push(privateGameData.data.playerCards)
@@ -108,7 +109,7 @@ test("Game Turns Played :: Get websocket turn notification", async () => {
 
   await axios.post(`${apiRoot}/games/${gameId}/turn`, 
     { action: "Card", cardId: TEST_PLAYER_CARDS[0][0].id }, 
-    { headers: { "X-OpenSkull-UserId": TEST_PLAYER_IDS[0] }
+    { headers: { "X-OpenSkull-UserId": TEST_PLAYER_IDS[0][0], "X-OpenSkull-UserSecret": TEST_PLAYER_IDS[0][1] }
   });
 
   // gotta give it a beat here
@@ -142,6 +143,7 @@ test("Can query, queue, query, leave, query", async () => {
 
   await connection.start();
 
+  // TODO these all need to use secrets
   await connection.send("subscribeToUserId", playerId)
 
   await connection.send("getQueueStatus", playerId)
@@ -181,7 +183,6 @@ test("Can query, queue, query, leave, query", async () => {
   }
 
   expect(messages[3].activity).toBe("QueueLeft")
-  //expect(messages[3].details.gameSize).toBe(4)
 
   await connection.send("getQueueStatus", playerId)
 

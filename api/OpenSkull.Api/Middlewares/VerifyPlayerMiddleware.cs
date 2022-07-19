@@ -78,8 +78,10 @@ public class VerifyPlayerMiddleware
 
     public static Guid? GetValidatedPlayerIdFromContext(HttpContext context)
     {
-      var contextItem = context.Items[PlayerInfoKey];
-      return contextItem != null ? (Guid)contextItem : null;
+      if (context.Items.ContainsKey(PlayerInfoKey)) {
+        return context.Items[PlayerInfoKey] != null ? (Guid)context.Items[PlayerInfoKey]! : null;
+      }
+      return null;
     }
 }
 

@@ -8,6 +8,7 @@ using OpenSkull.Api.DTO;
 using Microsoft.AspNetCore.Http;
 using OpenSkull.Api.Queue;
 using OpenSkull.Api.Messaging;
+using OpenSkull.Api.Middleware;
 
 namespace OpenSkull.Api.Tests;
 
@@ -58,7 +59,13 @@ public class GameController_GetGameTests {
       new Mock<TurnPlayCard>().Object,
       new Mock<TurnPlaceBid>().Object,
       new Mock<TurnFlipCard>().Object
-    );
+    ) {
+
+      ControllerContext = new ControllerContext()
+      {
+          HttpContext = new DefaultHttpContext()
+      }
+    };
 
     // Act
     var result = await gameController.GetGame(testGameId);
@@ -81,7 +88,7 @@ public class GameController_GetGameTests {
     mockGameStorage.Setup(x => x.GetGameById(testGameId)).ReturnsAsync(testGameStorage);
 
     var httpContext = new DefaultHttpContext();
-    httpContext.Request.Headers["X-OpenSkull-UserId"] = Guid.NewGuid().ToString();
+    httpContext.Items[VerifyPlayerMiddleware.PlayerInfoKey] = Guid.NewGuid();
 
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
@@ -120,7 +127,7 @@ public class GameController_GetGameTests {
     mockGameStorage.Setup(x => x.GetGameById(testGameId)).ReturnsAsync(testGameStorage);
 
     var httpContext = new DefaultHttpContext();
-    httpContext.Request.Headers["X-OpenSkull-UserId"] = testGame.PlayerIds[1].ToString();
+    httpContext.Items[VerifyPlayerMiddleware.PlayerInfoKey] = testGame.PlayerIds[1];
 
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,

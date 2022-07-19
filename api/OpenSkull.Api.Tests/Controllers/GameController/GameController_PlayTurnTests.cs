@@ -8,6 +8,7 @@ using OpenSkull.Api.DTO;
 using Microsoft.AspNetCore.Http;
 using OpenSkull.Api.Queue;
 using OpenSkull.Api.Messaging;
+using OpenSkull.Api.Middleware;
 
 namespace OpenSkull.Api.Tests;
 
@@ -53,7 +54,7 @@ public class GameController_PlayTurnTests {
     var mockGameStorage = new Mock<IGameStorage>();
     
     var httpContext = new DefaultHttpContext();
-    httpContext.Request.Headers["X-OpenSkull-UserId"] = Guid.NewGuid().ToString();
+    httpContext.Items[VerifyPlayerMiddleware.PlayerInfoKey] = Guid.NewGuid();
 
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
@@ -87,7 +88,7 @@ public class GameController_PlayTurnTests {
     mockGameStorage.Setup(x => x.GetGameById(testGameId)).ReturnsAsync(StorageError.NotFound);
 
     var httpContext = new DefaultHttpContext();
-    httpContext.Request.Headers["X-OpenSkull-UserId"] = Guid.NewGuid().ToString();
+    httpContext.Items[VerifyPlayerMiddleware.PlayerInfoKey] = Guid.NewGuid();
 
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
@@ -126,7 +127,7 @@ public class GameController_PlayTurnTests {
     mockGameStorage.Setup(x => x.GetGameById(testGameId)).ReturnsAsync(testGameStorage);
 
     var httpContext = new DefaultHttpContext();
-    httpContext.Request.Headers["X-OpenSkull-UserId"] = Guid.NewGuid().ToString();
+    httpContext.Items[VerifyPlayerMiddleware.PlayerInfoKey] = Guid.NewGuid();
 
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
@@ -165,7 +166,7 @@ public class GameController_PlayTurnTests {
     mockGameStorage.Setup(x => x.GetGameById(testGameId)).ReturnsAsync(testGameStorage);
 
     var httpContext = new DefaultHttpContext();
-    httpContext.Request.Headers["X-OpenSkull-UserId"] = testGame.PlayerIds[1].ToString();
+    httpContext.Items[VerifyPlayerMiddleware.PlayerInfoKey] = testGame.PlayerIds[1];
 
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
@@ -207,7 +208,7 @@ public class GameController_PlayTurnTests {
     mockGameStorage.Setup(x => x.GetGameById(testGameId)).ReturnsAsync(testGameStorage);
 
     var httpContext = new DefaultHttpContext();
-    httpContext.Request.Headers["X-OpenSkull-UserId"] = testGame.PlayerIds[1].ToString();
+    httpContext.Items[VerifyPlayerMiddleware.PlayerInfoKey] = testGame.PlayerIds[1];
 
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
@@ -260,7 +261,7 @@ public class GameController_PlayTurnTests {
     var cardIdInput = Guid.NewGuid();
 
     var httpContext = new DefaultHttpContext();
-    httpContext.Request.Headers["X-OpenSkull-UserId"] = testGame.PlayerIds[1].ToString();
+    httpContext.Items[VerifyPlayerMiddleware.PlayerInfoKey] = testGame.PlayerIds[1];
 
     var mockPlayCardTurn = new Mock<TurnPlayCard>();
     mockPlayCardTurn.Setup(x=> x(testGame, testGame.PlayerIds[1], cardIdInput)).Returns(err);
@@ -310,7 +311,7 @@ public class GameController_PlayTurnTests {
     var cardIdInput = Guid.NewGuid();
 
     var httpContext = new DefaultHttpContext();
-    httpContext.Request.Headers["X-OpenSkull-UserId"] = testGame.PlayerIds[1].ToString();
+    httpContext.Items[VerifyPlayerMiddleware.PlayerInfoKey] = testGame.PlayerIds[1];
 
     var actionGame = testGame with { ActivePlayerIndex = 999 };
     var mockPlayCardTurn = new Mock<TurnPlayCard>();
@@ -361,7 +362,7 @@ public class GameController_PlayTurnTests {
     var cardIdInput = Guid.NewGuid();
 
     var httpContext = new DefaultHttpContext();
-    httpContext.Request.Headers["X-OpenSkull-UserId"] = testGame.PlayerIds[1].ToString();
+    httpContext.Items[VerifyPlayerMiddleware.PlayerInfoKey] = testGame.PlayerIds[1];
 
     var actionGame = testGame with { ActivePlayerIndex = 999 };
     var mockPlayCardTurn = new Mock<TurnPlayCard>();
@@ -424,7 +425,7 @@ public class GameController_PlayTurnTests {
     var bidInput = 99;
 
     var httpContext = new DefaultHttpContext();
-    httpContext.Request.Headers["X-OpenSkull-UserId"] = testGame.PlayerIds[1].ToString();
+    httpContext.Items[VerifyPlayerMiddleware.PlayerInfoKey] = testGame.PlayerIds[1];
 
     var mockPlaceBid = new Mock<TurnPlaceBid>();
     mockPlaceBid.Setup(x=> x(testGame, testGame.PlayerIds[1], bidInput)).Returns(err);
@@ -472,7 +473,7 @@ public class GameController_PlayTurnTests {
     mockGameStorage.Setup(x => x.GetGameById(testGameId)).ReturnsAsync(testGameStorage);
 
     var httpContext = new DefaultHttpContext();
-    httpContext.Request.Headers["X-OpenSkull-UserId"] = testGame.PlayerIds[1].ToString();
+    httpContext.Items[VerifyPlayerMiddleware.PlayerInfoKey] = testGame.PlayerIds[1];
 
     var actionGame = testGame with { ActivePlayerIndex = 999 };
 
@@ -524,7 +525,7 @@ public class GameController_PlayTurnTests {
     mockGameStorage.Setup(x => x.GetGameById(testGameId)).ReturnsAsync(testGameStorage);
 
     var httpContext = new DefaultHttpContext();
-    httpContext.Request.Headers["X-OpenSkull-UserId"] = testGame.PlayerIds[1].ToString();
+    httpContext.Items[VerifyPlayerMiddleware.PlayerInfoKey] = testGame.PlayerIds[1];
 
     var actionGame = testGame with { ActivePlayerIndex = 999 };
 
@@ -588,7 +589,7 @@ public class GameController_PlayTurnTests {
     mockGameStorage.Setup(x => x.GetGameById(testGameId)).ReturnsAsync(testGameStorage);
 
     var httpContext = new DefaultHttpContext();
-    httpContext.Request.Headers["X-OpenSkull-UserId"] = testGame.PlayerIds[1].ToString();
+    httpContext.Items[VerifyPlayerMiddleware.PlayerInfoKey] = testGame.PlayerIds[1];
 
     var flipInput = 99;
 
@@ -638,7 +639,7 @@ public class GameController_PlayTurnTests {
     mockGameStorage.Setup(x => x.GetGameById(testGameId)).ReturnsAsync(testGameStorage);
 
     var httpContext = new DefaultHttpContext();
-    httpContext.Request.Headers["X-OpenSkull-UserId"] = testGame.PlayerIds[1].ToString();
+    httpContext.Items[VerifyPlayerMiddleware.PlayerInfoKey] = testGame.PlayerIds[1];
 
     var actionGame = testGame with { ActivePlayerIndex = 999 };
 
@@ -690,7 +691,7 @@ public class GameController_PlayTurnTests {
     mockGameStorage.Setup(x => x.GetGameById(testGameId)).ReturnsAsync(testGameStorage);
 
     var httpContext = new DefaultHttpContext();
-    httpContext.Request.Headers["X-OpenSkull-UserId"] = testGame.PlayerIds[1].ToString();
+    httpContext.Items[VerifyPlayerMiddleware.PlayerInfoKey] = testGame.PlayerIds[1];
 
     var actionGame = testGame with { ActivePlayerIndex = 999 };
 
