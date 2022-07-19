@@ -3,6 +3,7 @@ using OpenSkull.Api.Functions;
 using OpenSkull.Api.Queue;
 using OpenSkull.Api.Messaging;
 using OpenSkull.Api.Hubs;
+using OpenSkull.Api.Middleware;
 using Confluent.Kafka;
 using System.Net;
 
@@ -108,6 +109,8 @@ if (!app.Environment.IsDevelopment()) {
 }
 
 app.UseAuthorization();
+
+app.UseVerifyPlayer();
 
 app.UseCors();
 
