@@ -75,6 +75,9 @@ switch (System.Environment.GetEnvironmentVariable("STORAGE_SERVICE") ?? "MEMORY"
         break;
 }
 
+// TODO: Redis backing for this
+builder.Services.AddSingleton<IRoomStorage, RoomMemoryStorage>();
+
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

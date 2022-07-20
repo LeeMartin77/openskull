@@ -7,11 +7,18 @@ public enum WebSocketType {
   Player
 }
 
+public record struct RoomStatus
+{
+  public string RoomId { get; set; }
+  public string[] PlayerNicknames { get; set; }
+}
+
 public record struct OpenskullMessage 
 {
   public Guid Id { get; set; }
   public string Activity { get; set; }
   public PlayerQueueStatus Details { get; set; }
+  public RoomStatus RoomDetails { get; set; }
 }
 
 public interface IWebSocketManager {
