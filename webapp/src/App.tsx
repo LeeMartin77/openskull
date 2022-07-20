@@ -6,7 +6,7 @@ import {
   BrowserRouter
 } from "react-router-dom";
 import { ThemeProvider } from "@emotion/react";
-import { Container, createTheme, CssBaseline, Box, Card, CardContent } from "@mui/material";
+import { Container, createTheme, CssBaseline, Box, Card, CardContent, Alert, CircularProgress } from "@mui/material";
 import { GameQueueComponent } from "./components/queues/GameQueueComponent";
 import { GameComponent } from "./components/game/GameComponent";
 import { GameListComponent } from "./components/game/GameListComponent";
@@ -15,6 +15,9 @@ import { List, ListItem, ListItemButton, ListItemIcon, ListItemText } from '@mui
 import { Queue, ViewList } from '@mui/icons-material';
 import { BottomNavigationComponent } from "./components/navigation/BottomNavigationComponent";
 import { SideNavigationComponent } from "./components/navigation/SideNavigationComponent";
+import { API_ROOT_URL, USER_ID, USER_SECRET } from "./config";
+import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
+import { IOpenskullMessage } from "./models/Message";
 
 const theme = createTheme({
   palette: {
@@ -43,6 +46,9 @@ function HomeComponent() {
 
 function App() {
   const [isDesktop, setDesktop] = useState(window.innerWidth > theme.breakpoints.values.sm);
+  const [playerConnection, setPlayerConnection] = useState<HubConnection | undefined>(undefined);
+  const [error, setError] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   const updateMedia = () => {
     setDesktop(window.innerWidth > theme.breakpoints.values.sm);
@@ -53,6 +59,32 @@ function App() {
     return () => window.removeEventListener("resize", updateMedia);
   });
 
+
+  useEffect(() => {
+    const newPlayerConnection = new HubConnectionBuilder()
+    .withUrl(API_ROOT_URL + '/player/ws')
+    .build()
+
+    const playerSuccessHandler = (msg: IOpenskullMessage) => {
+      if (msg.activity === "Subscribed" && msg.id === USER_ID) {
+        setPlayerConnection(newPlayerConnection)
+        setError(false)
+        setLoading(false)
+      }
+    }
+
+    newPlayerConnection.on("send", playerSuccessHandler)
+
+    newPlayerConnection.start()
+      .then(() => newPlayerConnection.send("subscribeToUserId", USER_ID, USER_SECRET))
+      .catch(() => setError(true))
+
+    return () => {
+      newPlayerConnection && newPlayerConnection.stop();
+    }
+  }, [setPlayerConnection])
+
+
   const containerClassName = isDesktop ? "main-container-nonmobile" : "main-container-mobile";
 
   const mainSx = isDesktop ? {} : {minWidth: "100%"}
@@ -62,13 +94,15 @@ function App() {
         <BrowserRouter>
 
           <Box sx={{ display: 'flex' }}>
-          {isDesktop && <SideNavigationComponent />}
+          {!loading && isDesktop && <SideNavigationComponent />}
           <Box component="main" sx={mainSx}>
-            <Container maxWidth={'sm'} className={containerClassName} >
-            <Routes>
+            <Container className={containerClassName} >
+            {loading && <CircularProgress />}
+            {!loading && error && <Alert color="error" >Error Connecting to Server</Alert>}
+            {!loading && <Routes>
               <Route path="/games/:gameId" element={<GameComponent />} />
               <Route path="/games" element={<GameListComponent />} />
-              <Route path="/queue" element={<GameQueueComponent />} />
+              <Route path="/queue" element={playerConnection && <GameQueueComponent connection={playerConnection} />} />
               <Route path="/" element={<HomeComponent />}/>
               <Route
                 path="*"
@@ -80,10 +114,10 @@ function App() {
                   </Card>
                 }
               />
-            </Routes>
+            </Routes>}
             </Container>
           </Box>
-          {!isDesktop && <BottomNavigationComponent />}
+          {!loading && !isDesktop && <BottomNavigationComponent />}
           </Box>
         </BrowserRouter>
     </ThemeProvider>

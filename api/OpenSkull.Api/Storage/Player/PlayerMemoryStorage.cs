@@ -5,6 +5,7 @@ namespace OpenSkull.Api.Storage;
 public class PlayerMemoryStorage : IPlayerStorage
 {
   private List<Player> _memoryPlayers = new List<Player>();
+  
   public Task<Result<Player, StorageError>> CreatePlayer(Player player)
   {
     if (_memoryPlayers.Any(x => x.Id == player.Id))
