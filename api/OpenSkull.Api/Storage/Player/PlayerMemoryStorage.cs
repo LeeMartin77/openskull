@@ -4,37 +4,34 @@ namespace OpenSkull.Api.Storage;
 
 public class PlayerMemoryStorage : IPlayerStorage
 {
-  private List<Player> _memoryPlayers = new List<Player>();
+  private Dictionary<Guid, Player> _memoryPlayers = new Dictionary<Guid, Player>();
   
   public Task<Result<Player, StorageError>> CreatePlayer(Player player)
   {
-    if (_memoryPlayers.Any(x => x.Id == player.Id))
+    if (_memoryPlayers.Keys.Any(x => x == player.Id))
     {
       return Task.FromResult<Result<Player, StorageError>>(StorageError.CantStore);
     }
-    _memoryPlayers.Add(player);
+    _memoryPlayers.Add(player.Id, player);
     return Task.FromResult<Result<Player, StorageError>>(player);
   }
 
   public Task<Result<Player, StorageError>> GetPlayerById(Guid id)
   {
-    int playerIndex = _memoryPlayers.FindIndex(x => x.Id == id);
-    if (playerIndex == -1)
-    {
+    Player? player = null;
+    if (!_memoryPlayers.TryGetValue(id, out player)) {
       return Task.FromResult<Result<Player, StorageError>>(StorageError.NotFound);
     }
-    
-    return Task.FromResult<Result<Player, StorageError>>(_memoryPlayers[playerIndex]);
+    return Task.FromResult<Result<Player, StorageError>>(player);
   }
 
   public Task<Result<Player, StorageError>> UpdatePlayer(Player player)
   {
-    int playerIndex = _memoryPlayers.FindIndex(x => x.Id == player.Id && x.HashedSecret == player.HashedSecret);
-    if (playerIndex == -1)
-    {
-      return Task.FromResult<Result<Player, StorageError>>(StorageError.NotFound);
+    Player? storedPlayer = null;
+    if (_memoryPlayers.TryGetValue(player.Id, out storedPlayer) && storedPlayer.HashedSecret == player.HashedSecret) {
+      _memoryPlayers[player.Id] = player;
+      return Task.FromResult<Result<Player, StorageError>>(player);
     }
-    _memoryPlayers[playerIndex] = player;
-    return Task.FromResult<Result<Player, StorageError>>(player);
+    return Task.FromResult<Result<Player, StorageError>>(StorageError.NotFound);
   }
 }
