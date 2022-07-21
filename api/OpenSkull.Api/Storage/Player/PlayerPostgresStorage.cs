@@ -79,6 +79,27 @@ public class PlayerPostgresStorage : IPlayerStorage
     }
   }
 
+  public async Task<Result<Player[], StorageError>> GetPlayersByIds(Guid[] ids)
+  {
+    try {
+      using (var connection = new NpgsqlConnection(_connectionString))
+      {
+        var result = await connection.QueryAsync<PostgresPlayerStorageItem>(
+          @"SELECT id, hashed_secret, salt, nickname
+            FROM players WHERE id = any(@player_ids)"
+          , new { player_ids = ids.ToList() }
+        );
+        if (result is null) {
+          return StorageError.NotFound;
+        }
+        return result.Select(PostgresPlayerStorageItem.ToPlayer).ToArray();
+      }
+    } catch (Exception ex) {
+      Console.Error.WriteLine(ex.Message);
+      return StorageError.SystemError;
+    }
+  }
+
   public async Task<Result<Player, StorageError>> UpdatePlayer(Player player)
   {
     try {

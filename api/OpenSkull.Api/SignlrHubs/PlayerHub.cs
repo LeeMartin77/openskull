@@ -157,26 +157,23 @@ public class PlayerHub : Hub
     private async Task RoomUpdate(string roomId)
     {
         List<Guid> roomPlayers = await _roomStorage.GetRoomPlayerIds(roomId);
-        var getPlayers = await Task.WhenAll(roomPlayers.Select(async id => 
-            { 
-                var player = await _playerStorage.GetPlayerById(id);
-                return player;
-            }
-        ));
-        Guid[] playerIds = getPlayers.Where(x => x.IsSuccess).Select(x => x.Value.Id).ToArray();
-        string[] playerNicknames = getPlayers.Where(x => x.IsSuccess).Select(x => x.Value.Nickname).ToArray();
-        await Task.WhenAll(playerIds.Select(x => _websocketManager.BroadcastToConnectedWebsockets(
-            WebSocketType.Player, 
-            x, 
-            new OpenskullMessage { 
-                Activity = "RoomUpdate", 
-                RoomDetails = new RoomStatus 
-                { 
-                    RoomId = roomId, 
-                    PlayerNicknames = playerNicknames 
-                } 
-            }
-        )));
+        var players = await _playerStorage.GetPlayersByIds(roomPlayers.ToArray());
+        if (players.IsSuccess)
+        {
+            string[] playerNicknames = players.Value.Select(x => x.Nickname).ToArray();
+            await Task.WhenAll(roomPlayers.Select(x => _websocketManager.BroadcastToConnectedWebsockets(
+                WebSocketType.Player, 
+                x, 
+                new OpenskullMessage { 
+                    Activity = "RoomUpdate", 
+                    RoomDetails = new RoomStatus 
+                    { 
+                        RoomId = roomId, 
+                        PlayerNicknames = playerNicknames 
+                    } 
+                }
+            )));
+        }
     }
 
 }

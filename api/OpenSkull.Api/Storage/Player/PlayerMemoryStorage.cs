@@ -8,11 +8,7 @@ public class PlayerMemoryStorage : IPlayerStorage
   
   public Task<Result<Player, StorageError>> CreatePlayer(Player player)
   {
-    if (_memoryPlayers.Keys.Any(x => x == player.Id))
-    {
-      return Task.FromResult<Result<Player, StorageError>>(StorageError.CantStore);
-    }
-    _memoryPlayers.Add(player.Id, player);
+    _memoryPlayers[player.Id] = player;
     return Task.FromResult<Result<Player, StorageError>>(player);
   }
 
@@ -23,6 +19,17 @@ public class PlayerMemoryStorage : IPlayerStorage
       return Task.FromResult<Result<Player, StorageError>>(StorageError.NotFound);
     }
     return Task.FromResult<Result<Player, StorageError>>(player);
+  }
+
+  public Task<Result<Player[], StorageError>> GetPlayersByIds(Guid[] ids)
+  {
+    var validPlayerIds = ids.Where(id => _memoryPlayers.Keys.Contains(id));
+    List<Player> players = new List<Player>();
+    foreach (Guid id in validPlayerIds)
+    {
+      players.Add(_memoryPlayers[id]);
+    }
+    return Task.FromResult<Result<Player[], StorageError>>(players.ToArray());
   }
 
   public Task<Result<Player, StorageError>> UpdatePlayer(Player player)

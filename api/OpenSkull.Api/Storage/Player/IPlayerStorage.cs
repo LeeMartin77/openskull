@@ -13,5 +13,6 @@ public interface IPlayerStorage
 {
   Task<Result<Player, StorageError>> CreatePlayer(Player player);
   Task<Result<Player, StorageError>> GetPlayerById(Guid id);
+  Task<Result<Player[], StorageError>> GetPlayersByIds(Guid[] ids);
   Task<Result<Player, StorageError>> UpdatePlayer(Player player);
 }
