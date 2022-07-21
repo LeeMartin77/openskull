@@ -150,6 +150,7 @@ public class PlayerHub : Hub
             var removedRooms = await _roomStorage.RemovePlayerIdFromAllRooms(parsedId);
             await Task.WhenAll(removedRooms.Select(RoomUpdate));
         }
+        // TODO: Should throw players out of queues too
         await base.OnDisconnectedAsync(exception);
     }
 
