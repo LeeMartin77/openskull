@@ -43,6 +43,21 @@ public class PlayerHub : Hub
         }
     }
 
+    public async Task UpdateNickname(string userId, string userSecret, string newNickname) {
+        Guid playerId;
+
+        if(userId != null && 
+            Guid.TryParse(userId, out playerId) && 
+            (await VerifyPlayerMiddleware.ValidatePlayerId(_playerStorage, VerifyPlayerMiddleware.DefaultSaltGenerator, playerId, userSecret)) != null) {
+            var player = await _playerStorage.GetPlayerById(playerId);
+            if (player.IsSuccess)
+            {
+                var playerDetails = player.Value;
+                await _playerStorage.UpdatePlayer(playerDetails with { Nickname = newNickname });
+            }
+        }
+    }
+
     public async Task GetQueueStatus(string playerId, string userSecret)
     {
         Guid parsedPlayerId;
@@ -140,7 +155,7 @@ public class PlayerHub : Hub
 
     private async Task RoomUpdate(string roomId)
     {
-      List<Guid> roomPlayers = await _roomStorage.GetRoomPlayerIds(roomId);
+        List<Guid> roomPlayers = await _roomStorage.GetRoomPlayerIds(roomId);
         var getPlayers = await Task.WhenAll(roomPlayers.Select(async id => 
             { 
                 var player = await _playerStorage.GetPlayerById(id);
@@ -149,7 +164,6 @@ public class PlayerHub : Hub
         ));
         Guid[] playerIds = getPlayers.Where(x => x.IsSuccess).Select(x => x.Value.Id).ToArray();
         string[] playerNicknames = getPlayers.Where(x => x.IsSuccess).Select(x => x.Value.Nickname).ToArray();
-
         await Task.WhenAll(playerIds.Select(x => _websocketManager.BroadcastToConnectedWebsockets(
             WebSocketType.Player, 
             x, 

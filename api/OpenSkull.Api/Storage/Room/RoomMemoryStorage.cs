@@ -8,7 +8,7 @@ public class RoomMemoryStorage : IRoomStorage
     if (_roomDictionary.ContainsKey(roomId))
     {
       _roomDictionary[roomId].Add(playerId);
-      _roomDictionary[roomId].Distinct();
+      _roomDictionary[roomId] = _roomDictionary[roomId].Distinct().ToList();
     }
     else 
     {
