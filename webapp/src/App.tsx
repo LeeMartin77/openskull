@@ -18,6 +18,7 @@ import { SideNavigationComponent } from "./components/navigation/SideNavigationC
 import { API_ROOT_URL, USER_ID, USER_SECRET } from "./config";
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
 import { IOpenskullMessage } from "./models/Message";
+import { GameCreatedModalComponent } from "./components/game/GameCreatedComponent";
 
 const theme = createTheme({
   palette: {
@@ -47,6 +48,7 @@ function HomeComponent() {
 function App() {
   const [isDesktop, setDesktop] = useState(window.innerWidth > theme.breakpoints.values.sm);
   const [playerConnection, setPlayerConnection] = useState<HubConnection | undefined>(undefined);
+  const [newGameId, setNewGameId] = useState<string | undefined>(undefined);
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -73,6 +75,14 @@ function App() {
       }
     }
 
+    const newGameHandler = (msg: IOpenskullMessage) => {
+      if (msg.activity === "GameCreated") {
+        setNewGameId(msg.id);
+      }
+    }
+
+    newPlayerConnection.on("send", newGameHandler)
+
     newPlayerConnection.on("send", playerSuccessHandler)
 
     newPlayerConnection.start()
@@ -82,8 +92,9 @@ function App() {
     return () => {
       newPlayerConnection && newPlayerConnection.stop();
     }
-  }, [setPlayerConnection])
+  }, [setPlayerConnection, setNewGameId])
 
+  const handleDismissNewGameDialogue = () => setNewGameId(undefined);
 
   const containerClassName = isDesktop ? "main-container-nonmobile" : "main-container-mobile";
 
@@ -98,6 +109,10 @@ function App() {
           <Box component="main" sx={mainSx}>
             <Container className={containerClassName} >
             {loading && <CircularProgress />}
+            <GameCreatedModalComponent 
+              gameId={newGameId} 
+              handleDismiss={handleDismissNewGameDialogue}
+              />
             {!loading && error && <Alert color="error" >Error Connecting to Server</Alert>}
             {!loading && <Routes>
               <Route path="/games/:gameId" element={<GameComponent />} />
