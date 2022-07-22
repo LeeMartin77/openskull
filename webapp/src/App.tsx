@@ -15,10 +15,11 @@ import { List, ListItem, ListItemButton, ListItemIcon, ListItemText } from '@mui
 import { Queue, ViewList } from '@mui/icons-material';
 import { BottomNavigationComponent } from "./components/navigation/BottomNavigationComponent";
 import { SideNavigationComponent } from "./components/navigation/SideNavigationComponent";
-import { API_ROOT_URL, USER_ID, USER_SECRET } from "./config";
+import { API_ROOT_URL, USER_ID, USER_NICKNAME, USER_SECRET } from "./config";
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
 import { IOpenskullMessage } from "./models/Message";
 import { GameCreatedModalComponent } from "./components/game/GameCreatedComponent";
+import { UpdateUserProfileButton } from "./components/player/UpdatePlayerNicknameDialog";
 
 const theme = createTheme({
   palette: {
@@ -48,6 +49,7 @@ function HomeComponent() {
 function App() {
   const [isDesktop, setDesktop] = useState(window.innerWidth > theme.breakpoints.values.sm);
   const [playerConnection, setPlayerConnection] = useState<HubConnection | undefined>(undefined);
+  const [userNickname, setUserNickname] = useState(USER_NICKNAME);
   const [newGameId, setNewGameId] = useState<string | undefined>(undefined);
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -102,8 +104,12 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
         <CssBaseline />
+        {playerConnection && <UpdateUserProfileButton
+          playerConnection={playerConnection}
+          playerNickname={userNickname}
+          updatePlayerNickname={setUserNickname}
+        />}
         <BrowserRouter>
-
           <Box sx={{ display: 'flex' }}>
           {!loading && isDesktop && <SideNavigationComponent />}
           <Box component="main" sx={mainSx}>
