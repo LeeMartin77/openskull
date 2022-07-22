@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
+using System.Text.RegularExpressions;
 using OpenSkull.Api.Functions;
 using OpenSkull.Api.Messaging;
 using OpenSkull.Api.Middleware;
@@ -88,8 +89,16 @@ public class PlayerHub : Hub
         await _gameCreationQueue.JoinGameQueue(parsedPlayerId, gameSize);
     }
 
+    private static void ValidateRoomId(string roomId) {
+        var check = Regex.Match(roomId, "^[a-zA-Z0-9_-]*");
+        if (!check.Success || check.Captures.Count != 1 || check.Length != roomId.Length) {
+            throw new InvalidOperationException("Invalid Room Id");
+        }
+    }
+
     public async Task JoinRoom(string playerId, string userSecret, string roomId)
     {
+        ValidateRoomId(roomId);
         Guid parsedPlayerId;
         if (!Guid.TryParse(playerId, out parsedPlayerId) ||
             (await VerifyPlayerMiddleware.ValidatePlayerId(_playerStorage, VerifyPlayerMiddleware.DefaultSaltGenerator, parsedPlayerId, userSecret)) == null) {
@@ -102,6 +111,7 @@ public class PlayerHub : Hub
 
     public async Task CreateRoomGame(string playerId, string userSecret, string roomId)
     {
+        ValidateRoomId(roomId);
         Guid parsedPlayerId;
         if (!Guid.TryParse(playerId, out parsedPlayerId) ||
             (await VerifyPlayerMiddleware.ValidatePlayerId(_playerStorage, VerifyPlayerMiddleware.DefaultSaltGenerator, parsedPlayerId, userSecret)) == null) {
@@ -132,6 +142,7 @@ public class PlayerHub : Hub
 
     public async Task LeaveRoom(string playerId, string userSecret, string roomId)
     {
+        ValidateRoomId(roomId);
         Guid parsedPlayerId;
         if (!Guid.TryParse(playerId, out parsedPlayerId) ||
             (await VerifyPlayerMiddleware.ValidatePlayerId(_playerStorage, VerifyPlayerMiddleware.DefaultSaltGenerator, parsedPlayerId, userSecret)) == null) {
