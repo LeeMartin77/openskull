@@ -1,12 +1,13 @@
 import { BottomNavigation, BottomNavigationAction, ListItemIcon, ListItemText, Menu, MenuItem } from "@mui/material";
 import { Link } from "react-router-dom";
 import MenuIcon from '@mui/icons-material/Menu';
+import WeekendIcon from '@mui/icons-material/Weekend';
 
 import './BottomNavigationComponent.css';
 import { navigationConfig } from "./NavigationConfig";
 import { useState } from "react";
 
-export function BottomNavigationComponent() {
+export function BottomNavigationComponent({ setRoomDialogOpen }: {setRoomDialogOpen: (i: boolean) => void}) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -37,6 +38,12 @@ export function BottomNavigationComponent() {
       </MenuItem>
       }
         )}
+        <MenuItem key={"room-nav"} onClick={() => setRoomDialogOpen(true)}>
+              <ListItemIcon>
+                <WeekendIcon/>
+              </ListItemIcon>
+              <ListItemText primary={"Room"} />
+        </MenuItem>
       </Menu>
     </>)
 }

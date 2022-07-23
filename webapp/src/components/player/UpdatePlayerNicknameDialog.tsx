@@ -47,8 +47,7 @@ export function UpdateUserNicknameDialogComponent({
     localStorage.setItem(USER_NICKNAME_IDENTIFIER, newNickname)
     updatePlayerNickname(newNickname)
   }
-  return  <>
-  <Dialog
+  return <Dialog
   open={open}
   onClose={() => setOpen(false)}
   aria-labelledby="alert-dialog-title"
@@ -75,5 +74,4 @@ export function UpdateUserNicknameDialogComponent({
     </Button>
   </DialogActions>
 </Dialog>
-</>
 }

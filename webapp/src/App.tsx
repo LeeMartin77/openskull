@@ -20,6 +20,8 @@ import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
 import { IOpenskullMessage } from "./models/Message";
 import { GameCreatedModalComponent } from "./components/game/GameCreatedComponent";
 import { UpdateUserProfileButton } from "./components/player/UpdatePlayerNicknameDialog";
+import { PlayerRoomComponent } from "./components/rooms/PlayerRoomComponent";
+import { PlayerRoomDialogComponent } from "./components/rooms/PlayerRoomDialogComponent";
 
 const theme = createTheme({
   palette: {
@@ -53,6 +55,7 @@ function App() {
   const [newGameId, setNewGameId] = useState<string | undefined>(undefined);
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [roomDialogOpen, setRoomDialogOpen] = useState(false);
 
   const updateMedia = () => {
     setDesktop(window.innerWidth > theme.breakpoints.values.sm);
@@ -110,8 +113,9 @@ function App() {
           updatePlayerNickname={setUserNickname}
         />}
         <BrowserRouter>
+          {playerConnection && <PlayerRoomDialogComponent open={roomDialogOpen} setOpen={setRoomDialogOpen}/>}
           <Box sx={{ display: 'flex' }}>
-          {!loading && isDesktop && <SideNavigationComponent />}
+          {!loading && isDesktop && <SideNavigationComponent setRoomDialogOpen={setRoomDialogOpen}/>}
           <Box component="main" sx={mainSx}>
             <Container className={containerClassName} >
             {loading && <CircularProgress />}
@@ -123,6 +127,7 @@ function App() {
             {!loading && <Routes>
               <Route path="/games/:gameId" element={<GameComponent />} />
               <Route path="/games" element={<GameListComponent />} />
+              <Route path="/rooms/:roomId" element={playerConnection && <PlayerRoomComponent playerConnection={playerConnection} />} />
               <Route path="/queue" element={playerConnection && <GameQueueComponent connection={playerConnection} />} />
               <Route path="/" element={<HomeComponent />}/>
               <Route
@@ -138,7 +143,7 @@ function App() {
             </Routes>}
             </Container>
           </Box>
-          {!loading && !isDesktop && <BottomNavigationComponent />}
+          {!loading && !isDesktop && <BottomNavigationComponent setRoomDialogOpen={setRoomDialogOpen}/>}
           </Box>
         </BrowserRouter>
     </ThemeProvider>
