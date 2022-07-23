@@ -203,9 +203,16 @@ export function GameComponent() {
     return <Card key={i} variant={game.activePlayerIndex === i ? "outlined" : undefined}>
     <CardHeader title={"Player " + i}></CardHeader>
     <CardContent>
-      {'playerId' in game && game.playerIndex === i && <PrivatePlayerView game={game}/>}
-      {(!('playerId' in game) || game.playerIndex !== i) && <PublicPlayerView index={i} game={game}/>}
+      <PublicPlayerView index={i} game={game}/>
       </CardContent>
       </Card>
-  })}</>)
+  })}
+  {game && 'playerId' in game && 
+    <Card variant={'elevation'}>
+      <CardHeader title={"Controls"}/>
+      <CardContent>
+        <PrivatePlayerView game={game}/>
+      </CardContent>
+    </Card>
+  }</>)
 }
