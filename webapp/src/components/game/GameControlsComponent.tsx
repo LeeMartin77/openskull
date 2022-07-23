@@ -1,4 +1,4 @@
-import { Button, IconButton } from "@mui/material";
+import { Button, IconButton, TextField } from "@mui/material";
 import { useState } from "react";
 import { API_ROOT_URL, USER_ID, USER_ID_HEADER, USER_SECRET, USER_SECRET_HEADER } from "../../config";
 import { CardState, CardType, PlayerGame, RoundPhase, TurnAction } from "../../models/Game";
@@ -60,6 +60,9 @@ function GamePlayCardControlComponent({ game, clicked, setClicked }: IControlPro
 
 function GamePlaceBidControlComponent({ game, clicked, setClicked }: IControlProps) {
   const roundIndex = game.roundNumber - 1;
+  const minBid = Math.max(...game.currentBids) + 1;
+
+  const [bid, setBid] = useState(minBid);
 
   const placebid = (bid: number) => {
     setClicked(true);
@@ -77,23 +80,31 @@ function GamePlaceBidControlComponent({ game, clicked, setClicked }: IControlPro
   }
 
   const maxBid = game.roundCountPlayerCardsPlayed[roundIndex].reduce((c, cc) => c + cc, 0);
-  const minBid = Math.max(...game.currentBids) + 1;
 
-  const arrayOfValues = [];
-  for (let i = minBid; i <= maxBid; i++) {
-    arrayOfValues.push(i);
-  }
-
-  return <><Button 
-    disabled={clicked || game.activePlayerIndex !== game.playerIndex || game.currentRoundPhase === RoundPhase.PlayFirstCards || minBid === 1} 
-    onClick={() => placebid(SKIP_VALUE)}>Retire</Button>
-  {//This is a completely terrible UI 
-  arrayOfValues.map((bidNumber, i) => {
-    return <Button key={i}
-    disabled={clicked || game.activePlayerIndex !== game.playerIndex  || game.currentRoundPhase === RoundPhase.PlayFirstCards} 
-    onClick={() => placebid(bidNumber)}>Bid {bidNumber}</Button>
-  })
-  }</>
+  return <>
+    {minBid < maxBid && <TextField
+      id="number-bid"
+      label="Bid"
+      type="number"
+      value={bid}
+      onChange={(e) => setBid(parseInt(e.target.value))}
+      InputProps={{ 
+        inputProps: {
+          min: minBid,
+          max: maxBid
+        },
+        endAdornment: <Button variant="contained"
+        disabled={clicked || game.activePlayerIndex !== game.playerIndex} 
+        onClick={() => placebid(bid)}>Bid</Button>
+      }}
+      InputLabelProps={{
+        shrink: true,
+      }}
+    />}
+    {minBid > 1 && <div style={{ marginTop: "1em" }} ><Button variant="contained"
+    disabled={clicked || game.activePlayerIndex !== game.playerIndex} 
+    onClick={() => placebid(SKIP_VALUE)}>Withdraw</Button></div>}
+  </>
 }
 
 function GameFlipCardControlComponent({ game, clicked, setClicked }: IControlProps) {
@@ -135,8 +146,8 @@ export function GameControlsComponent({ game }: { game: PlayerGame }) {
 
   if (game.currentRoundPhase !== RoundPhase.Flipping) {
     return <>
-      <GamePlayCardControlComponent game={game} clicked={clicked} setClicked={setClicked}/>
-      <GamePlaceBidControlComponent game={game} clicked={clicked} setClicked={setClicked}/>
+      {game.currentRoundPhase !== RoundPhase.Bidding && <div style={{ marginBottom: "1em" }}><GamePlayCardControlComponent game={game} clicked={clicked} setClicked={setClicked}/></div>}
+      {game.currentRoundPhase !== RoundPhase.PlayFirstCards && <div><GamePlaceBidControlComponent game={game} clicked={clicked} setClicked={setClicked}/></div>}
     </>
   }
   return <GameFlipCardControlComponent game={game} clicked={clicked} setClicked={setClicked}/>;
