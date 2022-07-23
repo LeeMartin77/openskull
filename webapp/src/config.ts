@@ -25,6 +25,7 @@ if (!storageUserNickname) {
 }
 
 export const USER_ID_HEADER = "X-OpenSkull-UserId"
+export const USER_SECRET_HEADER = "X-OpenSkull-UserSecret"
 export const USER_ID = userId
 export const USER_SECRET = userSecret
 export const USER_NICKNAME = userNickname

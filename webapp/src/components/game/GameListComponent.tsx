@@ -1,7 +1,7 @@
 import { Alert, Card, CardContent, CircularProgress, List, ListItemButton, ListItemText } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { API_ROOT_URL, USER_ID, USER_ID_HEADER } from "../../config";
+import { API_ROOT_URL, USER_ID, USER_ID_HEADER, USER_SECRET, USER_SECRET_HEADER } from "../../config";
 import { PlayerGame } from "../../models/Game";
 
 const getGames = (
@@ -11,7 +11,7 @@ const getGames = (
   ) => {
   fnSetLoading(true);
   return fetch(`${API_ROOT_URL}/games`, 
-  { headers: { "Content-Type": "application/json", [USER_ID_HEADER]: USER_ID }})
+  { headers: { "Content-Type": "application/json", [USER_ID_HEADER]: USER_ID, [USER_SECRET_HEADER]: USER_SECRET  }})
   .then(async res => {
     const item = await res.json();
     fnSetGames(item);

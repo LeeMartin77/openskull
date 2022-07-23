@@ -2,7 +2,7 @@ import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
 import { Alert, Button, Card, CardContent, CardHeader, CircularProgress, List, ListItem } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { API_ROOT_URL, USER_ID, USER_ID_HEADER } from "../../config";
+import { API_ROOT_URL, USER_ID, USER_ID_HEADER, USER_SECRET, USER_SECRET_HEADER } from "../../config";
 import { CardState, CardType, PlayerGame, PublicGame, RoundPhase, TurnAction } from "../../models/Game";
 
 
@@ -16,7 +16,7 @@ const updateGame = (
   ) => {
   fnSetLoading(true);
   return fetch(`${API_ROOT_URL}/games/${gameId}`, 
-  { headers: { "Content-Type": "application/json", [USER_ID_HEADER]: USER_ID }})
+  { headers: { "Content-Type": "application/json", [USER_ID_HEADER]: USER_ID, [USER_SECRET_HEADER]: USER_SECRET }})
   .then(async res => {
     const item = await res.json();
     fnSetGame(item);
@@ -46,7 +46,7 @@ function PrivatePlayerView({ game }: { game: PlayerGame }) {
     fetch(`${API_ROOT_URL}/games/${game.id}/turn`, 
       { 
         method: "POST",
-        headers: { "Content-Type": "application/json", [USER_ID_HEADER]: USER_ID },
+        headers: { "Content-Type": "application/json", [USER_ID_HEADER]: USER_ID, [USER_SECRET_HEADER]: USER_SECRET  },
         body: JSON.stringify({
           action: TurnAction[TurnAction.Card],
           cardId
@@ -60,7 +60,7 @@ function PrivatePlayerView({ game }: { game: PlayerGame }) {
     fetch(`${API_ROOT_URL}/games/${game.id}/turn`, 
       { 
         method: "POST",
-        headers: { "Content-Type": "application/json", [USER_ID_HEADER]: USER_ID },
+        headers: { "Content-Type": "application/json", [USER_ID_HEADER]: USER_ID, [USER_SECRET_HEADER]: USER_SECRET  },
         body: JSON.stringify({
           action: TurnAction[TurnAction.Bid],
           bid
@@ -74,7 +74,7 @@ function PrivatePlayerView({ game }: { game: PlayerGame }) {
     fetch(`${API_ROOT_URL}/games/${game.id}/turn`, 
       { 
         method: "POST",
-        headers: { "Content-Type": "application/json", [USER_ID_HEADER]: USER_ID },
+        headers: { "Content-Type": "application/json", [USER_ID_HEADER]: USER_ID, [USER_SECRET_HEADER]: USER_SECRET  },
         body: JSON.stringify({
           action: TurnAction[TurnAction.Flip],
           targetPlayerIndex
