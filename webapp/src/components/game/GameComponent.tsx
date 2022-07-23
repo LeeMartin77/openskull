@@ -1,5 +1,5 @@
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
-import { Alert, Button, Card, CardContent, CardHeader, CircularProgress, List, ListItem } from "@mui/material";
+import { Alert, Button, Card, CardContent, CardHeader, CircularProgress, Grid, List, ListItem } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { API_ROOT_URL, USER_ID, USER_ID_HEADER, USER_SECRET, USER_SECRET_HEADER } from "../../config";
@@ -223,7 +223,9 @@ export function GameComponent() {
       {error && <Alert severity="error">Error loading</Alert>}
     </CardContent>
   </Card>}
-  {game && idArray.map(i => <PublicPlayerView key={i} index={i} game={game}/>)}
+  {game && <Grid container spacing={2} style={{ marginBottom: '1em' }}>
+      {idArray.map(i => <Grid item xs={12} sm={6}><PublicPlayerView key={i} index={i} game={game}/></Grid>)}
+  </Grid>}
   {game && 'playerId' in game && <GameControlsComponent game={game}/>}
   </>)
 }
