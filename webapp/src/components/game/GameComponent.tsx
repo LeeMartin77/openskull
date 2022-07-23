@@ -5,6 +5,10 @@ import { useParams } from "react-router-dom";
 import { API_ROOT_URL, USER_ID, USER_ID_HEADER, USER_SECRET, USER_SECRET_HEADER } from "../../config";
 import { CardState, CardType, PlayerGame, PublicGame, RoundPhase, TurnAction } from "../../models/Game";
 
+import FlowerIcon from '@mui/icons-material/LocalFlorist';
+import LostCardIcon from '@mui/icons-material/DoNotDisturbOn';
+import CircleIcon from '@mui/icons-material/Circle';
+import SkullIcon from '@mui/icons-material/Balcony';
 
 const SKIP_VALUE = -1;
 
@@ -27,17 +31,28 @@ const updateGame = (
 
 function PublicPlayerView({ index, game }: { index: number, game: PublicGame }) {
   const roundIndex = game.roundNumber - 1;
+  const wins = game.roundWinners.filter(x => x === index).length;
+  const playerRevealedCards = game.roundPlayerCardsRevealed[roundIndex][index].map(card => card === CardType.Flower ? <FlowerIcon /> : <SkullIcon />);
+  const playedRevealedCardsCount = game.roundPlayerCardsRevealed[roundIndex][index].length;
+  const unrevealedCardsPlayed = game.roundCountPlayerCardsPlayed[roundIndex][index] - playedRevealedCardsCount;
+  const cardsUnplayed = game.currentCountPlayerCardsAvailable[index] - game.roundCountPlayerCardsPlayed[roundIndex][index];
+  const cardsLost = game.playerCardStartingCount - game.currentCountPlayerCardsAvailable[index];
+  const currentBid = game.currentBids[index] === SKIP_VALUE ? "Withdrawn" : game.currentBids[index] === 0 ? "No Bid" : game.currentBids[index]
+  //TODO: We need to make games return nicknames for nicer identification
   return <Card variant={game.activePlayerIndex === index ? "outlined" : undefined}>
-  <CardHeader title={"Player " + index}></CardHeader>
-  <CardContent><List>
-  <ListItem key="available">Cards Available: {game.currentCountPlayerCardsAvailable[index]}/{game.playerCardStartingCount}</ListItem>
-  <ListItem key="played">Cards Played: {game.roundCountPlayerCardsPlayed[roundIndex][index]}</ListItem>
-  <ListItem key="bid">Current Bid: {game.currentBids[index] === SKIP_VALUE ? "Withdrawn" : game.currentBids[index] }</ListItem>
-  <ListItem key="revealed">Cards Revealed: {game.roundPlayerCardsRevealed[roundIndex][index].length}: {game.roundPlayerCardsRevealed[roundIndex][index].map(card => <> {CardType[card]} </>) }</ListItem>
-  <ListItem key="wins">Wins: {game.roundWinners.filter(x => x === index).length}</ListItem>
-  </List>
-      </CardContent>
-      </Card>
+    <CardHeader title={"Player " + index} subheader={wins + " point(s)"}></CardHeader>
+    <CardContent>
+      <div>
+        {playerRevealedCards}
+        {Array.from(Array(unrevealedCardsPlayed).keys()).map(() => <CircleIcon />)}
+        {Array.from(Array(cardsUnplayed).keys()).map(() => <CircleIcon color="disabled" />)}
+        {Array.from(Array(cardsLost).keys()).map(() => <LostCardIcon color="disabled" />)}
+      </div>
+      {(game.currentRoundPhase == RoundPhase.Bidding || game.currentRoundPhase == RoundPhase.Flipping && game.activePlayerIndex === index) && <div>
+        Bid: {currentBid}
+      </div>}
+    </CardContent>
+  </Card>
 }
 
 function GameControlsComponent({ game }: { game: PlayerGame }) {
