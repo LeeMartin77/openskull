@@ -48,7 +48,7 @@ function PublicPlayerView({ index, game }: { index: number, game: PublicGame }) 
         {Array.from(Array(cardsUnplayed).keys()).map(() => <CircleIcon color="disabled" />)}
         {Array.from(Array(cardsLost).keys()).map(() => <LostCardIcon color="disabled" />)}
       </div>
-      {(game.currentRoundPhase == RoundPhase.Bidding || game.currentRoundPhase == RoundPhase.Flipping && game.activePlayerIndex === index) && <div>
+      {(game.currentRoundPhase === RoundPhase.Bidding || (game.currentRoundPhase === RoundPhase.Flipping && game.activePlayerIndex === index)) && <div>
         Bid: {currentBid}
       </div>}
     </CardContent>
