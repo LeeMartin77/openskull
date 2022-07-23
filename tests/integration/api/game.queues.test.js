@@ -10,12 +10,12 @@ const { v4 } = require("uuid");
 
 const apiRoot = process.env.OPENSKULL_API_ROOT ?? "http://localhost:5248"
 
-test("Can connect to websockets and get messages", async () => {
+test("Join Game :: Can connect to queues and get game created", async () => {
   const TEST_PLAYER_IDS = [
-    crypto.randomUUID(),
-    crypto.randomUUID(),
-    crypto.randomUUID()
-  ]
+    [crypto.randomUUID(), crypto.randomUUID()],
+    [crypto.randomUUID(), crypto.randomUUID()],
+    [crypto.randomUUID(), crypto.randomUUID()]
+  ] 
 
   const messages = [
     [],
@@ -39,9 +39,13 @@ test("Can connect to websockets and get messages", async () => {
 
     await connection.start();
 
-    await connection.send("subscribeToUserId", id)
+    await connection.send("subscribeToUserId", id[0], id[1])
 
-    await connection.send("joinQueue", id, 3)
+    while(!messages[i].map(x => x.activity).includes("Subscribed")) {
+      await new Promise(resolve => setTimeout(resolve, 10))
+    }
+
+    await connection.send("joinQueue", id[0], id[1], 3)
 
     connections.push(connection);
   });
@@ -58,74 +62,10 @@ test("Can connect to websockets and get messages", async () => {
   expect(messages.every(x => x.filter(y => y.id == gameId && y.activity == "GameCreated").length == 1)).toBe(true);
   await Promise.all(connections.map(async c => await c.stop()))
 });
-  
-test("Game Turns Played :: Get websocket turn notification", async () => {
-  const TEST_PLAYER_IDS = [
-    crypto.randomUUID(),
-    crypto.randomUUID(),
-    crypto.randomUUID()
-  ] 
-  const gameCreateResponse = await axios.post(apiRoot + "/games/createtestgame", {
-    playerIds: TEST_PLAYER_IDS
-  });
-  expect(gameCreateResponse.status).toBe(200);
-  const gameId = gameCreateResponse.data;
-
-  const TEST_PLAYER_CARDS = [];
-  for (let id of TEST_PLAYER_IDS) {
-    const privateGameData = await axios.get(`${apiRoot}/games/${gameId}`,
-    {
-      headers: {
-        "X-OpenSkull-UserId": id
-      }
-    })
-    TEST_PLAYER_CARDS.push(privateGameData.data.playerCards)
-  }
-
-  const gameMessages = [
-    [],
-    [],
-    []
-  ]
-
-  const gameResponseHandler = (index, msg, msgs = gameMessages) => {
-    msgs[index].push(msg)
-  }
-  
-  const gameConnections = await Promise.all(TEST_PLAYER_IDS.map(async (id, i) => {
-    let connection = new signalR.HubConnectionBuilder()
-    .withUrl(apiRoot +`/game/ws`)
-    .configureLogging(signalR.LogLevel.Error)
-    .build();
-
-    connection.on("send", msg => gameResponseHandler(i, msg));
-
-    await connection.start();
-    await connection.send("subscribeToGameId", gameId)
-    return connection;
-  }));
-
-
-  await axios.post(`${apiRoot}/games/${gameId}/turn`, 
-    { action: "Card", cardId: TEST_PLAYER_CARDS[0][0].id }, 
-    { headers: { "X-OpenSkull-UserId": TEST_PLAYER_IDS[0] }
-  });
-
-  // gotta give it a beat here
-
-  while (gameMessages.reduce((prev, curr) => [...prev, ...curr], []).length < 3) {
-    await new Promise(resolve => setTimeout(resolve, 10))
-  }
-
-  expect(gameMessages.every(x => x.every(y => y.id == gameId && y.activity == "Turn") && x.length == 1)).toBe(true);
-
-  await Promise.all(gameConnections.map(async c => await c.stop()))
-});
-
-// TODO: Test Status/Queue/Leave/Status loop
 
 test("Can query, queue, query, leave, query", async () => {
   const playerId = v4();
+  const secret = v4();
 
   const messages = [];
 
@@ -142,9 +82,17 @@ test("Can query, queue, query, leave, query", async () => {
 
   await connection.start();
 
-  await connection.send("subscribeToUserId", playerId)
+  await connection.send("subscribeToUserId", playerId, secret)
 
-  await connection.send("getQueueStatus", playerId)
+  while (messages.length < 1) {
+    await new Promise(resolve => setTimeout(resolve, 10))
+  }
+
+  expect(messages[0].activity).toBe("Subscribed")
+
+  messages.pop()
+
+  await connection.send("getQueueStatus", playerId, secret)
 
   while (messages.length < 1) {
     await new Promise(resolve => setTimeout(resolve, 10))
@@ -154,7 +102,7 @@ test("Can query, queue, query, leave, query", async () => {
   expect(messages[0].details.gameSize).toBe(0)
   expect(messages[0].details.queueSize).toBe(0)
 
-  await connection.send("joinQueue", playerId, 4)
+  await connection.send("joinQueue", playerId, secret, 4)
 
   while (messages.length < 2) {
     await new Promise(resolve => setTimeout(resolve, 10))
@@ -164,7 +112,7 @@ test("Can query, queue, query, leave, query", async () => {
   expect(messages[1].details.gameSize).toBe(4)
   expect(messages[1].details.queueSize).toBe(1)
 
-  await connection.send("getQueueStatus", playerId)
+  await connection.send("getQueueStatus", playerId, secret)
 
   while (messages.length < 3) {
     await new Promise(resolve => setTimeout(resolve, 10))
@@ -174,16 +122,15 @@ test("Can query, queue, query, leave, query", async () => {
   expect(messages[2].details.gameSize).toBe(4)
   expect(messages[2].details.queueSize).toBe(1)
 
-  await connection.send("leaveQueues", playerId)
+  await connection.send("leaveQueues", playerId, secret)
 
   while (messages.length < 4) {
     await new Promise(resolve => setTimeout(resolve, 10))
   }
 
   expect(messages[3].activity).toBe("QueueLeft")
-  //expect(messages[3].details.gameSize).toBe(4)
 
-  await connection.send("getQueueStatus", playerId)
+  await connection.send("getQueueStatus", playerId, secret)
 
   while (messages.length < 5) {
     await new Promise(resolve => setTimeout(resolve, 10))

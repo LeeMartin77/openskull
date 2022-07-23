@@ -6,7 +6,6 @@ using Dapper;
 namespace OpenSkull.Api.Storage;
 
 public class GamePostgresStorage : IGameStorage {
-  // private List<GameStorage> _gameStorage = new List<GameStorage>();
   private readonly string _connectionString;
   public GamePostgresStorage(string connectionString){
     _connectionString = connectionString;
@@ -67,7 +66,7 @@ public class GamePostgresStorage : IGameStorage {
     try {
       using (var connection = new NpgsqlConnection(_connectionString))
       {
-        var result = await connection.QueryFirstAsync<PostgresGameStorage>("SELECT id, version_tag, game FROM games WHERE id = @game_id", new { game_id = gameId });
+        var result = await connection.QueryFirstOrDefaultAsync<PostgresGameStorage>("SELECT id, version_tag, game FROM games WHERE id = @game_id", new { game_id = gameId });
         if (result is null) {
           return StorageError.NotFound;
         }

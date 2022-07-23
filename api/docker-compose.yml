@@ -10,11 +10,14 @@ services:
       POSTGRES_CONNECTION_STRING: Host=postgresdb:5432;Username=openskull;Password=openskull;Database=openskull;SSL Mode=Disable
       WEBSOCKET_SERVICE: KAFKA
       GAME_CREATION_SERVICE: KAFKA
+      ROOM_STORAGE: REDIS
       KAFKA_CONNECTION_STRING: kafka:19092
+      REDIS_CONNECTION_STRING: redis:6379
       GAME_MASTER: "true"
     depends_on:
       - postgresdb
       - kafka
+      - redis
   kfkzookeeper:
     image: confluentinc/cp-zookeeper:7.2.0
     ports:
@@ -52,3 +55,7 @@ services:
       - POSTGRES_PASSWORD=openskull
     volumes:
       - ./storage/postgres/migration:/docker-entrypoint-initdb.d:ro
+  redis:
+    image: redis:6.2.6
+    ports:
+      - 9736:6379 

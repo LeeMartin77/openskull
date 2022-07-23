@@ -3,7 +3,9 @@ using OpenSkull.Api.Functions;
 using OpenSkull.Api.Queue;
 using OpenSkull.Api.Messaging;
 using OpenSkull.Api.Hubs;
+using OpenSkull.Api.Middleware;
 using Confluent.Kafka;
+using StackExchange.Redis;
 using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,6 +30,12 @@ if (kafkaString is not null) {
             AutoOffsetReset = AutoOffsetReset.Earliest,
             AllowAutoCreateTopics = true
         });
+}
+
+
+var redisString = System.Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING");
+if (redisString is not null) {
+    builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisString));
 }
 
 var gameCreationService = System.Environment.GetEnvironmentVariable("GAME_CREATION_SERVICE") ?? "MEMORY";
@@ -65,12 +73,28 @@ switch (System.Environment.GetEnvironmentVariable("STORAGE_SERVICE") ?? "MEMORY"
             throw new InvalidOperationException("Must provide a POSTGRES_CONNECTION_STRING value");
         }
         builder.Services.AddSingleton<IGameStorage>(new GamePostgresStorage(hostStrings));
+        builder.Services.AddSingleton<IPlayerStorage>(new PlayerPostgresStorage(hostStrings));
         break;
     case "MEMORY":
     default:
         builder.Services.AddSingleton<IGameStorage, GameMemoryStorage>();
+        builder.Services.AddSingleton<IPlayerStorage, PlayerMemoryStorage>();
         break;
 }
+
+switch (System.Environment.GetEnvironmentVariable("ROOM_STORAGE") ?? "MEMORY") {
+    case "REDIS":
+        if (redisString is null) {
+            throw new InvalidOperationException("Must provide a REDIS_CONNECTION_STRING value");
+        }
+        builder.Services.AddSingleton<IRoomStorage, RoomRedisStorage>();
+        break;
+    case "MEMORY":
+    default:
+        builder.Services.AddSingleton<IRoomStorage, RoomMemoryStorage>();
+        break;
+}
+// TODO: Redis backing for this
 
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
@@ -106,6 +130,8 @@ if (!app.Environment.IsDevelopment()) {
 }
 
 app.UseAuthorization();
+
+app.UseVerifyPlayer();
 
 app.UseCors();
 
