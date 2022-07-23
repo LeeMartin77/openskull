@@ -38,3 +38,5 @@ jobs:
     - name: Upload files to S3 with AWS CLI
       run: |
         aws s3 sync webapp/build/ s3://${{ secrets.OPENSKULL_WEBAPP_BUCKET }} --delete 
+    - name: Clear Cloudfront
+      run: aws cloudfront create-invalidation --distribution-id ${{ secrets.OPENSKULL_DISTRIBUTION_ID }} --paths "/*"
