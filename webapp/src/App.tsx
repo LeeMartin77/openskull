@@ -116,7 +116,7 @@ function App() {
           {playerConnection && <PlayerRoomDialogComponent open={roomDialogOpen} setOpen={setRoomDialogOpen}/>}
           <Box sx={{ display: 'flex' }}>
           {!loading && isDesktop && <SideNavigationComponent setRoomDialogOpen={setRoomDialogOpen}/>}
-          <Box component="main" sx={mainSx}>
+          <Box component="main" sx={mainSx} style={{ marginBottom: "5em" }}>
             <Container className={containerClassName} >
             {loading && <CircularProgress />}
             <GameCreatedModalComponent 

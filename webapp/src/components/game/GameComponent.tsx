@@ -27,16 +27,20 @@ const updateGame = (
 
 function PublicPlayerView({ index, game }: { index: number, game: PublicGame }) {
   const roundIndex = game.roundNumber - 1;
-  return <List>
+  return <Card variant={game.activePlayerIndex === index ? "outlined" : undefined}>
+  <CardHeader title={"Player " + index}></CardHeader>
+  <CardContent><List>
   <ListItem key="available">Cards Available: {game.currentCountPlayerCardsAvailable[index]}/{game.playerCardStartingCount}</ListItem>
   <ListItem key="played">Cards Played: {game.roundCountPlayerCardsPlayed[roundIndex][index]}</ListItem>
   <ListItem key="bid">Current Bid: {game.currentBids[index] === SKIP_VALUE ? "Withdrawn" : game.currentBids[index] }</ListItem>
   <ListItem key="revealed">Cards Revealed: {game.roundPlayerCardsRevealed[roundIndex][index].length}: {game.roundPlayerCardsRevealed[roundIndex][index].map(card => <> {CardType[card]} </>) }</ListItem>
   <ListItem key="wins">Wins: {game.roundWinners.filter(x => x === index).length}</ListItem>
   </List>
+      </CardContent>
+      </Card>
 }
 
-function PrivatePlayerView({ game }: { game: PlayerGame }) {
+function GameControlsComponent({ game }: { game: PlayerGame }) {
   const roundIndex = game.roundNumber - 1;
   
   const [clicked, setClicked] = useState(false);
@@ -91,7 +95,9 @@ function PrivatePlayerView({ game }: { game: PlayerGame }) {
     arrayOfValues.push(i);
   }
 
-  return <List>
+  return <Card variant={'elevation'}>
+  <CardHeader title={"Controls"}/>
+  <CardContent><List>
   <ListItem key="available">Cards Available: {game.currentCountPlayerCardsAvailable[game.playerIndex]}/{game.playerCardStartingCount}</ListItem>
   <ListItem key="played">Cards Played: {game.roundCountPlayerCardsPlayed[roundIndex][game.playerIndex]}</ListItem>
   <ListItem key="bid">Current Bid: {game.currentBids[game.playerIndex] === SKIP_VALUE ? "Withdrawn" : game.currentBids[game.playerIndex] }</ListItem>
@@ -146,7 +152,10 @@ function PrivatePlayerView({ game }: { game: PlayerGame }) {
     })}
   </ListItem>}
 </List>
+</CardContent>
+</Card>
 }
+
 
 export function GameComponent() {
   const { gameId } = useParams<{ gameId: string }>();
@@ -199,20 +208,7 @@ export function GameComponent() {
       {error && <Alert severity="error">Error loading</Alert>}
     </CardContent>
   </Card>}
-  {game && idArray.map(i => {
-    return <Card key={i} variant={game.activePlayerIndex === i ? "outlined" : undefined}>
-    <CardHeader title={"Player " + i}></CardHeader>
-    <CardContent>
-      <PublicPlayerView index={i} game={game}/>
-      </CardContent>
-      </Card>
-  })}
-  {game && 'playerId' in game && 
-    <Card variant={'elevation'}>
-      <CardHeader title={"Controls"}/>
-      <CardContent>
-        <PrivatePlayerView game={game}/>
-      </CardContent>
-    </Card>
-  }</>)
+  {game && idArray.map(i => <PublicPlayerView key={i} index={i} game={game}/>)}
+  {game && 'playerId' in game && <GameControlsComponent game={game}/>}
+  </>)
 }
