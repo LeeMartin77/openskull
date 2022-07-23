@@ -125,17 +125,30 @@ function GameFlipCardControlComponent({ game, clicked, setClicked }: IControlPro
       .finally(() => setClicked(false))
   }
 
-  return <>{game.roundCountPlayerCardsPlayed[roundIndex].map((playedCount, i) => {
+  if (game.roundPlayerCardsRevealed[roundIndex][game.activePlayerIndex].length !== game.roundCountPlayerCardsPlayed[roundIndex][game.activePlayerIndex]) {
+    return <Button
+    variant="contained"
+    onClick={() => flipCard(game.activePlayerIndex)}
+    disabled={clicked}
+    >
+      Flip Own Card
+    </Button>
+  }
+
+  return <>{game.roundCountPlayerCardsPlayed[roundIndex]
+    .map((playedCount, i) => [playedCount, i])
+    .filter(x => x[1] !== game.activePlayerIndex)
+    .map(([playedCount, i]) => {
     return <Button
     key={i}
+    variant="contained"
     onClick={() => flipCard(i)}
     disabled={
       clicked ||
-      (i !== game.activePlayerIndex && game.roundPlayerCardsRevealed[roundIndex][game.activePlayerIndex].length !== playedCount) ||
       playedCount === game.roundPlayerCardsRevealed[roundIndex][i].length
     }
     >
-      Flip Player {i}
+      Flip {game.playerNicknames[i]}
     </Button>
   })}</>
 }
