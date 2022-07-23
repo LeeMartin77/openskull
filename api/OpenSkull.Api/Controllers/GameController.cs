@@ -29,6 +29,7 @@ public class GameController : ControllerBase
 {
     private readonly ILogger<GameController> _logger;
     private readonly IGameStorage _gameStorage;
+    private readonly IPlayerStorage _playerStorage;
     private readonly IGameCreationQueue _gameCreationQueue;
     private readonly IWebSocketManager _webSocketManager;
     private readonly GameCreateNew _gameCreateNew;
@@ -39,6 +40,7 @@ public class GameController : ControllerBase
     public GameController(
         ILogger<GameController> logger,
         IGameStorage gameStorage,
+        IPlayerStorage playerStorage,
         IGameCreationQueue gameCreationQueue,
         IWebSocketManager webSocketManager,
         GameCreateNew gcn,
@@ -49,6 +51,7 @@ public class GameController : ControllerBase
     {
         _logger = logger;
         _gameStorage = gameStorage;
+        _playerStorage = playerStorage;
         _gameCreationQueue = gameCreationQueue;
         _webSocketManager = webSocketManager;
         _gameCreateNew = gcn;
@@ -96,9 +99,9 @@ public class GameController : ControllerBase
         }
         return searchResult.Value.Select(x => {
             if (x.Game.PlayerIds.Contains(playerId)) {
-                return new PlayerGame(x.Id, playerId, x.Game);
+                return new PlayerGame(x.Id, playerId, x.Game, new Player[0]);
             }
-            return new PublicGame(x.Id, x.Game);
+            return new PublicGame(x.Id, x.Game, new Player[0]);
         }).ToArray();
     }
     
@@ -111,12 +114,14 @@ public class GameController : ControllerBase
         }
         
         Guid? playerId = VerifyPlayerMiddleware.GetValidatedPlayerIdFromContext(HttpContext);
+        Player[] players = new Player[0];
+        (await _playerStorage.GetPlayersByIds(gameResult.Value.Game.PlayerIds)).Map(prs => players = prs);
         if (playerId != null &&
             gameResult.Value.Game.PlayerIds.Contains((Guid)playerId)
             ) {
-            return new PlayerGame(gameId, (Guid)playerId, gameResult.Value.Game);
+            return new PlayerGame(gameId, (Guid)playerId, gameResult.Value.Game, players);
         }
-        return new PublicGame(gameId, gameResult.Value.Game);
+        return new PublicGame(gameId, gameResult.Value.Game, players);
     }
 
     [Route("games/{gameId}/turn")]
@@ -198,6 +203,8 @@ public class GameController : ControllerBase
             }
         }
         await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Game, gameId, new OpenskullMessage{ Id = gameId, Activity = "Turn" });
-        return new PlayerGame(storageResult.Value.Id, playerId, storageResult.Value.Game);
+        Player[] players = new Player[0];
+        (await _playerStorage.GetPlayersByIds(gameResult.Value.Game.PlayerIds)).Map(prs => players = prs);
+        return new PlayerGame(storageResult.Value.Id, playerId, storageResult.Value.Game, players);
     }
 }

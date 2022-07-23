@@ -26,6 +26,7 @@ public class GameController_PlayTurnTests {
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
+      new Mock<IPlayerStorage>().Object,
       new Mock<IGameCreationQueue>().Object,
       new Mock<IWebSocketManager>().Object,
       new Mock<GameCreateNew>().Object,
@@ -59,6 +60,7 @@ public class GameController_PlayTurnTests {
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
+      new Mock<IPlayerStorage>().Object,
       new Mock<IGameCreationQueue>().Object,
       new Mock<IWebSocketManager>().Object,
       new Mock<GameCreateNew>().Object,
@@ -93,6 +95,7 @@ public class GameController_PlayTurnTests {
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
+      new Mock<IPlayerStorage>().Object,
       new Mock<IGameCreationQueue>().Object,
       new Mock<IWebSocketManager>().Object,
       new Mock<GameCreateNew>().Object,
@@ -132,6 +135,7 @@ public class GameController_PlayTurnTests {
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
+      new Mock<IPlayerStorage>().Object,
       new Mock<IGameCreationQueue>().Object,
       new Mock<IWebSocketManager>().Object,
       new Mock<GameCreateNew>().Object,
@@ -171,6 +175,7 @@ public class GameController_PlayTurnTests {
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
+      new Mock<IPlayerStorage>().Object,
       new Mock<IGameCreationQueue>().Object,
       new Mock<IWebSocketManager>().Object,
       new Mock<GameCreateNew>().Object,
@@ -213,6 +218,7 @@ public class GameController_PlayTurnTests {
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
+      new Mock<IPlayerStorage>().Object,
       new Mock<IGameCreationQueue>().Object,
       new Mock<IWebSocketManager>().Object,
       new Mock<GameCreateNew>().Object,
@@ -269,6 +275,7 @@ public class GameController_PlayTurnTests {
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
+      new Mock<IPlayerStorage>().Object,
       new Mock<IGameCreationQueue>().Object,
       new Mock<IWebSocketManager>().Object,
       new Mock<GameCreateNew>().Object,
@@ -322,6 +329,7 @@ public class GameController_PlayTurnTests {
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
+      new Mock<IPlayerStorage>().Object,
       new Mock<IGameCreationQueue>().Object,
       new Mock<IWebSocketManager>().Object,
       new Mock<GameCreateNew>().Object,
@@ -378,6 +386,7 @@ public class GameController_PlayTurnTests {
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
+      new Mock<IPlayerStorage>().Object,
       new Mock<IGameCreationQueue>().Object,
       mockGameSocketManager.Object,
       new Mock<GameCreateNew>().Object,
@@ -433,6 +442,7 @@ public class GameController_PlayTurnTests {
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
+      new Mock<IPlayerStorage>().Object,
       new Mock<IGameCreationQueue>().Object,
       new Mock<IWebSocketManager>().Object,
       new Mock<GameCreateNew>().Object,
@@ -487,6 +497,7 @@ public class GameController_PlayTurnTests {
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
+      new Mock<IPlayerStorage>().Object,
       new Mock<IGameCreationQueue>().Object,
       new Mock<IWebSocketManager>().Object,
       new Mock<GameCreateNew>().Object,
@@ -544,6 +555,7 @@ public class GameController_PlayTurnTests {
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
+      new Mock<IPlayerStorage>().Object,
       new Mock<IGameCreationQueue>().Object,
       mockGameSocketManager.Object,
       new Mock<GameCreateNew>().Object,
@@ -599,6 +611,7 @@ public class GameController_PlayTurnTests {
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
+      new Mock<IPlayerStorage>().Object,
       new Mock<IGameCreationQueue>().Object,
       new Mock<IWebSocketManager>().Object,
       new Mock<GameCreateNew>().Object,
@@ -653,6 +666,7 @@ public class GameController_PlayTurnTests {
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
+      new Mock<IPlayerStorage>().Object,
       new Mock<IGameCreationQueue>().Object,
       new Mock<IWebSocketManager>().Object,
       new Mock<GameCreateNew>().Object,
@@ -710,6 +724,7 @@ public class GameController_PlayTurnTests {
     var gameController = new GameController(
       new Mock<ILogger<GameController>>().Object,
       mockGameStorage.Object,
+      new Mock<IPlayerStorage>().Object,
       new Mock<IGameCreationQueue>().Object,
       mockGameSocketManager.Object,
       new Mock<GameCreateNew>().Object,

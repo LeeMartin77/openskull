@@ -34,6 +34,7 @@ export interface PublicGame
   id: string;
   activePlayerIndex: number;
   playerCount: number;
+  playerNicknames: string[];
   playerCardStartingCount: number;
   roundNumber: number;
   currentCountPlayerCardsAvailable: number[];

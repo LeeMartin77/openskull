@@ -1,3 +1,5 @@
+using OpenSkull.Api.Storage;
+
 namespace OpenSkull.Api.DTO;
 
 public enum RoundPhase {
@@ -11,6 +13,7 @@ public interface IGameView {
   Guid Id { get; set; }
   int ActivePlayerIndex { get; set; }
   int PlayerCount { get; set; }
+  string[] PlayerNicknames { get; set; }
   int PlayerCardStartingCount { get; set; }
   int RoundNumber { get; set; }
   int[] CurrentCountPlayerCardsAvailable { get; set; }
@@ -26,6 +29,7 @@ public record class PublicGame : IGameView {
   public Guid Id { get; set; }
   public int ActivePlayerIndex { get; set; }
   public int PlayerCount { get; set; }
+  public string[] PlayerNicknames { get; set; }
   public int PlayerCardStartingCount { get; set; }
   public int RoundNumber { get; set; }
   public int[] CurrentCountPlayerCardsAvailable { get; set; }
@@ -36,10 +40,21 @@ public record class PublicGame : IGameView {
   public int[] RoundWinners { get; set; }
   public bool GameComplete { get; set; }
 
-  public PublicGame(Guid gameId, Game game) {
+  public PublicGame(Guid gameId, Game game, Player[]? players) {
     Id = gameId;
     ActivePlayerIndex = game.ActivePlayerIndex;
     PlayerCount = game.PlayerIds.Length;
+    if (players != null) {
+      PlayerNicknames = game.PlayerIds.Select((id, i) => {
+        int pindex = Array.FindIndex(players, 0, players.Length, p => p.Id == id);
+        if (pindex == -1) {
+          return $"Player {i}";
+        }
+        return players[pindex].Nickname;
+      }).ToArray();
+    } else {
+      PlayerNicknames = new string[0];
+    }
     PlayerCardStartingCount = game.PlayerCards[0].Length;
     RoundNumber = game.RoundPlayerCardIds.Count();
     CurrentCountPlayerCardsAvailable = game.PlayerCards.Select(x => x.Count(y => y.State != CardState.Discarded)).ToArray();

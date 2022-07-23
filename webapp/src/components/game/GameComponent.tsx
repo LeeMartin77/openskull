@@ -38,9 +38,8 @@ function PublicPlayerView({ index, game }: { index: number, game: PublicGame }) 
   const cardsUnplayed = game.currentCountPlayerCardsAvailable[index] - game.roundCountPlayerCardsPlayed[roundIndex][index];
   const cardsLost = game.playerCardStartingCount - game.currentCountPlayerCardsAvailable[index];
   const currentBid = game.currentBids[index] === SKIP_VALUE ? "Withdrawn" : game.currentBids[index] === 0 ? "No Bid" : game.currentBids[index]
-  //TODO: We need to make games return nicknames for nicer identification
   return <Card variant={game.activePlayerIndex === index ? "outlined" : undefined}>
-    <CardHeader title={"Player " + index} subheader={wins + " point(s)"}></CardHeader>
+    <CardHeader title={game.playerNicknames[index]} subheader={wins + " point(s)"}></CardHeader>
     <CardContent>
       <div>
         {playerRevealedCards}

@@ -1,3 +1,5 @@
+using OpenSkull.Api.Storage;
+
 namespace OpenSkull.Api.DTO;
 
 public record class PlayerGame : PublicGame, IGameView {
@@ -5,7 +7,7 @@ public record class PlayerGame : PublicGame, IGameView {
   public int PlayerIndex { get; set; }
   public Card[] PlayerCards { get; set; }
   public Guid[][] PlayerRoundCardIdsPlayed { get; set; }
-  public PlayerGame(Guid gameId, Guid playerId, Game game) : base(gameId, game) {
+  public PlayerGame(Guid gameId, Guid playerId, Game game, Player[]? players) : base(gameId, game, players) {
     int playerIndex = Array.IndexOf(game.PlayerIds, playerId);
     PlayerId = playerId;
     PlayerIndex = playerIndex;
