@@ -1,7 +1,11 @@
-import { Button } from "@mui/material";
+import { Button, IconButton } from "@mui/material";
 import { useState } from "react";
 import { API_ROOT_URL, USER_ID, USER_ID_HEADER, USER_SECRET, USER_SECRET_HEADER } from "../../config";
 import { CardState, CardType, PlayerGame, RoundPhase, TurnAction } from "../../models/Game";
+
+import FlowerIcon from '@mui/icons-material/LocalFlorist';
+import SkullIcon from '@mui/icons-material/Balcony';
+import LostCardIcon from '@mui/icons-material/DoNotDisturbOn';
 
 const SKIP_VALUE = -1;
 
@@ -25,23 +29,31 @@ function GamePlayCardControlComponent({ game, clicked, setClicked }: IControlPro
           cardId
         })
       })
-      .finally(() => setClicked(false))
+      .catch(() => setClicked(false))
   }
 
   return <>{game.playerCards.map(card => {
-    return <Button
-    key={card.id}
-    onClick={() => playCard(card.id)}
-    color={card.state === CardState.Discarded ? "error" : "primary"}
-    disabled={
-      ![RoundPhase.PlayFirstCards, RoundPhase.PlayCards].includes(game.currentRoundPhase) || 
-      clicked || game.activePlayerIndex !== game.playerIndex || 
-      card.state === CardState.Discarded || 
-      game.playerRoundCardIdsPlayed[roundIndex].includes(card.id)
+    if (card.state === CardState.Discarded) {
+      return <IconButton size={"large"} key={card.id} color="primary" aria-label="card lost" component="label" disabled>
+        <LostCardIcon />
+      </IconButton>
     }
-    >
-      Play {CardType[card.type]}
-    </Button>
+    if (card.type === CardType.Flower) {
+      return <IconButton size={"large"} color="primary" key={card.id}
+        aria-label="play flower" 
+        component="label" 
+        onClick={() => playCard(card.id)} 
+        disabled={clicked || game.activePlayerIndex !== game.playerIndex || game.playerRoundCardIdsPlayed[roundIndex].includes(card.id)}>
+        <FlowerIcon />
+      </IconButton>
+    }
+    return <IconButton size={"large"} color="primary" key={card.id}
+        aria-label="play skull" 
+        component="label" 
+        onClick={() => playCard(card.id)} 
+        disabled={clicked || game.activePlayerIndex !== game.playerIndex || game.playerRoundCardIdsPlayed[roundIndex].includes(card.id)}>
+      <SkullIcon />
+    </IconButton>
   })}</>
 }
 
@@ -59,7 +71,7 @@ function GamePlaceBidControlComponent({ game, clicked, setClicked }: IControlPro
           bid
         })
       })
-      .finally(() => setClicked(false))
+      .catch(() => setClicked(false))
   }
 
   const maxBid = game.roundCountPlayerCardsPlayed[roundIndex].reduce((c, cc) => c + cc, 0);
@@ -96,7 +108,7 @@ function GameFlipCardControlComponent({ game, clicked, setClicked }: IControlPro
           targetPlayerIndex
         })
       })
-      .finally(() => setClicked(false))
+      .catch(() => setClicked(false))
   }
 
   return <>{game.roundCountPlayerCardsPlayed[roundIndex].map((playedCount, i) => {
