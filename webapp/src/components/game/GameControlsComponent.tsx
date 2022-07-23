@@ -29,7 +29,8 @@ function GamePlayCardControlComponent({ game, clicked, setClicked }: IControlPro
           cardId
         })
       })
-      .catch(() => setClicked(false))
+      // TODO: There is a brief flash of interactivity here...
+      .finally(() => setClicked(false))
   }
 
   return <>{game.playerCards.map(card => {
@@ -71,7 +72,8 @@ function GamePlaceBidControlComponent({ game, clicked, setClicked }: IControlPro
           bid
         })
       })
-      .catch(() => setClicked(false))
+      // TODO: There is a brief flash of interactivity here...
+      .finally(() => setClicked(false))
   }
 
   const maxBid = game.roundCountPlayerCardsPlayed[roundIndex].reduce((c, cc) => c + cc, 0);
@@ -108,7 +110,8 @@ function GameFlipCardControlComponent({ game, clicked, setClicked }: IControlPro
           targetPlayerIndex
         })
       })
-      .catch(() => setClicked(false))
+      // TODO: There is a brief flash of interactivity here...
+      .finally(() => setClicked(false))
   }
 
   return <>{game.roundCountPlayerCardsPlayed[roundIndex].map((playedCount, i) => {
