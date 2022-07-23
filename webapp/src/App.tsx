@@ -15,7 +15,7 @@ import { List, ListItem, ListItemButton, ListItemIcon, ListItemText } from '@mui
 import { Queue, ViewList } from '@mui/icons-material';
 import { BottomNavigationComponent } from "./components/navigation/BottomNavigationComponent";
 import { SideNavigationComponent } from "./components/navigation/SideNavigationComponent";
-import { API_ROOT_URL, USER_ID, USER_NICKNAME, USER_SECRET } from "./config";
+import { API_ROOT_URL, USER_ID, USER_NICKNAME, USER_NICKNAME_IDENTIFIER, USER_SECRET } from "./config";
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
 import { IOpenskullMessage } from "./models/Message";
 import { GameCreatedModalComponent } from "./components/game/GameCreatedComponent";
@@ -92,6 +92,7 @@ function App() {
 
     newPlayerConnection.start()
       .then(() => newPlayerConnection.send("subscribeToUserId", USER_ID, USER_SECRET))
+      .then(() => newPlayerConnection.send("updateNickname", USER_ID, USER_SECRET, localStorage.getItem(USER_NICKNAME_IDENTIFIER)))
       .catch(() => setError(true))
 
     return () => {

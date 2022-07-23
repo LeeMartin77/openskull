@@ -32,7 +32,7 @@ const updateGame = (
 function PublicPlayerView({ index, game }: { index: number, game: PublicGame }) {
   const roundIndex = game.roundNumber - 1;
   const wins = game.roundWinners.filter(x => x === index).length;
-  const playerRevealedCards = game.roundPlayerCardsRevealed[roundIndex][index].map(card => card === CardType.Flower ? <FlowerIcon /> : <SkullIcon />);
+  const playerRevealedCards = game.roundPlayerCardsRevealed[roundIndex][index].map((card, i) => card === CardType.Flower ? <FlowerIcon key={"revealed-"+i} /> : <SkullIcon key={"revealed-"+i} />);
   const playedRevealedCardsCount = game.roundPlayerCardsRevealed[roundIndex][index].length;
   const unrevealedCardsPlayed = game.roundCountPlayerCardsPlayed[roundIndex][index] - playedRevealedCardsCount;
   const cardsUnplayed = game.currentCountPlayerCardsAvailable[index] - game.roundCountPlayerCardsPlayed[roundIndex][index];
@@ -43,9 +43,9 @@ function PublicPlayerView({ index, game }: { index: number, game: PublicGame }) 
     <CardContent>
       <div>
         {playerRevealedCards}
-        {Array.from(Array(unrevealedCardsPlayed).keys()).map(() => <CircleIcon />)}
-        {Array.from(Array(cardsUnplayed).keys()).map(() => <CircleIcon color="disabled" />)}
-        {Array.from(Array(cardsLost).keys()).map(() => <LostCardIcon color="disabled" />)}
+        {Array.from(Array(unrevealedCardsPlayed).keys()).map(i => <CircleIcon key={"hidden-"+i}/>)}
+        {Array.from(Array(cardsUnplayed).keys()).map(i => <CircleIcon key={"unplayed-"+i} color="disabled" />)}
+        {Array.from(Array(cardsLost).keys()).map(i => <LostCardIcon key={"lost-"+i} color="disabled" />)}
       </div>
       {(game.currentRoundPhase === RoundPhase.Bidding || (game.currentRoundPhase === RoundPhase.Flipping && game.activePlayerIndex === index)) && <div>
         Bid: {currentBid}
@@ -223,7 +223,7 @@ export function GameComponent() {
     </CardContent>
   </Card>}
   {game && <Grid container spacing={2} style={{ marginBottom: '1em' }}>
-      {idArray.map(i => <Grid item xs={12} sm={6}><PublicPlayerView key={i} index={i} game={game}/></Grid>)}
+      {idArray.map(i => <Grid item key={i} xs={12} sm={6}><PublicPlayerView index={i} game={game}/></Grid>)}
   </Grid>}
   {game && 'playerId' in game && <GameControlsComponent game={game}/>}
   </>)
