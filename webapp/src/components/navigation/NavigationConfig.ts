@@ -1,12 +1,6 @@
-import { Queue, Home, List } from "@mui/icons-material";
+import { Queue, List } from "@mui/icons-material";
 
 export const navigationConfig = [
-  {
-    label: "Home",
-    route: "/",
-    icon: Home,
-    mobileHidden: false
-  },
   {
     label: "Queues",
     route: "/queue",

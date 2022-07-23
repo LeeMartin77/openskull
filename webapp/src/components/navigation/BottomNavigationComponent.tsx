@@ -20,7 +20,9 @@ export function BottomNavigationComponent({ setRoomDialogOpen }: {setRoomDialogO
   return (<><BottomNavigation showLabels className="bottom-navigation-menu">
       {navigationConfig.filter(x => !x.mobileHidden).map((x, i) => 
       <BottomNavigationAction key={i} label={x.label} component={Link} to={x.route} icon={<x.icon />} />)}
-      <BottomNavigationAction icon={<MenuIcon />} onClick={handleClick} label="More" />
+      <BottomNavigationAction key={"room-nav"} icon={<WeekendIcon />} onClick={() => setRoomDialogOpen(true)} label={"Rooms"} />
+      {navigationConfig.filter(x => x.mobileHidden).length > 0 && <BottomNavigationAction icon={<MenuIcon />} onClick={handleClick} label="More" />}
+
     </BottomNavigation>
     <Menu
         id="more-menu"
@@ -38,12 +40,6 @@ export function BottomNavigationComponent({ setRoomDialogOpen }: {setRoomDialogO
       </MenuItem>
       }
         )}
-        <MenuItem key={"room-nav"} onClick={() => setRoomDialogOpen(true)}>
-              <ListItemIcon>
-                <WeekendIcon/>
-              </ListItemIcon>
-              <ListItemText primary={"Room"} />
-        </MenuItem>
       </Menu>
     </>)
 }
