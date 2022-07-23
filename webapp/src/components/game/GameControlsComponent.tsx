@@ -150,5 +150,10 @@ export function GameControlsComponent({ game }: { game: PlayerGame }) {
       {game.currentRoundPhase !== RoundPhase.PlayFirstCards && <div><GamePlaceBidControlComponent game={game} clicked={clicked} setClicked={setClicked}/></div>}
     </>
   }
-  return <GameFlipCardControlComponent game={game} clicked={clicked} setClicked={setClicked}/>;
+  if (game.activePlayerIndex === game.playerIndex) {
+    return <GameFlipCardControlComponent game={game} clicked={clicked} setClicked={setClicked}/>;
+  }
+  const cardsRevealed = game.roundPlayerCardsRevealed[game.roundNumber - 1].reduce((countSoFar, playerCards)=> countSoFar + playerCards.length, 0)
+  const bid = Math.max(...game.currentBids)
+  return <>Waiting for {game.playerNicknames[game.activePlayerIndex]} to flip {bid - cardsRevealed} more card(s)...</>
 }
