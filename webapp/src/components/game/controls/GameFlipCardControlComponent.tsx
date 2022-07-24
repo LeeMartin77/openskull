@@ -1,12 +1,6 @@
-import { Button, IconButton, TextField } from "@mui/material";
-import { useState } from "react";
+import { Button } from "@mui/material";
 import { API_ROOT_URL, USER_ID, USER_ID_HEADER, USER_SECRET, USER_SECRET_HEADER } from "../../../config";
-import { CardState, CardType, PlayerGame, RoundPhase, TurnAction } from "../../../models/Game";
-
-import FlowerIcon from '@mui/icons-material/LocalFlorist';
-import SkullIcon from '@mui/icons-material/Balcony';
-import LostCardIcon from '@mui/icons-material/DoNotDisturbOn';
-
+import { PlayerGame, TurnAction } from "../../../models/Game";
 
 interface IControlProps { 
   game: PlayerGame, 
