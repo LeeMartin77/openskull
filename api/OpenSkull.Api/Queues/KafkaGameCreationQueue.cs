@@ -176,7 +176,9 @@ public class KafkaGameCreationQueue : IGameCreationQueue
       Console.WriteLine("GameManager Connecting to KafKa");
       await producer.ProduceAsync(_GAME_CREATION_TOPIC, new Message<Null, string> { Value=JsonSerializer.Serialize(new GameCreationMessage{ })});
     }
-    using (var consumer = new ConsumerBuilder<Ignore, string>(_consumerConfig).Build())
+    var gameManagerConsumer = _consumerConfig;
+    gameManagerConsumer.GroupId = "GAME_MANAGER";
+    using (var consumer = new ConsumerBuilder<Ignore, string>(gameManagerConsumer).Build())
     {
       consumer.Subscribe(_GAME_CREATION_TOPIC);
       while (true) {
