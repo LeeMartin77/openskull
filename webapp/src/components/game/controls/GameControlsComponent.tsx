@@ -13,7 +13,7 @@ export function GameControlsComponent({ game }: { game: PlayerGame }) {
   // change enough to trigger this
   useEffect(() => {
     setStateGame(prev => {
-      if (prev.lastUpdated != game.lastUpdated) {
+      if (prev.lastUpdated !== game.lastUpdated) {
         setClicked(false)
       }
       return game;
