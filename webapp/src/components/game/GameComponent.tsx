@@ -49,15 +49,13 @@ function PublicPlayerView({ index, game }: { index: number, game: PublicGame | P
   return <Card variant={game.activePlayerIndex === index ? "outlined" : undefined}>
     <CardHeader title={isMe ? '(You) ' + game.playerNicknames[index] : game.playerNicknames[index]} subheader={wins + " point(s)"}></CardHeader>
     <CardContent>
-      <div>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
         {playerRevealedCards}
-        {Array.from(Array(unrevealedCardsPlayed).keys()).map(i => <CircleIcon key={"hidden-"+i}/>)}
-        {Array.from(Array(cardsUnplayed).keys()).map(i => <CircleIcon key={"unplayed-"+i} color="disabled" />)}
-        {Array.from(Array(cardsLost).keys()).map(i => <LostCardIcon key={"lost-"+i} color="disabled" />)}
+        {Array.from(Array(unrevealedCardsPlayed).keys()).map(i => <CircleIcon style={{width: "1.5em", height: "1.5em"}} key={"hidden-"+i}/>)}
+        {Array.from(Array(cardsUnplayed).keys()).map(i => <CircleIcon style={{width: "1.5em", height: "1.5em"}} key={"unplayed-"+i} color="disabled" />)}
+        {Array.from(Array(cardsLost).keys()).map(i => <LostCardIcon style={{width: "1.5em", height: "1.5em"}} key={"lost-"+i} color="disabled" />)}
+        {(game.currentRoundPhase === RoundPhase.Bidding || (game.currentRoundPhase === RoundPhase.Flipping && game.activePlayerIndex === index)) && <span style={{ marginLeft: '1em' }}>Bid: {currentBid}</span>}
       </div>
-      {(game.currentRoundPhase === RoundPhase.Bidding || (game.currentRoundPhase === RoundPhase.Flipping && game.activePlayerIndex === index)) && <div>
-        Bid: {currentBid}
-      </div>}
     </CardContent>
   </Card>
 }
