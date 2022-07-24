@@ -121,8 +121,13 @@ public class GamePostgresStorage : IGameStorage {
     try {
       using (var connection = new NpgsqlConnection(_connectionString))
       {
-        var result = await connection.ExecuteAsync("UPDATE games SET game = @game::json, version_tag = gen_random_uuid()::text, last_updated = @last_updated WHERE id = @id AND version_tag = @version_tag", new PostgresGameStorage(gameStorage));
-        var reretrieve = await connection.QueryFirstAsync<PostgresGameStorage>("SELECT id, version_tag, game FROM games WHERE id = @id", new PostgresGameStorage(gameStorage with { LastUpdated = DateTime.UtcNow }));
+        var result = await connection.ExecuteAsync(@"UPDATE games 
+          SET game = @game::json,
+            version_tag = gen_random_uuid()::text,
+            last_updated = @last_updated 
+          WHERE id = @id AND version_tag = @version_tag",
+          new PostgresGameStorage(gameStorage with { LastUpdated = DateTime.UtcNow }));
+        var reretrieve = await connection.QueryFirstAsync<PostgresGameStorage>("SELECT id, version_tag, game FROM games WHERE id = @id", new PostgresGameStorage(gameStorage));
         if (reretrieve is null) {
           return StorageError.NotFound;
         }
