@@ -23,6 +23,7 @@ public interface IGameView {
   CardType[][][] RoundPlayerCardsRevealed { get; set; }
   int[] RoundWinners { get; set; }
   bool GameComplete { get; set; }
+  DateTime LastUpdated { get; set; }
 }
 
 public record class PublicGame : IGameView {
@@ -39,8 +40,9 @@ public record class PublicGame : IGameView {
   public CardType[][][] RoundPlayerCardsRevealed { get; set; }
   public int[] RoundWinners { get; set; }
   public bool GameComplete { get; set; }
+  public DateTime LastUpdated { get; set; }
 
-  public PublicGame(Guid gameId, Game game, Player[]? players) {
+  public PublicGame(Guid gameId, Game game, Player[]? players, DateTime lastUpdated) {
     Id = gameId;
     ActivePlayerIndex = game.ActivePlayerIndex;
     PlayerCount = game.PlayerIds.Length;
@@ -66,7 +68,7 @@ public record class PublicGame : IGameView {
     ).ToArray();
     RoundWinners = game.RoundWinPlayerIndexes.ToArray();
     GameComplete = game.GameComplete;
-    // Test?
+    LastUpdated = lastUpdated;
     if (CurrentCountPlayerCardsAvailable.Count(x => x > 0) > RoundCountPlayerCardsPlayed.Last().Count(x => x > 0)) 
     {
       CurrentRoundPhase = RoundPhase.PlayFirstCards;

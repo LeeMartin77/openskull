@@ -10,7 +10,8 @@ public class GameMemoryStorage : IGameStorage {
     var newGameStorage = new GameStorage {
       Id = Guid.NewGuid(),
       VersionTag = Guid.NewGuid().ToString(),
-      Game = game
+      Game = game,
+      LastUpdated = DateTime.UtcNow
     };
     _gameStorage.Add(newGameStorage.Id, newGameStorage);
     return Task.FromResult<Result<GameStorage, StorageError>>(newGameStorage);
@@ -28,7 +29,11 @@ public class GameMemoryStorage : IGameStorage {
 
   public Task<Result<GameStorage[], StorageError>> SearchGames(GameSearchParameters parameters) 
   {
-    var playerGames = _gameStorage.Values.Where(x => x.Game.PlayerIds.Contains(parameters.PlayerId));
+    var playerGames = _gameStorage.Values
+      .Where(x => x.Game.PlayerIds.Contains(parameters.PlayerId))
+      .OrderByDescending(x => x.LastUpdated)
+      .Skip(parameters.PageIndex * parameters.PageLength)
+      .Take(parameters.PageLength);
     return Task.FromResult<Result<GameStorage[], StorageError>>(playerGames.ToArray());
   }
 
@@ -43,7 +48,8 @@ public class GameMemoryStorage : IGameStorage {
     }
     _gameStorage[gameStorage.Id] = game with {
       VersionTag = Guid.NewGuid().ToString(),
-      Game = gameStorage.Game
+      Game = gameStorage.Game,
+      LastUpdated = DateTime.UtcNow
     };
     return Task.FromResult<Result<GameStorage, StorageError>>(_gameStorage[gameStorage.Id]);
   }

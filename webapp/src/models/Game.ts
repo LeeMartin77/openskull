@@ -44,6 +44,7 @@ export interface PublicGame
   roundPlayerCardsRevealed: CardType[][][];
   roundWinners: number[];
   gameComplete: boolean;
+  lastUpdated: Date;
 }
 
 export interface PlayerGame extends PublicGame

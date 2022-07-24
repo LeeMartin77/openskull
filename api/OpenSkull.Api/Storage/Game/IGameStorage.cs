@@ -13,10 +13,13 @@ public record struct GameStorage {
   public Guid Id;
   public string VersionTag;
   public Game Game;
+  public DateTime LastUpdated;
 }
 
 public record struct GameSearchParameters {
   public Guid PlayerId;
+  public int PageIndex;
+  public int PageLength;
 }
 
 public static class StorageErrorMessages {

@@ -85,23 +85,31 @@ public class GameController : ControllerBase
 
     [Route("games")]
     [HttpGet]
-    public async Task<ActionResult<IGameView[]>> SearchGames([FromQuery] bool? gameComplete = null)
+    public async Task<ActionResult<IGameView[]>> SearchGames(
+        [FromQuery] bool? gameComplete = null,
+        [FromQuery] int pageIndex = 0,
+        [FromQuery] int pageLength = 25
+        )
     {
         Guid? seekPlayerId = VerifyPlayerMiddleware.GetValidatedPlayerIdFromContext(HttpContext);
         if (seekPlayerId == null) {
             return BadRequest("Must have UserId Header");
         }
         Guid playerId = (Guid)seekPlayerId;
-        var searchResult = await _gameStorage.SearchGames(new GameSearchParameters { PlayerId = playerId });
+        var searchResult = await _gameStorage.SearchGames(new GameSearchParameters { 
+            PlayerId = playerId,
+            PageIndex = pageIndex,
+            PageLength = pageLength
+            });
         if (searchResult.IsFailure) {
             // TODO: Right now, this shouldn't ever actually fail...
             throw new NotImplementedException();
         }
         return searchResult.Value.Select(x => {
             if (x.Game.PlayerIds.Contains(playerId)) {
-                return new PlayerGame(x.Id, playerId, x.Game, new Player[0]);
+                return new PlayerGame(x.Id, playerId, x.Game, new Player[0], x.LastUpdated);
             }
-            return new PublicGame(x.Id, x.Game, new Player[0]);
+            return new PublicGame(x.Id, x.Game, new Player[0], x.LastUpdated);
         }).ToArray();
     }
     
@@ -119,9 +127,9 @@ public class GameController : ControllerBase
         if (playerId != null &&
             gameResult.Value.Game.PlayerIds.Contains((Guid)playerId)
             ) {
-            return new PlayerGame(gameId, (Guid)playerId, gameResult.Value.Game, players);
+            return new PlayerGame(gameId, (Guid)playerId, gameResult.Value.Game, players, gameResult.Value.LastUpdated);
         }
-        return new PublicGame(gameId, gameResult.Value.Game, players);
+        return new PublicGame(gameId, gameResult.Value.Game, players, gameResult.Value.LastUpdated);
     }
 
     [Route("games/{gameId}/turn")]
@@ -205,6 +213,6 @@ public class GameController : ControllerBase
         await _webSocketManager.BroadcastToConnectedWebsockets(WebSocketType.Game, gameId, new OpenskullMessage{ Id = gameId, Activity = "Turn" });
         Player[] players = new Player[0];
         (await _playerStorage.GetPlayersByIds(gameResult.Value.Game.PlayerIds)).Map(prs => players = prs);
-        return new PlayerGame(storageResult.Value.Id, playerId, storageResult.Value.Game, players);
+        return new PlayerGame(storageResult.Value.Id, playerId, storageResult.Value.Game, players, storageResult.Value.LastUpdated);
     }
 }

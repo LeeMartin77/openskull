@@ -37,9 +37,9 @@ export function GameListComponent() {
   {!loading && <CardContent>
     {error && <Alert severity="error">Error</Alert>}
     {games && games.length > 0 && <List>
-      {games.map(game => 
+      {games.sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()).map(game => 
         <ListItemButton key={game.id} component={Link} to={`/games/${game.id}`}>
-          <ListItemText>{game.playerCount} Players: {game.gameComplete ? "Complete": "Ongoing"}</ListItemText>
+          <ListItemText>{game.playerCount} Players: {game.gameComplete ? "Complete": "Ongoing"} - {new Date(game.lastUpdated).toLocaleDateString()} {new Date(game.lastUpdated).toLocaleTimeString()}</ListItemText>
         </ListItemButton>)}
     </List>}
     {(!games || games.length === 0) && <Alert severity="warning">No games to show</Alert>}

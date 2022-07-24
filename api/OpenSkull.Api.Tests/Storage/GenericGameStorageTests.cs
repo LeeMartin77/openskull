@@ -62,7 +62,9 @@ public class GenericGameStorageTests {
     });
 
     var searchResults = await storage.SearchGames(new GameSearchParameters {
-      PlayerId = testPlayerGuid
+      PlayerId = testPlayerGuid,
+      PageIndex = 0,
+      PageLength = 25
     });
 
     // Assert
