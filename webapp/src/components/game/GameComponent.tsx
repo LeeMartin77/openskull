@@ -9,7 +9,7 @@ import FlowerIcon from '@mui/icons-material/LocalFlorist';
 import LostCardIcon from '@mui/icons-material/DoNotDisturbOn';
 import CircleIcon from '@mui/icons-material/Circle';
 import SkullIcon from '@mui/icons-material/Balcony';
-import { GameControlsComponent } from "./GameControlsComponent";
+import { GameControlsComponent } from "./controls/GameControlsComponent";
 
 const SKIP_VALUE = -1;
 
