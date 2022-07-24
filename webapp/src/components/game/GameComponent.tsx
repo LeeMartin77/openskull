@@ -62,15 +62,18 @@ function PublicPlayerView({ index, game }: { index: number, game: PublicGame | P
   </Card>
 }
 
-interface IRoundCompleteProps { roundNumber: number, flipper: string, roundWon: boolean, open: boolean }
+interface IRoundCompleteProps { prevGame: PublicGame | PlayerGame, game: PublicGame | PlayerGame, open: boolean }
 
 function RoundCompleteDialogComponent(
-  { roundNumber, flipper, roundWon, open, setRoundChangeDialog }: IRoundCompleteProps & { setRoundChangeDialog : (i: IRoundCompleteProps) => void}
+  { prevGame, game, open, setRoundChangeDialog }: IRoundCompleteProps & { setRoundChangeDialog : (i: IRoundCompleteProps) => void}
   ) {
-  //return <></>
+
+  const roundNumber = prevGame.roundNumber
+  const flipper = prevGame.playerNicknames[prevGame.activePlayerIndex]
+  const roundWon = game.roundWinners.filter(x => x === prevGame.activePlayerIndex).length > prevGame.roundWinners.filter(x => x === prevGame.activePlayerIndex).length
   return <Dialog
   open={open}
-  onClose={() => setRoundChangeDialog({ roundNumber, flipper, roundWon, open: false })}
+  onClose={() => setRoundChangeDialog({ prevGame, game, open: false })}
   aria-labelledby="alert-dialog-title"
   aria-describedby="alert-dialog-description"
 >
@@ -83,7 +86,34 @@ function RoundCompleteDialogComponent(
     </DialogContentText>
   </DialogContent>
   <DialogActions style={{display: "flex"}}>
-    <Button onClick={() => setRoundChangeDialog({ roundNumber, flipper, roundWon, open: false })}>Dismiss</Button>
+    <Button onClick={() => setRoundChangeDialog({ prevGame, game, open: false })}>Dismiss</Button>
+  </DialogActions>
+</Dialog>
+}
+
+interface IGameCompleteDialog { game: PublicGame | PlayerGame, open: boolean }
+
+function GameCompleteDialogComponent(
+  { game, open, setGameCompleteDialog }: IGameCompleteDialog & { setGameCompleteDialog : (i: IGameCompleteDialog) => void}
+  ) {
+  const numberOfRounds = game.roundCountPlayerCardsPlayed.length
+  const winner = game.playerNicknames[game.activePlayerIndex]
+  return <Dialog
+  open={open}
+  onClose={() => setGameCompleteDialog({ game, open: false })}
+  aria-labelledby="alert-dialog-title"
+  aria-describedby="alert-dialog-description"
+>
+  <DialogTitle>
+    {"Game Complete!"}
+  </DialogTitle>
+  <DialogContent>
+    <DialogContentText>
+      {winner} won after {numberOfRounds} rounds
+    </DialogContentText>
+  </DialogContent>
+  <DialogActions style={{display: "flex"}}>
+    <Button onClick={() => setGameCompleteDialog({ game, open: false })}>Dismiss</Button>
   </DialogActions>
 </Dialog>
 }
@@ -93,8 +123,9 @@ function GameUiComponent({ gameId }: { gameId: string }) {
   const [error, setError] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [game, setGame] = useState<PlayerGame | PublicGame | undefined>(undefined);
-  const [_, setPrevGame] = useState<PlayerGame | PublicGame | undefined>(undefined);
+  const setPrevGame = useState<PlayerGame | PublicGame | undefined>(undefined)[1];
   const [roundChangeDialog, setRoundChangeDialog] = useState<IRoundCompleteProps>()
+  const [gameCompleteDialog, setGameCompleteDialog] = useState<IGameCompleteDialog>()
 
   useEffect(() => {
     const newConnection = new HubConnectionBuilder()
@@ -106,12 +137,17 @@ function GameUiComponent({ gameId }: { gameId: string }) {
 
   useEffect(() => {
     setPrevGame(prev => {
-      if (game && prev && prev.roundNumber !== game.roundNumber) {
+      if (game && prev && !game.gameComplete && prev.roundNumber !== game.roundNumber) {
         setRoundChangeDialog({ 
-          roundNumber: prev.roundNumber,
-          flipper: prev.playerNicknames[prev.activePlayerIndex],
-          roundWon: game.roundWinners.filter(x => x === prev.activePlayerIndex).length > prev.roundWinners.filter(x => x === prev.activePlayerIndex).length,
+          prevGame: prev,
+          game: game,
           open: true
+        })
+      }
+      if (game && game.gameComplete) {
+        setGameCompleteDialog({
+          open: true,
+          game
         })
       }
       return game;
@@ -155,6 +191,12 @@ function GameUiComponent({ gameId }: { gameId: string }) {
     </CardContent>
   </Card>}
   {roundChangeDialog && <RoundCompleteDialogComponent {...roundChangeDialog} setRoundChangeDialog={setRoundChangeDialog} />}
+  {gameCompleteDialog && <GameCompleteDialogComponent {...gameCompleteDialog} setGameCompleteDialog={setGameCompleteDialog} />}
+  {game && game.gameComplete && <Card>
+    <CardContent>
+      <Alert severity="info">{game.playerNicknames[game.activePlayerIndex]} wins!</Alert>
+    </CardContent>
+  </Card>}
   {game && <Grid container spacing={2} style={{ marginBottom: '1em' }}>
       {idArray.map(i => <Grid item key={i} xs={12} sm={6}><PublicPlayerView index={i} game={game}/></Grid>)}
   </Grid>}
