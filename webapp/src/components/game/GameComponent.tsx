@@ -1,5 +1,5 @@
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
-import { Alert, Card, CardContent, CardHeader, CircularProgress, Grid } from "@mui/material";
+import { Alert, Button, Card, CardContent, CardHeader, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { API_ROOT_URL, USER_ID, USER_ID_HEADER, USER_SECRET, USER_SECRET_HEADER } from "../../config";
@@ -14,19 +14,25 @@ import { GameControlsComponent } from "./GameControlsComponent";
 const SKIP_VALUE = -1;
 
 const updateGame = (
-  gameId: string, 
+  gameId: string,
   fnSetGame: React.Dispatch<React.SetStateAction<PlayerGame | PublicGame | undefined>>,
-  fnSetError: React.Dispatch<React.SetStateAction<boolean>>, 
+  fnSetError: React.Dispatch<React.SetStateAction<string | undefined>>, 
   fnSetLoading: React.Dispatch<React.SetStateAction<boolean>>
   ) => {
   fnSetLoading(true);
   return fetch(`${API_ROOT_URL}/games/${gameId}`, 
   { headers: { "Content-Type": "application/json", [USER_ID_HEADER]: USER_ID, [USER_SECRET_HEADER]: USER_SECRET }})
   .then(async res => {
-    const item = await res.json();
-    fnSetGame(item);
+    if (res.status === 200) {
+      const item = await res.json();
+      fnSetError(undefined)
+      fnSetGame(item);
+    }
+    if (res.status === 404) {
+      fnSetError("Game not found")
+    }
   })
-  .catch(() => fnSetError(true))
+  .catch(() => fnSetError("Error fetching data"))
   .finally(() => fnSetLoading(false))
 }
 
@@ -56,13 +62,39 @@ function PublicPlayerView({ index, game }: { index: number, game: PublicGame | P
   </Card>
 }
 
+interface IRoundCompleteProps { roundNumber: number, flipper: string, roundWon: boolean, open: boolean }
 
-export function GameComponent() {
-  const { gameId } = useParams<{ gameId: string }>();
+function RoundCompleteDialogComponent(
+  { roundNumber, flipper, roundWon, open, setRoundChangeDialog }: IRoundCompleteProps & { setRoundChangeDialog : (i: IRoundCompleteProps) => void}
+  ) {
+  //return <></>
+  return <Dialog
+  open={open}
+  onClose={() => setRoundChangeDialog({ roundNumber, flipper, roundWon, open: false })}
+  aria-labelledby="alert-dialog-title"
+  aria-describedby="alert-dialog-description"
+>
+  <DialogTitle>
+    {"Round "+roundNumber+" Finished!"}
+  </DialogTitle>
+  <DialogContent>
+    <DialogContentText>
+      Round {roundNumber} finished when {flipper} stopped revealing cards, {roundWon ? "winning" : "losing"} the round. 
+    </DialogContentText>
+  </DialogContent>
+  <DialogActions style={{display: "flex"}}>
+    <Button onClick={() => setRoundChangeDialog({ roundNumber, flipper, roundWon, open: false })}>Dismiss</Button>
+  </DialogActions>
+</Dialog>
+}
+
+function GameUiComponent({ gameId }: { gameId: string }) {
   const [connection, setConnection] = useState<HubConnection | undefined>(undefined);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [game, setGame] = useState<PlayerGame | PublicGame | undefined>(undefined);
+  const [_, setPrevGame] = useState<PlayerGame | PublicGame | undefined>(undefined);
+  const [roundChangeDialog, setRoundChangeDialog] = useState<IRoundCompleteProps>()
 
   useEffect(() => {
     const newConnection = new HubConnectionBuilder()
@@ -71,6 +103,20 @@ export function GameComponent() {
 
     setConnection(newConnection)
   }, [setConnection])
+
+  useEffect(() => {
+    setPrevGame(prev => {
+      if (game && prev && prev.roundNumber !== game.roundNumber) {
+        setRoundChangeDialog({ 
+          roundNumber: prev.roundNumber,
+          flipper: prev.playerNicknames[prev.activePlayerIndex],
+          roundWon: game.roundWinners.filter(x => x === prev.activePlayerIndex).length > prev.roundWinners.filter(x => x === prev.activePlayerIndex).length,
+          open: true
+        })
+      }
+      return game;
+    })
+  }, [game, setPrevGame, setRoundChangeDialog])
 
   useEffect(() => {
     if (gameId) {
@@ -105,12 +151,22 @@ export function GameComponent() {
   {!game && <Card>
     <CardContent>
       {loading && <CircularProgress />}
-      {error && <Alert severity="error">Error loading</Alert>}
+      {error && <Alert severity="error">{error}</Alert>}
     </CardContent>
   </Card>}
+  {roundChangeDialog && <RoundCompleteDialogComponent {...roundChangeDialog} setRoundChangeDialog={setRoundChangeDialog} />}
   {game && <Grid container spacing={2} style={{ marginBottom: '1em' }}>
       {idArray.map(i => <Grid item key={i} xs={12} sm={6}><PublicPlayerView index={i} game={game}/></Grid>)}
   </Grid>}
   {game && 'playerId' in game && !game.gameComplete && <GameControlsComponent game={game}/>}
   </>)
+}
+
+export function GameComponent() {
+  const { gameId } = useParams<{ gameId: string }>();
+  return gameId ? <GameUiComponent gameId={gameId} /> : <Card>
+      <CardContent>
+        <Alert severity="error">Missing Game Id</Alert>
+      </CardContent>
+    </Card>
 }

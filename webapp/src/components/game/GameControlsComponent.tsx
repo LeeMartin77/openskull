@@ -86,7 +86,7 @@ function GamePlaceBidControlComponent({ game, clicked, setClicked }: IControlPro
       id="number-bid"
       label="Bid"
       type="number"
-      value={bid}
+      value={bid > minBid ? bid : minBid}
       onChange={(e) => setBid(parseInt(e.target.value))}
       InputProps={{ 
         inputProps: {
