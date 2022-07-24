@@ -28,8 +28,7 @@ export function GamePlaceBidControlComponent({ game, clicked, setClicked }: ICon
           bid
         })
       })
-      // TODO: There is a brief flash of interactivity here...
-      .finally(() => setClicked(false))
+      .catch(() => setClicked(false))
   }
 
   const maxBid = game.roundCountPlayerCardsPlayed[roundIndex].reduce((c, cc) => c + cc, 0);

@@ -22,8 +22,7 @@ export function GameFlipCardControlComponent({ game, clicked, setClicked }: ICon
           targetPlayerIndex
         })
       })
-      // TODO: There is a brief flash of interactivity here...
-      .finally(() => setClicked(false))
+      .catch(() => setClicked(false))
   }
 
   if (game.roundPlayerCardsRevealed[roundIndex][game.activePlayerIndex].length !== game.roundCountPlayerCardsPlayed[roundIndex][game.activePlayerIndex]) {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PlayerGame, RoundPhase } from "../../../models/Game";
 import { GameFlipCardControlComponent } from "./GameFlipCardControlComponent";
 import { GamePlaceBidControlComponent } from "./GamePlaceBidControlComponent";
@@ -7,6 +7,18 @@ import { GamePlayCardControlComponent } from "./GamePlayCardControlComponent";
 export function GameControlsComponent({ game }: { game: PlayerGame }) {
   
   const [clicked, setClicked] = useState(false);
+  const setStateGame = useState(game)[1];
+  
+  // Bit of a hack. Last updated isn't perfect but should
+  // change enough to trigger this
+  useEffect(() => {
+    setStateGame(prev => {
+      if (prev.lastUpdated != game.lastUpdated) {
+        setClicked(false)
+      }
+      return game;
+    })
+  }, [game, setStateGame, setClicked])
 
   if (game.currentRoundPhase !== RoundPhase.Flipping) {
     return <>

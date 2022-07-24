@@ -26,8 +26,7 @@ export function GamePlayCardControlComponent({ game, clicked, setClicked }: ICon
           cardId
         })
       })
-      // TODO: There is a brief flash of interactivity here...
-      .finally(() => setClicked(false))
+      .catch(() => setClicked(false))
   }
 
   return <>{game.playerCards.map(card => {
