@@ -1,5 +1,5 @@
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
-import { Alert, Button, Card, CardContent, CardHeader, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid } from "@mui/material";
+import { Alert, Card, CardContent, CardHeader, CircularProgress, Grid } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { API_ROOT_URL, USER_ID, USER_ID_HEADER, USER_SECRET, USER_SECRET_HEADER } from "../../config";
@@ -10,6 +10,8 @@ import LostCardIcon from '@mui/icons-material/DoNotDisturbOn';
 import CircleIcon from '@mui/icons-material/Circle';
 import SkullIcon from '@mui/icons-material/Balcony';
 import { GameControlsComponent } from "./controls/GameControlsComponent";
+import { IRoundCompleteProps, RoundCompleteDialogComponent } from "./dialogs/RoundCompleteDialogComponent";
+import { GameCompleteDialogComponent, IGameCompleteDialogProps } from "./dialogs/GameCompleteDialogComponent";
 
 const SKIP_VALUE = -1;
 
@@ -36,11 +38,30 @@ const updateGame = (
   .finally(() => fnSetLoading(false))
 }
 
+interface ICardDisplayIcons {
+  playerRevealedCards: CardType[],
+  unrevealedCardsPlayed: number,
+  cardsUnplayed: number,
+  cardsLost: number
+}
+
+export function CardDisplayIconsComponent({ playerRevealedCards, unrevealedCardsPlayed, cardsUnplayed, cardsLost }: ICardDisplayIcons) {
+  const iconStyle = {width: "1.5em", height: "1.5em"};
+  const playerRevealedCardIcons = playerRevealedCards.map((card, i) => card === CardType.Flower ? <FlowerIcon style={iconStyle} key={"revealed-"+i} /> : <SkullIcon style={iconStyle} key={"revealed-"+i} />);
+
+  return <>
+    {playerRevealedCardIcons}
+    {Array.from(Array(unrevealedCardsPlayed).keys()).map(i => <CircleIcon style={iconStyle} key={"hidden-"+i}/>)}
+    {Array.from(Array(cardsUnplayed).keys()).map(i => <CircleIcon style={iconStyle}  key={"unplayed-"+i} color="disabled" />)}
+    {Array.from(Array(cardsLost).keys()).map(i => <LostCardIcon style={iconStyle} key={"lost-"+i} color="disabled" />)}
+  </>
+}
+
 function PublicPlayerView({ index, game }: { index: number, game: PublicGame | PlayerGame }) {
   const isMe = 'playerIndex' in game && index === game.playerIndex
   const roundIndex = game.roundNumber - 1;
   const wins = game.roundWinners.filter(x => x === index).length;
-  const playerRevealedCards = game.roundPlayerCardsRevealed[roundIndex][index].map((card, i) => card === CardType.Flower ? <FlowerIcon key={"revealed-"+i} /> : <SkullIcon key={"revealed-"+i} />);
+  const playerRevealedCards = game.roundPlayerCardsRevealed[roundIndex][index];
   const playedRevealedCardsCount = game.roundPlayerCardsRevealed[roundIndex][index].length;
   const unrevealedCardsPlayed = game.roundCountPlayerCardsPlayed[roundIndex][index] - playedRevealedCardsCount;
   const cardsUnplayed = game.currentCountPlayerCardsAvailable[index] - game.roundCountPlayerCardsPlayed[roundIndex][index];
@@ -50,70 +71,11 @@ function PublicPlayerView({ index, game }: { index: number, game: PublicGame | P
     <CardHeader title={isMe ? '(You) ' + game.playerNicknames[index] : game.playerNicknames[index]} subheader={wins + " point(s)"}></CardHeader>
     <CardContent>
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        {playerRevealedCards}
-        {Array.from(Array(unrevealedCardsPlayed).keys()).map(i => <CircleIcon style={{width: "1.5em", height: "1.5em"}} key={"hidden-"+i}/>)}
-        {Array.from(Array(cardsUnplayed).keys()).map(i => <CircleIcon style={{width: "1.5em", height: "1.5em"}} key={"unplayed-"+i} color="disabled" />)}
-        {Array.from(Array(cardsLost).keys()).map(i => <LostCardIcon style={{width: "1.5em", height: "1.5em"}} key={"lost-"+i} color="disabled" />)}
+        <CardDisplayIconsComponent {...{playerRevealedCards, unrevealedCardsPlayed, cardsUnplayed, cardsLost}} />
         {(game.currentRoundPhase === RoundPhase.Bidding || (game.currentRoundPhase === RoundPhase.Flipping && game.activePlayerIndex === index)) && <span style={{ marginLeft: '1em' }}>Bid: {currentBid}</span>}
       </div>
     </CardContent>
   </Card>
-}
-
-interface IRoundCompleteProps { prevGame: PublicGame | PlayerGame, game: PublicGame | PlayerGame, open: boolean }
-
-function RoundCompleteDialogComponent(
-  { prevGame, game, open, setRoundChangeDialog }: IRoundCompleteProps & { setRoundChangeDialog : (i: IRoundCompleteProps) => void}
-  ) {
-
-  const roundNumber = prevGame.roundNumber
-  const flipper = prevGame.playerNicknames[prevGame.activePlayerIndex]
-  const roundWon = game.roundWinners.filter(x => x === prevGame.activePlayerIndex).length > prevGame.roundWinners.filter(x => x === prevGame.activePlayerIndex).length
-  return <Dialog
-  open={open}
-  onClose={() => setRoundChangeDialog({ prevGame, game, open: false })}
-  aria-labelledby="alert-dialog-title"
-  aria-describedby="alert-dialog-description"
->
-  <DialogTitle>
-    {"Round "+roundNumber+" Finished!"}
-  </DialogTitle>
-  <DialogContent>
-    <DialogContentText>
-      Round {roundNumber} finished when {flipper} stopped revealing cards, {roundWon ? "winning" : "losing"} the round. 
-    </DialogContentText>
-  </DialogContent>
-  <DialogActions style={{display: "flex"}}>
-    <Button onClick={() => setRoundChangeDialog({ prevGame, game, open: false })}>Dismiss</Button>
-  </DialogActions>
-</Dialog>
-}
-
-interface IGameCompleteDialog { game: PublicGame | PlayerGame, open: boolean }
-
-function GameCompleteDialogComponent(
-  { game, open, setGameCompleteDialog }: IGameCompleteDialog & { setGameCompleteDialog : (i: IGameCompleteDialog) => void}
-  ) {
-  const numberOfRounds = game.roundCountPlayerCardsPlayed.length
-  const winner = game.playerNicknames[game.activePlayerIndex]
-  return <Dialog
-  open={open}
-  onClose={() => setGameCompleteDialog({ game, open: false })}
-  aria-labelledby="alert-dialog-title"
-  aria-describedby="alert-dialog-description"
->
-  <DialogTitle>
-    {"Game Complete!"}
-  </DialogTitle>
-  <DialogContent>
-    <DialogContentText>
-      {winner} won after {numberOfRounds} rounds
-    </DialogContentText>
-  </DialogContent>
-  <DialogActions style={{display: "flex"}}>
-    <Button onClick={() => setGameCompleteDialog({ game, open: false })}>Dismiss</Button>
-  </DialogActions>
-</Dialog>
 }
 
 function GameUiComponent({ gameId }: { gameId: string }) {
@@ -123,7 +85,7 @@ function GameUiComponent({ gameId }: { gameId: string }) {
   const [game, setGame] = useState<PlayerGame | PublicGame | undefined>(undefined);
   const setPrevGame = useState<PlayerGame | PublicGame | undefined>(undefined)[1];
   const [roundChangeDialog, setRoundChangeDialog] = useState<IRoundCompleteProps>()
-  const [gameCompleteDialog, setGameCompleteDialog] = useState<IGameCompleteDialog>()
+  const [gameCompleteDialog, setGameCompleteDialog] = useState<IGameCompleteDialogProps>()
 
   useEffect(() => {
     const newConnection = new HubConnectionBuilder()
