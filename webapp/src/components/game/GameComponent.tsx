@@ -9,8 +9,8 @@ import { GameControlsComponent } from "./controls/GameControlsComponent";
 import { IRoundCompleteProps, RoundCompleteDialogComponent } from "./dialogs/RoundCompleteDialogComponent";
 import { GameCompleteDialogComponent, IGameCompleteDialogProps } from "./dialogs/GameCompleteDialogComponent";
 import { CardDisplayIconsComponent } from "./fragments/CardDisplayIconsComponent";
-
-const SKIP_VALUE = -1;
+import { GameTutorialDialogComponent } from "./dialogs/GameTutorialDialogComponent";
+import { PLAYER_ICONS, SKIP_VALUE } from "./config";
 
 const updateGame = (
   gameId: string,
@@ -46,7 +46,7 @@ function PublicPlayerView({ index, game }: { index: number, game: PublicGame | P
   const cardsLost = game.playerCardStartingCount - game.currentCountPlayerCardsAvailable[index];
   const currentBid = game.currentBids[index] === SKIP_VALUE ? "Withdrawn" : game.currentBids[index] === 0 ? "No Bid" : game.currentBids[index]
   return <Card variant={game.activePlayerIndex === index ? "outlined" : undefined}>
-    <CardHeader title={isMe ? '(You) ' + game.playerNicknames[index] : game.playerNicknames[index]} subheader={wins + " point(s)"}></CardHeader>
+    <CardHeader avatar={PLAYER_ICONS[index]} title={isMe ? '(You) ' + game.playerNicknames[index] : game.playerNicknames[index]} subheader={wins + " point(s)"}></CardHeader>
     <CardContent>
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <CardDisplayIconsComponent {...{playerRevealedCards, unrevealedCardsPlayed, cardsUnplayed, cardsLost}} />
@@ -122,23 +122,17 @@ function GameUiComponent({ gameId }: { gameId: string }) {
   }
 
   return (<>
-  {!game && <Card>
-    <CardContent>
+  {!game && <>
       {loading && <CircularProgress />}
       {error && <Alert severity="error">{error}</Alert>}
-    </CardContent>
-  </Card>}
+    </>}
   {roundChangeDialog && <RoundCompleteDialogComponent {...roundChangeDialog} setRoundChangeDialog={setRoundChangeDialog} />}
   {gameCompleteDialog && <GameCompleteDialogComponent {...gameCompleteDialog} setGameCompleteDialog={setGameCompleteDialog} />}
-  {game && game.gameComplete && <Card>
-    <CardContent>
-      <Alert severity="info">{game.playerNicknames[game.activePlayerIndex]} wins!</Alert>
-    </CardContent>
-  </Card>}
+  {game && game.gameComplete && <Alert severity="info">{game.playerNicknames[game.activePlayerIndex]} wins!</Alert>}
   {game && <Grid container spacing={2} style={{ marginBottom: '1em' }}>
       {idArray.map(i => <Grid item key={i} xs={12} sm={6}><PublicPlayerView index={i} game={game}/></Grid>)}
   </Grid>}
-  {game && 'playerId' in game && !game.gameComplete && <GameControlsComponent game={game}/>}
+  {game && 'playerId' in game && !game.gameComplete && <><GameControlsComponent game={game}/><GameTutorialDialogComponent /></>}
   </>)
 }
 

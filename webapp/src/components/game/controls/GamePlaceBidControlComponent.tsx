@@ -2,8 +2,7 @@ import { Button, TextField } from "@mui/material";
 import { useState } from "react";
 import { API_ROOT_URL, USER_ID, USER_ID_HEADER, USER_SECRET, USER_SECRET_HEADER } from "../../../config";
 import { PlayerGame, TurnAction } from "../../../models/Game";
-
-const SKIP_VALUE = -1;
+import { SKIP_VALUE } from "../config";
 
 interface IControlProps { 
   game: PlayerGame, 
@@ -34,6 +33,7 @@ export function GamePlaceBidControlComponent({ game, clicked, setClicked }: ICon
   const maxBid = game.roundCountPlayerCardsPlayed[roundIndex].reduce((c, cc) => c + cc, 0);
 
   return <>
+    <h3>Place Bid</h3>
     {minBid < maxBid && <TextField
       id="number-bid"
       label="Bid"

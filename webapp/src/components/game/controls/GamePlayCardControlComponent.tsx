@@ -29,7 +29,9 @@ export function GamePlayCardControlComponent({ game, clicked, setClicked }: ICon
       .catch(() => setClicked(false))
   }
 
-  return <>{game.playerCards.map(card => {
+  return <>
+    <h3>Play Card</h3>
+    {game.playerCards.map(card => {
     if (card.state === CardState.Discarded) {
       return <IconButton size={"large"} key={card.id} color="primary" aria-label="card lost" component="label" disabled>
         <LostCardIcon />

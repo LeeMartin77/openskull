@@ -1,6 +1,7 @@
 import { Button } from "@mui/material";
 import { API_ROOT_URL, USER_ID, USER_ID_HEADER, USER_SECRET, USER_SECRET_HEADER } from "../../../config";
 import { PlayerGame, TurnAction } from "../../../models/Game";
+import { PLAYER_ICONS } from "../config";
 
 interface IControlProps { 
   game: PlayerGame, 
@@ -26,29 +27,40 @@ export function GameFlipCardControlComponent({ game, clicked, setClicked }: ICon
   }
 
   if (game.roundPlayerCardsRevealed[roundIndex][game.activePlayerIndex].length !== game.roundCountPlayerCardsPlayed[roundIndex][game.activePlayerIndex]) {
-    return <Button
-    variant="contained"
-    onClick={() => flipCard(game.activePlayerIndex)}
-    disabled={clicked}
-    >
-      Flip Own Card
-    </Button>
+    return <>
+    <h3>Reveal Cards</h3>
+    <div>
+      <Button
+      variant="contained"
+      onClick={() => flipCard(game.activePlayerIndex)}
+      endIcon={PLAYER_ICONS[game.activePlayerIndex]}
+      disabled={clicked}
+      >
+        Reveal Own Card
+      </Button>
+    </div>
+    </>
   }
 
-  return <>{game.roundCountPlayerCardsPlayed[roundIndex]
+  return <>
+    <h3>Reveal Cards</h3>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {game.roundCountPlayerCardsPlayed[roundIndex]
     .map((playedCount, i) => [playedCount, i])
     .filter(x => x[1] !== game.activePlayerIndex)
     .map(([playedCount, i]) => {
     return <Button
     key={i}
     variant="contained"
+    style={{ marginTop: '0.25em', marginBottom: '0.25em' }}
     onClick={() => flipCard(i)}
+    endIcon={PLAYER_ICONS[i]}
     disabled={
       clicked ||
       playedCount === game.roundPlayerCardsRevealed[roundIndex][i].length
     }
     >
-      Flip {game.playerNicknames[i]}
+      Reveal {game.playerNicknames[i]}
     </Button>
-  })}</>
+  })}</div></>
 }
