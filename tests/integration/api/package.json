@@ -4,7 +4,8 @@
   "description": "Tests for testing a running openskull api",
   "main": "index.js",
   "scripts": {
-    "test": "jest --run-in-band"
+    "test": "jest --run-in-band",
+    "test:prod": "OPENSKULL_API_ROOT=https://api.openskull.dev npm test"
   },
   "author": "",
   "license": "MIT",
