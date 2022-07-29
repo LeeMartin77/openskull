@@ -1,0 +1,25 @@
+<script lang="ts">
+  import { Router, Link, Route } from "svelte-routing";
+  import GamesView from "./routes/games/[id].svelte";
+  import GamesList from "./routes/games/index.svelte";
+  import Home from "./routes/index.svelte";
+  export let url = "";
+</script>
+
+<main>
+  <Router url="{url}">
+    <nav>
+      <Link to="/">Home</Link>
+      <Link to="games">Games</Link>
+    </nav>
+    <div>
+      <Route path="games/:id" component="{GamesView}" />
+      <Route path="games" component="{GamesList}" />
+      <Route path="/"><Home /></Route>
+    </div>
+  </Router>
+</main>
+
+<style>
+
+</style>
