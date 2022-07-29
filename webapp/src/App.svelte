@@ -3,6 +3,7 @@
   import GamesView from "./routes/games/[id].svelte";
   import GamesList from "./routes/games/index.svelte";
   import Home from "./routes/index.svelte";
+  import PlayerConnectionStatus from "./lib/signalr/playerConnectionStatus.svelte";
   export let url = "";
 </script>
 
@@ -18,8 +19,5 @@
       <Route path="/"><Home /></Route>
     </div>
   </Router>
+  <PlayerConnectionStatus />
 </main>
-
-<style>
-
-</style>
