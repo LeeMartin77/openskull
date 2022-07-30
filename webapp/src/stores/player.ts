@@ -29,7 +29,7 @@ export const OPENSKULL_USER_NICKNAME = writable<string>(localStorage.getItem(OPE
 
 OPENSKULL_USER_NICKNAME.subscribe(newNickname => localStorage.setItem(OPENSKULL_USER_NICKNAME_IDENTIFIER, newNickname))
 
-export const playerConnection = readable<HubConnection>(newPlayerConnection, function start(set) {
+export const playerConnection = readable<HubConnection | undefined>(undefined, function start(set) {
   const playerSuccessHandler = (msg: any) => {
     if (msg.activity === "Subscribed" && msg.id === OPENSKULL_USER_ID) {
       set(newPlayerConnection)

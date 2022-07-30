@@ -11,8 +11,8 @@
   }
 
   playerConnection.subscribe(con => {
-    con.on("send", messageHandler)
-    return () => con.off("send", messageHandler);
+    con && con.on("send", messageHandler)
+    return () => con && con.off("send", messageHandler);
   })
   onDestroy(() => $playerConnection.off("send", messageHandler))
 </script>

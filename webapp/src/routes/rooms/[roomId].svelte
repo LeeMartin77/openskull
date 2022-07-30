@@ -12,11 +12,11 @@ import type { OpenskullMessage } from "src/types/OpenskullMessage";
   }
 
   playerConnection.subscribe(con => {
-    con.on("send", messageHandler)
-    con.send("joinRoom", OPENSKULL_USER_ID, OPENSKULL_USER_SECRET, roomId)
+    con && con.on("send", messageHandler)
+    con && con.send("joinRoom", OPENSKULL_USER_ID, OPENSKULL_USER_SECRET, roomId)
     return () => {
-      con.send("leaveRoom", OPENSKULL_USER_ID, OPENSKULL_USER_SECRET, roomId)
-      con.off("send", messageHandler)
+      con && con.send("leaveRoom", OPENSKULL_USER_ID, OPENSKULL_USER_SECRET, roomId)
+      con && con.off("send", messageHandler)
     }
   })
 </script>
