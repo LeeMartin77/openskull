@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { API_ROOT_URL, generateUserHeaders } from 'src/config';
-  import { OPENSKULL_USER_ID, OPENSKULL_USER_SECRET } from 'src/stores/player';
+  import { API_ROOT_URL } from 'src/config';
+  import { generateUserHeaders } from 'src/stores/player';
   import type { PublicGame } from 'src/types/Game';
   import { navigate } from 'svelte-routing';
   let loading = true;
@@ -16,7 +16,7 @@
       }),
     {
       headers: {
-        ...generateUserHeaders(OPENSKULL_USER_ID, OPENSKULL_USER_SECRET)
+        ...generateUserHeaders()
       }
     }
   )

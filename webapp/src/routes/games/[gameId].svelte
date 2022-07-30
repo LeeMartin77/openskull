@@ -1,8 +1,9 @@
 <script lang="ts">
   import { HubConnectionBuilder } from '@microsoft/signalr';
-  import { API_ROOT_URL, generateUserHeaders } from 'src/config';
+  import { API_ROOT_URL } from 'src/config';
+  import GameControls from 'src/lib/components/game/GameControls.svelte';
   import PublicGameDisplay from 'src/lib/components/game/PublicGameDisplay.svelte';
-  import { OPENSKULL_USER_ID, OPENSKULL_USER_SECRET } from 'src/stores/player';
+  import { generateUserHeaders } from 'src/stores/player';
   import type { PlayerGame, PublicGame } from 'src/types/Game';
   import type { OpenskullMessage } from 'src/types/OpenskullMessage';
 
@@ -15,7 +16,7 @@
     loading = false;
     fetch(API_ROOT_URL + `/games/` + gameId, {
       headers: {
-        ...generateUserHeaders(OPENSKULL_USER_ID, OPENSKULL_USER_SECRET)
+        ...generateUserHeaders()
       }
     })
       .then((res) => res.json())
@@ -57,7 +58,9 @@
     {#each Array.from({ length: game.playerCount }, (v, i) => i) as index}
       <PublicGameDisplay {game} {index} />
     {/each}
-    {JSON.stringify(game)}
+    {#if 'playerIndex' in game}
+      <GameControls {game} />
+    {/if}
   </div>
 {:else if !loading}
   <div>Could not load game.</div>

@@ -1,7 +1,7 @@
 import { readable, writable } from 'svelte/store';
 
 import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
-import { API_ROOT_URL } from 'src/config';
+import { API_ROOT_URL, USER_ID_HEADER, USER_SECRET_HEADER } from 'src/config';
 import { v4 as randomUUID } from 'uuid';
 
 const newPlayerConnection = new HubConnectionBuilder()
@@ -28,6 +28,14 @@ export const OPENSKULL_USER_SECRET = getOrStoreNewVariable(
   OPENSKULL_USER_SECRET_KEY,
   randomUUID()
 );
+
+
+export const generateUserHeaders = (userId: string = OPENSKULL_USER_ID, userSecret: string = OPENSKULL_USER_SECRET) => {
+  return {
+    [USER_ID_HEADER]: userId,
+    [USER_SECRET_HEADER]: userSecret
+  };
+};
 
 const OPENSKULL_USER_NICKNAME_IDENTIFIER = 'Openskull_usernickname';
 export const OPENSKULL_USER_NICKNAME = writable<string>(
