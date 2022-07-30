@@ -1,7 +1,7 @@
 import { readable } from 'svelte/store';
 
 import { HubConnection, HubConnectionBuilder } from "@microsoft/signalr";
-import { API_ROOT_URL } from '../config';
+import { API_ROOT_URL } from 'src/config';
 
 const newPlayerConnection = new HubConnectionBuilder()
 .withUrl(API_ROOT_URL + '/player/ws')
