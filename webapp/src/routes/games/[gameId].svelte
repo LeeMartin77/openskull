@@ -51,7 +51,7 @@
     {#each Array.from({ length: game.playerCount }, (v, i) => i) as index}
       <PublicGameDisplay {game} {index} />
     {/each}
-    {#if 'playerIndex' in game}
+    {#if 'playerIndex' in game && !game.gameComplete}
       <GameControls {game} />
     {/if}
   </div>
