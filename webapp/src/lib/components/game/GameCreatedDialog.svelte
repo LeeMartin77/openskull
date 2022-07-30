@@ -9,6 +9,7 @@
 
   const messageHandler = (msg: OpenskullMessage) => {
     if (msg.activity === 'GameCreated') {
+      console.log(msg);
       newGameId = msg.id;
     }
   };
@@ -24,8 +25,8 @@
   <div>
     <button
       on:click="{() => {
-        newGameId = undefined;
         navigate('/games/' + newGameId);
+        newGameId = undefined;
       }}">Go to New Game</button
     >
   </div>

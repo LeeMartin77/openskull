@@ -7,6 +7,7 @@
     playerConnection
   } from 'src/stores/player';
   import type { OpenskullMessage } from 'src/types/OpenskullMessage';
+  import { onDestroy } from 'svelte';
   export let roomId: string;
 
   let playersInRoom: string[] = [];
@@ -40,6 +41,18 @@
         roomId
       );
   };
+
+  onDestroy(() => {
+    if (connection) {
+      connection.send(
+        'leaveRoom',
+        OPENSKULL_USER_ID,
+        OPENSKULL_USER_SECRET,
+        roomId
+      );
+      connection.off('send', messageHandler);
+    }
+  });
 </script>
 
 <div>
