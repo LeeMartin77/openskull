@@ -1,6 +1,6 @@
 <script lang="ts">
   import { OPENSKULL_USER_ID, OPENSKULL_USER_SECRET, playerConnection } from "src/stores/player";
-import type { OpenskullMessage } from "src/types/OpenskullMessage";
+  import type { OpenskullMessage } from "src/types/OpenskullMessage";
   export let roomId: string;
 
   let playersInRoom: string[] = [];
