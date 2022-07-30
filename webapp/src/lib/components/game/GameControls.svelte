@@ -27,6 +27,17 @@
       })
     });
   };
+
+  const flipCard = (targetPlayerIndex: number) => {
+    fetch(`${API_ROOT_URL}/games/${game.id}/turn`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...generateUserHeaders() },
+      body: JSON.stringify({
+        action: TurnAction[TurnAction.Flip],
+        targetPlayerIndex
+      })
+    });
+  };
 </script>
 
 <div>
@@ -54,6 +65,16 @@
           on:click={() => placeBid(bidNumber)}
           disabled={game.activePlayerIndex !== game.playerIndex}
           >{bidNumber}</button
+        >
+      {/each}
+    </div>
+    <h3>Flip Cards</h3>
+    <div>
+      {#each Array.from({ length: game.playerCount }, (v, i) => i) as targetPlayerIndex}
+        <button
+          on:click={() => flipCard(targetPlayerIndex)}
+          disabled={game.activePlayerIndex !== game.playerIndex}
+          >{game.playerNicknames[targetPlayerIndex]} ({targetPlayerIndex})</button
         >
       {/each}
     </div>
