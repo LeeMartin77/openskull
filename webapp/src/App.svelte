@@ -5,6 +5,7 @@
   import RoomView from "./routes/rooms/[roomId].svelte"
   import Home from "./routes/index.svelte";
   import PlayerConnectionToaster from "./lib/components/toasters/PlayerConnectionToaster.svelte";
+  import GameCreatedDialog from "./lib/components/game/GameCreatedDialog.svelte";
   import RoomJoinDialog from "./lib/components/rooms/RoomJoinDialog.svelte";
   export let url = "";
 </script>
@@ -23,5 +24,6 @@
       <Route path="/"><Home /></Route>
     </div>
   </Router>
+  <GameCreatedDialog />
   <PlayerConnectionToaster />
 </main>
