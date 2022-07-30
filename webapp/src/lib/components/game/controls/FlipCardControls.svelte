@@ -17,13 +17,25 @@
   };
 </script>
 
-<h3>Flip Cards</h3>
+<h3>Reveal Cards</h3>
 <div>
-  {#each Array.from({ length: game.playerCount }, (v, i) => i) as targetPlayerIndex}
+  {#if game.roundPlayerCardsRevealed[game.roundNumber - 1][game.activePlayerIndex].length !== game.roundCountPlayerCardsPlayed[game.roundNumber - 1][game.activePlayerIndex]}
     <button
-      on:click={() => flipCard(targetPlayerIndex)}
+      on:click={() => flipCard(game.activePlayerIndex)}
       disabled={game.activePlayerIndex !== game.playerIndex}
-      >{game.playerNicknames[targetPlayerIndex]} ({targetPlayerIndex})</button
+      >Reveal Own Card</button
     >
-  {/each}
+  {:else}
+    {#each game.roundCountPlayerCardsPlayed[game.roundNumber - 1]
+      .map((playedCount, i) => [playedCount, i])
+      .filter((x) => x[1] !== game.activePlayerIndex) as [playedCount, i]}
+      <button
+        on:click={() => flipCard(i)}
+        disabled={game.activePlayerIndex !== game.playerIndex ||
+          playedCount ===
+            game.roundPlayerCardsRevealed[game.roundNumber - 1][i].length}
+        >Reveal {game.playerNicknames[i]} ({i})</button
+      >
+    {/each}
+  {/if}
 </div>
