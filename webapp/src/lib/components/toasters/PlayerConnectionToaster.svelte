@@ -19,9 +19,9 @@
 
 Player Connection State: {$playerConnectionState}
 
-{#each messages as message, i}
+<!-- {#each messages as message, i}
   <div>
     Received {JSON.stringify(message)}
     <button on:click={() => { messages.splice(i, 1);  messages = messages }}>Dismiss</button>
   </div>
-{/each}
+{/each} -->
