@@ -8,7 +8,6 @@ export enum CardState {
   Discarded
 }
 
-
 export enum TurnAction {
   Card,
   Bid,
@@ -22,15 +21,13 @@ export enum RoundPhase {
   Flipping
 }
 
-
 export interface Card {
-    id: string;
-    type: CardType;
-    state: CardState;
+  id: string;
+  type: CardType;
+  state: CardState;
 }
 
-export interface PublicGame 
-{
+export interface PublicGame {
   id: string;
   activePlayerIndex: number;
   playerCount: number;
@@ -47,8 +44,7 @@ export interface PublicGame
   lastUpdated: Date;
 }
 
-export interface PlayerGame extends PublicGame
-{
+export interface PlayerGame extends PublicGame {
   playerId: string;
   playerIndex: number;
   playerCards: Card[];

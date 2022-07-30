@@ -1,8 +1,8 @@
-import { defineConfig } from 'vite'
-import { svelte } from '@sveltejs/vite-plugin-svelte'
+import { defineConfig } from 'vite';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
 // This is annoying, we can just ignore it though
 // @ts-ignore ts(1259)
-import path from 'node:path'
+import path from 'node:path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -14,8 +14,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "src": path.resolve("./src")
+      src: path.resolve('./src')
     }
   },
   plugins: [svelte()]
-})
+});
