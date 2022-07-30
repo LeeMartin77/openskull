@@ -1,6 +1,7 @@
 <script lang="ts">
   import { HubConnectionBuilder } from '@microsoft/signalr';
   import { API_ROOT_URL, generateUserHeaders } from 'src/config';
+  import PublicGameDisplay from 'src/lib/components/game/PublicGameDisplay.svelte';
   import { OPENSKULL_USER_ID, OPENSKULL_USER_SECRET } from 'src/stores/player';
   import type { PlayerGame, PublicGame } from 'src/types/Game';
   import type { OpenskullMessage } from 'src/types/OpenskullMessage';
@@ -39,6 +40,13 @@
     .then(() => gameConnection.send('subscribeToGameId', gameId));
 
   updateGame();
+
+  const idArray: number[] = [];
+  if (game) {
+    for (let i = 0; i < game.playerCount; i++) {
+      idArray.push(i);
+    }
+  }
 </script>
 
 <div>
@@ -46,8 +54,13 @@
 </div>
 {#if game}
   <div>
+    {#each Array.from({ length: game.playerCount }, (v, i) => i) as index}
+      <PublicGameDisplay {game} {index} />
+    {/each}
     {JSON.stringify(game)}
   </div>
+{:else if !loading}
+  <div>Could not load game.</div>
 {/if}
 {#if loading}
   <div>Loading...</div>
