@@ -59,7 +59,7 @@
   <h2>You are in room {roomId}</h2>
   <h4>Players:</h4>
   {#if playersInRoom.length > 2 && playersInRoom.length < 7 && connection}
-    <button on:click="{startgame}">Start game!</button>
+    <button on:click={startgame}>Start game!</button>
   {/if}
   <ul>
     {#each playersInRoom as player}

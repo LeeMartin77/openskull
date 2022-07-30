@@ -24,10 +24,10 @@
 {#if newGameId !== undefined}
   <div>
     <button
-      on:click="{() => {
+      on:click={() => {
         navigate('/games/' + newGameId);
         newGameId = undefined;
-      }}">Go to New Game</button
+      }}>Go to New Game</button
     >
   </div>
 {:else}

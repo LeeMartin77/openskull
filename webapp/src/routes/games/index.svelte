@@ -32,7 +32,7 @@
     <ul>
       {#each games as game (game.id)}
         <li>
-          <button on:click="{() => navigate('/games/' + game.id)}"
+          <button on:click={() => navigate('/games/' + game.id)}
             >{game.playerCount} Game: {game.gameComplete
               ? 'Completed'
               : 'Ongoing'}</button

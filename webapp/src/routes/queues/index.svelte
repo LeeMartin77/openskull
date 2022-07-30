@@ -73,13 +73,13 @@
         {#each queueSizes as size}
           <li>
             <button
-              on:click="{() =>
+              on:click={() =>
                 connection.send(
                   'JoinQueue',
                   OPENSKULL_USER_ID,
                   OPENSKULL_USER_SECRET,
                   size
-                )}">Join {size} Queue</button
+                )}>Join {size} Queue</button
             >
           </li>
         {/each}
@@ -90,12 +90,12 @@
         players
       </div>
       <button
-        on:click="{() =>
+        on:click={() =>
           connection.send(
             'LeaveQueues',
             OPENSKULL_USER_ID,
             OPENSKULL_USER_SECRET
-          )}">Leave Queues</button
+          )}>Leave Queues</button
       >
     {/if}
   {:else}

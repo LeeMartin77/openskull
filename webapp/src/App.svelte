@@ -12,7 +12,7 @@
 </script>
 
 <main>
-  <Router url="{url}">
+  <Router {url}>
     <nav>
       <Link to="/">Home</Link>
       <Link to="games">Games</Link>
@@ -20,10 +20,10 @@
     </nav>
     <RoomJoinDialog />
     <div>
-      <Route path="rooms/:roomId" component="{RoomView}" />
-      <Route path="games/:gameId" component="{GamesView}" />
-      <Route path="games" component="{GamesList}" />
-      <Route path="queues" component="{QueuesView}" />
+      <Route path="rooms/:roomId" component={RoomView} />
+      <Route path="games/:gameId" component={GamesView} />
+      <Route path="games" component={GamesList} />
+      <Route path="queues" component={QueuesView} />
       <Route path="/"><Home /></Route>
     </div>
   </Router>
