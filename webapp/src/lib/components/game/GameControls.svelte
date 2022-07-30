@@ -2,10 +2,9 @@
   import { API_ROOT_URL, SKIP_VALUE } from 'src/config';
   import { generateUserHeaders } from 'src/stores/player';
   import { CardState, TurnAction, type PlayerGame } from 'src/types/Game';
-  import { prevent_default } from 'svelte/internal';
 
   export let game: PlayerGame;
-  const roundIndex = game.roundNumber - 1;
+
   const playCard = (cardId: string) => {
     fetch(`${API_ROOT_URL}/games/${game.id}/turn`, {
       method: 'POST',
@@ -49,8 +48,9 @@
           on:click={() => playCard(card.id)}
           disabled={card.state === CardState.Discarded ||
             game.activePlayerIndex !== game.playerIndex ||
-            game.playerRoundCardIdsPlayed[roundIndex].includes(card.id)}
-          >{card.type}</button
+            game.playerRoundCardIdsPlayed[game.roundNumber - 1].includes(
+              card.id
+            )}>{card.type}</button
         >
       {/each}
     </div>
@@ -60,7 +60,7 @@
         on:click={() => placeBid(SKIP_VALUE)}
         disabled={game.activePlayerIndex !== game.playerIndex}>Withdraw</button
       >
-      {#each Array.from({ length: game.roundCountPlayerCardsPlayed[roundIndex].reduce((prev, curr) => prev + curr, 1) }, (v, i) => i) as bidNumber}
+      {#each Array.from({ length: game.roundCountPlayerCardsPlayed[game.roundNumber - 1].reduce((prev, curr) => prev + curr, 1) }, (v, i) => i) as bidNumber}
         <button
           on:click={() => placeBid(bidNumber)}
           disabled={game.activePlayerIndex !== game.playerIndex}

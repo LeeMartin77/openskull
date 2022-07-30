@@ -9,7 +9,6 @@
 
   const messageHandler = (msg: OpenskullMessage) => {
     if (msg.activity === 'GameCreated') {
-      console.log(msg);
       newGameId = msg.id;
     }
   };

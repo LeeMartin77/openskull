@@ -41,13 +41,6 @@
     .then(() => gameConnection.send('subscribeToGameId', gameId));
 
   updateGame();
-
-  const idArray: number[] = [];
-  if (game) {
-    for (let i = 0; i < game.playerCount; i++) {
-      idArray.push(i);
-    }
-  }
 </script>
 
 <div>
