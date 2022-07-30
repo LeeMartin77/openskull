@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Router, Link, Route } from "svelte-routing";
-  import GamesView from "./routes/games/[id].svelte";
+  import GamesView from "./routes/games/[gameId].svelte";
   import GamesList from "./routes/games/index.svelte";
   import RoomView from "./routes/rooms/[roomId].svelte"
   import QueuesView from "./routes/queues/index.svelte";
@@ -21,7 +21,7 @@
     <RoomJoinDialog />
     <div>
       <Route path="rooms/:roomId" component="{RoomView}"/>
-      <Route path="games/:id" component="{GamesView}" />
+      <Route path="games/:gameId" component="{GamesView}" />
       <Route path="games" component="{GamesList}" />
       <Route path="queues" component="{QueuesView}" />
       <Route path="/"><Home /></Route>
