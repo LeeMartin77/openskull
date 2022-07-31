@@ -8,7 +8,6 @@
 
 <Dialog {open}>
   <p>
-    {game.playerNicknames[game.activePlayerIndex]} won after {game
-      .roundCountPlayerCardsPlayed.length} rounds
+    {game.playerNicknames[game.activePlayerIndex]} won after {game.roundCountPlayerCardsPlayed.length} rounds
   </p>
 </Dialog>

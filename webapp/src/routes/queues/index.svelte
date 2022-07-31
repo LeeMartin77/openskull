@@ -1,11 +1,7 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
 
-  import {
-    OPENSKULL_USER_ID,
-    OPENSKULL_USER_SECRET,
-    playerConnection
-  } from 'src/stores/player';
+  import { OPENSKULL_USER_ID, OPENSKULL_USER_SECRET, playerConnection } from 'src/stores/player';
   import type { OpenskullMessage } from 'src/types/OpenskullMessage';
   import type { HubConnection } from '@microsoft/signalr';
 
@@ -20,11 +16,7 @@
 
   const messageHandler = (msg: OpenskullMessage) => {
     if (msg.activity === 'GameCreated') {
-      connection.send(
-        'getQueueStatus',
-        OPENSKULL_USER_ID,
-        OPENSKULL_USER_SECRET
-      );
+      connection.send('getQueueStatus', OPENSKULL_USER_ID, OPENSKULL_USER_SECRET);
     }
     if (msg.activity === 'QueueLeft') {
       queueStatus = undefined;
@@ -72,14 +64,8 @@
       <ul>
         {#each queueSizes as size}
           <li>
-            <button
-              on:click={() =>
-                connection.send(
-                  'JoinQueue',
-                  OPENSKULL_USER_ID,
-                  OPENSKULL_USER_SECRET,
-                  size
-                )}>Join {size} Queue</button
+            <button on:click={() => connection.send('JoinQueue', OPENSKULL_USER_ID, OPENSKULL_USER_SECRET, size)}
+              >Join {size} Queue</button
             >
           </li>
         {/each}
@@ -89,13 +75,8 @@
         In {queueStatus.gameSize} player game queue, with {queueStatus.queueSize}
         players
       </div>
-      <button
-        on:click={() =>
-          connection.send(
-            'LeaveQueues',
-            OPENSKULL_USER_ID,
-            OPENSKULL_USER_SECRET
-          )}>Leave Queues</button
+      <button on:click={() => connection.send('LeaveQueues', OPENSKULL_USER_ID, OPENSKULL_USER_SECRET)}
+        >Leave Queues</button
       >
     {/if}
   {:else}

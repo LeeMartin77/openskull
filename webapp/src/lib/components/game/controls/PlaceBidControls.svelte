@@ -19,14 +19,10 @@
 
 <h3>Place Bid</h3>
 <div>
-  <button
-    on:click={() => placeBid(SKIP_VALUE)}
-    disabled={game.activePlayerIndex !== game.playerIndex}>Withdraw</button
-  >
+  <button on:click={() => placeBid(SKIP_VALUE)} disabled={game.activePlayerIndex !== game.playerIndex}>Withdraw</button>
   {#each Array.from({ length: game.roundCountPlayerCardsPlayed[game.roundNumber - 1].reduce((prev, curr) => prev + curr, 1) }, (v, i) => i).filter((x) => x > Math.max(...[0, ...game.currentBids])) as bidNumber}
-    <button
-      on:click={() => placeBid(bidNumber)}
-      disabled={game.activePlayerIndex !== game.playerIndex}>{bidNumber}</button
+    <button on:click={() => placeBid(bidNumber)} disabled={game.activePlayerIndex !== game.playerIndex}
+      >{bidNumber}</button
     >
   {/each}
 </div>

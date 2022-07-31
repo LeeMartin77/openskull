@@ -33,9 +33,7 @@
       {#each games as game (game.id)}
         <li>
           <button on:click={() => navigate('/games/' + game.id)}
-            >{game.playerCount} Game: {game.gameComplete
-              ? 'Completed'
-              : 'Ongoing'}</button
+            >{game.playerCount} Game: {game.gameComplete ? 'Completed' : 'Ongoing'}</button
           >
         </li>
       {/each}

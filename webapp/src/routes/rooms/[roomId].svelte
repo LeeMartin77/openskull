@@ -1,11 +1,7 @@
 <script lang="ts">
   import type { HubConnection } from '@microsoft/signalr';
 
-  import {
-    OPENSKULL_USER_ID,
-    OPENSKULL_USER_SECRET,
-    playerConnection
-  } from 'src/stores/player';
+  import { OPENSKULL_USER_ID, OPENSKULL_USER_SECRET, playerConnection } from 'src/stores/player';
   import type { OpenskullMessage } from 'src/types/OpenskullMessage';
   import { onDestroy } from 'svelte';
   export let roomId: string;
@@ -22,34 +18,21 @@
 
   playerConnection.subscribe((con) => {
     con && con.on('send', messageHandler);
-    con &&
-      con.send('joinRoom', OPENSKULL_USER_ID, OPENSKULL_USER_SECRET, roomId);
+    con && con.send('joinRoom', OPENSKULL_USER_ID, OPENSKULL_USER_SECRET, roomId);
     connection = con;
     return () => {
-      con &&
-        con.send('leaveRoom', OPENSKULL_USER_ID, OPENSKULL_USER_SECRET, roomId);
+      con && con.send('leaveRoom', OPENSKULL_USER_ID, OPENSKULL_USER_SECRET, roomId);
       con && con.off('send', messageHandler);
     };
   });
 
   let startgame = () => {
-    connection &&
-      connection.send(
-        'createRoomGame',
-        OPENSKULL_USER_ID,
-        OPENSKULL_USER_SECRET,
-        roomId
-      );
+    connection && connection.send('createRoomGame', OPENSKULL_USER_ID, OPENSKULL_USER_SECRET, roomId);
   };
 
   onDestroy(() => {
     if (connection) {
-      connection.send(
-        'leaveRoom',
-        OPENSKULL_USER_ID,
-        OPENSKULL_USER_SECRET,
-        roomId
-      );
+      connection.send('leaveRoom', OPENSKULL_USER_ID, OPENSKULL_USER_SECRET, roomId);
       connection.off('send', messageHandler);
     }
   });

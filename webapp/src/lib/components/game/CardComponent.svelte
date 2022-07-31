@@ -12,11 +12,7 @@
     }
   }}
   disabled={disabled || lost}
-  class="card card-{display.toLowerCase()} {lost
-    ? 'card-lost'
-    : disabled
-    ? 'card-disabled'
-    : ''}"
+  class="card card-{display.toLowerCase()} {lost ? 'card-lost' : disabled ? 'card-disabled' : ''}"
 >
   {#if display === 'Skull'}
     <img src="/openskull.svg" alt="A skull" />
@@ -48,11 +44,11 @@
   .card-lost {
     width: 6em;
     height: 9em;
-    filter: opacity(40%)
+    filter: opacity(40%);
   }
 
   .card-disabled {
-    filter: opacity(40%) 
+    filter: opacity(40%);
   }
 
   .card-back {

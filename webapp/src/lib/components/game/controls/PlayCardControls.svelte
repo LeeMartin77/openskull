@@ -1,12 +1,7 @@
 <script lang="ts">
   import { API_ROOT_URL } from 'src/config';
   import { generateUserHeaders } from 'src/stores/player';
-  import {
-    CardState,
-    CardType,
-    TurnAction,
-    type PlayerGame
-  } from 'src/types/Game';
+  import { CardState, CardType, TurnAction, type PlayerGame } from 'src/types/Game';
   import CardComponent from '../CardComponent.svelte';
 
   export let game: PlayerGame;

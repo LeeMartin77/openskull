@@ -20,9 +20,7 @@
 <h3>Reveal Cards</h3>
 <div>
   {#if game.roundPlayerCardsRevealed[game.roundNumber - 1][game.activePlayerIndex].length !== game.roundCountPlayerCardsPlayed[game.roundNumber - 1][game.activePlayerIndex]}
-    <button
-      on:click={() => flipCard(game.activePlayerIndex)}
-      disabled={game.activePlayerIndex !== game.playerIndex}
+    <button on:click={() => flipCard(game.activePlayerIndex)} disabled={game.activePlayerIndex !== game.playerIndex}
       >Reveal Own Card</button
     >
   {:else}
@@ -32,8 +30,7 @@
       <button
         on:click={() => flipCard(i)}
         disabled={game.activePlayerIndex !== game.playerIndex ||
-          playedCount ===
-            game.roundPlayerCardsRevealed[game.roundNumber - 1][i].length}
+          playedCount === game.roundPlayerCardsRevealed[game.roundNumber - 1][i].length}
         >Reveal {game.playerNicknames[i]} ({i})</button
       >
     {/each}

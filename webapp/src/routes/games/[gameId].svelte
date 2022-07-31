@@ -32,11 +32,7 @@
           gameComplete = false;
           gameComplete = true;
         }
-        if (
-          !parsed.gameComplete &&
-          game &&
-          game.roundNumber !== parsed.roundNumber
-        ) {
+        if (!parsed.gameComplete && game && game.roundNumber !== parsed.roundNumber) {
           roundEnd = undefined;
           roundEnd = {
             prev: game,
@@ -55,15 +51,11 @@
     }
   };
 
-  const gameConnection = new HubConnectionBuilder()
-    .withUrl(API_ROOT_URL + '/game/ws')
-    .build();
+  const gameConnection = new HubConnectionBuilder().withUrl(API_ROOT_URL + '/game/ws').build();
 
   gameConnection.on('send', messageHandler);
 
-  gameConnection
-    .start()
-    .then(() => gameConnection.send('subscribeToGameId', gameId));
+  gameConnection.start().then(() => gameConnection.send('subscribeToGameId', gameId));
 
   updateGame();
 </script>
