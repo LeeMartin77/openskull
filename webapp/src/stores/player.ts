@@ -40,8 +40,9 @@ export const generateUserHeaders = (
 };
 
 const OPENSKULL_USER_NICKNAME_IDENTIFIER = 'Openskull_usernickname';
+export const DEFAULT_USER_NICKNAME = "New Player";
 export const OPENSKULL_USER_NICKNAME = writable<string>(
-  localStorage.getItem(OPENSKULL_USER_NICKNAME_IDENTIFIER)
+  localStorage.getItem(OPENSKULL_USER_NICKNAME_IDENTIFIER) || DEFAULT_USER_NICKNAME
 );
 
 OPENSKULL_USER_NICKNAME.subscribe((newNickname) =>
@@ -67,8 +68,16 @@ export const playerConnection = readable<HubConnection | undefined>(
           OPENSKULL_USER_ID,
           OPENSKULL_USER_SECRET
         )
-      );
-
+      )
+      .then(() => {
+        newPlayerConnection.send(
+          'UpdateNickname',
+          OPENSKULL_USER_ID,
+          OPENSKULL_USER_SECRET,
+          localStorage.getItem(OPENSKULL_USER_NICKNAME_IDENTIFIER)
+        )
+      });
+    
     return function stop() {
       newPlayerConnection && newPlayerConnection.stop();
     };

@@ -1,23 +1,27 @@
 <script lang="ts">
   export let open: boolean = false;
-  export let complete: { text: string, action: () => void } | undefined = undefined;
-  const dismiss = () => open = false;
-  const dismissComplete = (fnr: () => void) => { fnr(); open = false; }
-
+  export let complete: { text: string; action: () => void } | undefined = undefined;
+  const dismiss = () => (open = false);
+  const dismissComplete = (fnr: () => void) => {
+    fnr();
+    open = false;
+  };
 </script>
+
 {#if open}
-<div class="lightbox" on:click={dismiss}>
-  <div class="dialog">
-    <div class="dialog-bar"><button on:click={() => dismiss()}>Close</button></div>
-    <div class="dialog-content">
-      <slot></slot>
+  <div class="lightbox">
+    <div class="dialog">
+      <div class="dialog-bar"><button on:click={() => dismiss()}>Close</button></div>
+      <div class="dialog-content">
+        <slot />
+      </div>
+      {#if complete}
+        <div class="dialog-bar"><button on:click={() => dismissComplete(complete.action)}>{complete.text}</button></div>
+      {/if}
     </div>
-    {#if complete}
-      <div class="dialog-bar"><button on:click={() => dismissComplete(complete.action)}>{complete.text}</button></div>
-    {/if}
   </div>
-</div>
 {/if}
+
 <style>
   .lightbox {
     position: fixed;
@@ -33,7 +37,7 @@
   .dialog {
     background-color: #fff;
     border-radius: 1em;
-    box-shadow: 0.25em 0.25em 0.5em 0em rgba(0,0,0,0.2);
+    box-shadow: 0.25em 0.25em 0.5em 0em rgba(0, 0, 0, 0.2);
     min-width: 160px;
     min-height: 160px;
   }

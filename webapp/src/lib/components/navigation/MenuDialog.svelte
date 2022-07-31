@@ -9,7 +9,7 @@
   on:click={() => {
     open = false;
     open = true;
-  }}>Navigation</button
+  }}>Menu</button
 >
 <Dialog {open}>
   <Menu />

@@ -9,6 +9,7 @@
   import GameCreatedDialog from './lib/components/game/GameCreatedDialog.svelte';
   import NavigationMenu from './lib/components/navigation/MenuDialog.svelte';
   import Menu from './lib/components/navigation/Menu.svelte';
+  import NewPlayerNicknameDialog from './lib/components/player/NewPlayerNicknameDialog.svelte';
   export let url = '';
 </script>
 
@@ -25,5 +26,6 @@
     <GameCreatedDialog />
     <NavigationMenu />
   </Router>
+  <NewPlayerNicknameDialog />
   <PlayerConnectionToaster />
 </main>
