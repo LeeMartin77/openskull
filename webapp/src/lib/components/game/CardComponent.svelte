@@ -1,8 +1,8 @@
 <script lang="ts">
-  export let onClick: () => void;
+  export let onClick: () => void | undefined = undefined;
   export let display: string;
-  export let disabled: boolean;
-  export let lost: boolean;
+  export let disabled: boolean = false;
+  export let lost: boolean = false;
 </script>
 
 <button
@@ -11,6 +11,7 @@
       onClick();
     }
   }}
+  disabled={disabled || lost}
   class="card card-{display.toLowerCase()} {lost
     ? 'card-lost'
     : disabled
@@ -28,9 +29,9 @@
 
 <style>
   .card {
-    width: 80px;
-    height: 120px;
-    border-radius: 16px;
+    width: 8em;
+    height: 12em;
+    border-radius: 1em;
     background-color: #fff;
     border-color: #000;
     border-width: 2px;
@@ -45,8 +46,8 @@
   }
 
   .card-lost {
-    width: 60px;
-    height: 90px;
+    width: 6em;
+    height: 9em;
     filter: opacity(40%)
   }
 
