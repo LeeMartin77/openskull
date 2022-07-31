@@ -29,8 +29,10 @@ export const OPENSKULL_USER_SECRET = getOrStoreNewVariable(
   randomUUID()
 );
 
-
-export const generateUserHeaders = (userId: string = OPENSKULL_USER_ID, userSecret: string = OPENSKULL_USER_SECRET) => {
+export const generateUserHeaders = (
+  userId: string = OPENSKULL_USER_ID,
+  userSecret: string = OPENSKULL_USER_SECRET
+) => {
   return {
     [USER_ID_HEADER]: userId,
     [USER_SECRET_HEADER]: userSecret

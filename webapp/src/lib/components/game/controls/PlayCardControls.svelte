@@ -7,6 +7,7 @@
     TurnAction,
     type PlayerGame
   } from 'src/types/Game';
+  import CardComponent from '../CardComponent.svelte';
 
   export let game: PlayerGame;
 
@@ -23,14 +24,21 @@
 </script>
 
 <h3>Play Card</h3>
-<div>
+<div class="card-display">
   {#each game.playerCards as card (card.id)}
-    <button
-      on:click={() => playCard(card.id)}
-      disabled={card.state === CardState.Discarded ||
-        game.activePlayerIndex !== game.playerIndex ||
+    <CardComponent
+      onClick={() => playCard(card.id)}
+      display={CardType[card.type]}
+      disabled={game.activePlayerIndex !== game.playerIndex ||
         game.playerRoundCardIdsPlayed[game.roundNumber - 1].includes(card.id)}
-      >{CardType[card.type]}</button
-    >
+      lost={card.state === CardState.Discarded}
+    />
   {/each}
 </div>
+
+<style>
+  .card-display {
+    display: flex;
+    flex-direction: row;
+  }
+</style>
