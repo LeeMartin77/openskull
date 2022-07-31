@@ -4,6 +4,7 @@
 
   import { playerConnection } from 'src/stores/player';
   import type { OpenskullMessage } from 'src/types/OpenskullMessage';
+import Dialog from '../dialog/Dialog.svelte';
 
   let newGameId: string | undefined = undefined;
 
@@ -20,15 +21,9 @@
   onDestroy(() => $playerConnection.off('send', messageHandler));
 </script>
 
-{#if newGameId !== undefined}
-  <div>
-    <button
-      on:click={() => {
-        navigate('/games/' + newGameId);
-        newGameId = undefined;
-      }}>Go to New Game</button
-    >
-  </div>
-{:else}
-  <div>No new game link</div>
-{/if}
+<Dialog open={newGameId === undefined} complete={{ text: "Go to Game", action: () => {
+  navigate('/games/' + newGameId);
+  newGameId = undefined;
+}}}>
+  <p>Your new game is ready!</p>
+</Dialog>
