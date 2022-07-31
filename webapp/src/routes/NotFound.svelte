@@ -1,4 +1,4 @@
 <script lang="ts">
 </script>
 
-Home
+<div>Not Found</div>
