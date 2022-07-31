@@ -21,7 +21,7 @@ import Dialog from '../dialog/Dialog.svelte';
   onDestroy(() => $playerConnection.off('send', messageHandler));
 </script>
 
-<Dialog open={newGameId === undefined} complete={{ text: "Go to Game", action: () => {
+<Dialog open={newGameId !== undefined} complete={{ text: "Go to Game", action: () => {
   navigate('/games/' + newGameId);
   newGameId = undefined;
 }}}>
