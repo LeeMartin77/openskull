@@ -45,11 +45,13 @@
   }
 
   .card-lost {
-    opacity: 30%;
+    width: 60px;
+    height: 90px;
+    filter: opacity(40%)
   }
 
   .card-disabled {
-    opacity: 80%;
+    filter: opacity(40%) 
   }
 
   .card-back {
