@@ -20,19 +20,36 @@
 <h3>Reveal Cards</h3>
 <div>
   {#if game.roundPlayerCardsRevealed[game.roundNumber - 1][game.activePlayerIndex].length !== game.roundCountPlayerCardsPlayed[game.roundNumber - 1][game.activePlayerIndex]}
-    <button on:click={() => flipCard(game.activePlayerIndex)} disabled={game.activePlayerIndex !== game.playerIndex}
+    <button class="flip-button own-button" on:click={() => flipCard(game.activePlayerIndex)} disabled={game.activePlayerIndex !== game.playerIndex}
       >Reveal Own Card</button
     >
   {:else}
-    {#each game.roundCountPlayerCardsPlayed[game.roundNumber - 1]
-      .map((playedCount, i) => [playedCount, i])
-      .filter((x) => x[1] !== game.activePlayerIndex) as [playedCount, i]}
-      <button
-        on:click={() => flipCard(i)}
-        disabled={game.activePlayerIndex !== game.playerIndex ||
-          playedCount === game.roundPlayerCardsRevealed[game.roundNumber - 1][i].length}
-        >Reveal {game.playerNicknames[i]} ({i})</button
-      >
-    {/each}
+    <div class="other-buttons">
+      {#each game.roundCountPlayerCardsPlayed[game.roundNumber - 1]
+          .map((playedCount, i) => [playedCount, i])
+          .filter((x) => x[1] !== game.activePlayerIndex) as [playedCount, i]}
+          <button class="flip-button"
+            on:click={() => flipCard(i)}
+            disabled={game.activePlayerIndex !== game.playerIndex ||
+              playedCount === game.roundPlayerCardsRevealed[game.roundNumber - 1][i].length}
+            >Reveal {game.playerNicknames[i]} ({i})</button
+          >
+      {/each}
+    </div>
   {/if}
 </div>
+
+<style>
+  .flip-button {
+    padding: 1em;
+    font-weight: 700;
+  }
+
+  .own-button {
+    width: 100%;
+  }
+
+  .other-buttons {
+    text-align: center;
+  }
+</style>

@@ -3,6 +3,7 @@
   export let display: string;
   export let disabled: boolean = false;
   export let lost: boolean = false;
+  export let scale: number = 1;
 </script>
 
 <button
@@ -12,6 +13,7 @@
     }
   }}
   disabled={disabled || lost}
+  style="--theme-scale: {scale}"
   class="card card-{display.toLowerCase()} {lost ? 'card-lost' : disabled ? 'card-disabled' : ''}"
 >
   {#if display === 'Skull'}
@@ -25,9 +27,10 @@
 
 <style>
   .card {
-    width: 8em;
-    height: 12em;
-    border-radius: 1em;
+    width: calc(8em * var(--theme-scale));
+    height: calc(12em * var(--theme-scale));
+    border-radius: calc(1em * var(--theme-scale));
+    margin: calc(0.25em * var(--theme-scale));
     background-color: #fff;
     border-color: #000;
     border-width: 2px;
@@ -42,13 +45,11 @@
   }
 
   .card-lost {
-    width: 6em;
-    height: 9em;
-    filter: opacity(40%);
+    filter: opacity(20%);
   }
 
   .card-disabled {
-    filter: opacity(40%);
+    filter: opacity(60%);
   }
 
   .card-back {

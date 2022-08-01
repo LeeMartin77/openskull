@@ -27,6 +27,7 @@
       disabled={game.activePlayerIndex !== game.playerIndex ||
         game.playerRoundCardIdsPlayed[game.roundNumber - 1].includes(card.id)}
       lost={card.state === CardState.Discarded}
+      scale={0.6}
     />
   {/each}
 </div>

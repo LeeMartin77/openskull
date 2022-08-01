@@ -19,10 +19,29 @@
 
 <h3>Place Bid</h3>
 <div>
-  <button on:click={() => placeBid(SKIP_VALUE)} disabled={game.activePlayerIndex !== game.playerIndex}>Withdraw</button>
-  {#each Array.from({ length: game.roundCountPlayerCardsPlayed[game.roundNumber - 1].reduce((prev, curr) => prev + curr, 1) }, (v, i) => i).filter((x) => x > Math.max(...[0, ...game.currentBids])) as bidNumber}
-    <button on:click={() => placeBid(bidNumber)} disabled={game.activePlayerIndex !== game.playerIndex}
+  <div class="other-buttons">
+
+    {#each Array.from({ length: game.roundCountPlayerCardsPlayed[game.roundNumber - 1].reduce((prev, curr) => prev + curr, 1) }, (v, i) => i).filter((x) => x > Math.max(...[0, ...game.currentBids])) as bidNumber}
+    <button class="bid-button" on:click={() => placeBid(bidNumber)} disabled={game.activePlayerIndex !== game.playerIndex}
       >{bidNumber}</button
     >
-  {/each}
+    {/each}
+  </div>
+  <button class="bid-button withdraw-button" on:click={() => placeBid(SKIP_VALUE)} disabled={game.activePlayerIndex !== game.playerIndex}>Withdraw</button>
 </div>
+
+<style>
+  .bid-button {
+    padding: 0.5em;
+    margin: 0.2em;
+    font-weight: 700;
+  }
+
+  .withdraw-button {
+    width: 100%;
+  }
+
+  .other-buttons {
+    text-align: center;
+  }
+</style>
