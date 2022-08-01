@@ -13,15 +13,17 @@
   export let url = '';
 </script>
 
-<main>
+<main class="main">
   <Router {url}>
-    <div>
-      <Route path="rooms/:roomId" component={RoomView} />
-      <Route path="games/:gameId" component={GamesView} />
-      <Route path="games" component={GamesList} />
-      <Route path="queues" component={QueuesView} />
-      <Route path="/" component={Menu} />
-      <Route path="*" component={NotFound} />
+    <div class="container">
+      <div>
+        <Route path="rooms/:roomId" component={RoomView} />
+        <Route path="games/:gameId" component={GamesView} />
+        <Route path="games" component={GamesList} />
+        <Route path="queues" component={QueuesView} />
+        <Route path="/" component={Menu} />
+        <Route path="*" component={NotFound} />
+      </div>
     </div>
     <GameCreatedDialog />
     <NavigationMenu />
@@ -29,3 +31,23 @@
   <NewPlayerNicknameDialog />
   <PlayerConnectionToaster />
 </main>
+
+<style>
+  .main {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: fixed;
+  }
+  .container {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    position: fixed;
+    overflow-y: auto;
+  }
+</style>

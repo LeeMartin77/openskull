@@ -6,6 +6,7 @@
 </script>
 
 <button
+  class="menu-button"
   on:click={() => {
     open = false;
     open = true;
@@ -14,3 +15,14 @@
 <Dialog {open}>
   <Menu />
 </Dialog>
+
+<style>
+  .menu-button {
+    position: fixed;
+    bottom: 1em;
+    left: 50%;
+    transform: translate(-50%, 0);
+    padding: 0.5em;
+    font-weight: 700;
+  }
+</style>
