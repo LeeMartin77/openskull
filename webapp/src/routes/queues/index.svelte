@@ -60,26 +60,43 @@
 
 <div>
   {#if connection}
-    {#if queueStatus === undefined}
-      <ul>
+    <h3 style="text-align: center">Game Queues</h3>
+    <div class="button-container">
+      {#if queueStatus === undefined}
         {#each queueSizes as size}
-          <li>
-            <button on:click={() => connection.send('JoinQueue', OPENSKULL_USER_ID, OPENSKULL_USER_SECRET, size)}
-              >Join {size} Queue</button
-            >
-          </li>
+          <button
+            class="queue-button"
+            on:click={() => connection.send('JoinQueue', OPENSKULL_USER_ID, OPENSKULL_USER_SECRET, size)}
+            >Join {size} Player Queue</button
+          >
         {/each}
-      </ul>
-    {:else}
-      <div>
-        In {queueStatus.gameSize} player game queue, with {queueStatus.queueSize}
-        players
-      </div>
-      <button on:click={() => connection.send('LeaveQueues', OPENSKULL_USER_ID, OPENSKULL_USER_SECRET)}
-        >Leave Queues</button
-      >
-    {/if}
+      {:else}
+        <div style="margin-bottom: 2em;">
+          In {queueStatus.gameSize} player game queue, awaiting {queueStatus.gameSize - queueStatus.queueSize} players
+        </div>
+        <button
+          class="queue-button"
+          on:click={() => connection.send('LeaveQueues', OPENSKULL_USER_ID, OPENSKULL_USER_SECRET)}>Leave Queue</button
+        >
+      {/if}
+    </div>
   {:else}
     Connecting...
   {/if}
 </div>
+
+<style>
+  .button-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .queue-button {
+    width: 70%;
+    padding: 0.5em;
+    font-weight: 700;
+    font-size: 1em;
+    margin: 0.25em 0;
+  }
+</style>
