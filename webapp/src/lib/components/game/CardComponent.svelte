@@ -14,7 +14,13 @@
   }}
   disabled={disabled || lost}
   style="--theme-scale: {scale}"
-  class="card card-{display.toLowerCase()} {lost ? 'card-lost' : disabled ? 'card-disabled' : ''}"
+  class="card card-{display.toLowerCase()} {lost
+    ? 'card-lost'
+    : disabled
+    ? 'card-disabled'
+    : onClick
+    ? 'card-active'
+    : ''}"
 >
   {#if display === 'Skull'}
     <img src="/openskull.svg" alt="A skull" />
@@ -40,16 +46,20 @@
     justify-content: center;
   }
 
+  .card-active:hover {
+    background-color: #ddd;
+  }
+
   .card img {
     width: 75%;
   }
 
   .card-lost {
-    filter: opacity(20%);
+    filter: opacity(10%);
   }
 
   .card-disabled {
-    filter: opacity(60%);
+    filter: opacity(40%);
   }
 
   .card-back {
