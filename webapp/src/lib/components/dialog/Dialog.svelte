@@ -45,10 +45,10 @@
   .dialog-bar {
     border-radius: 1em;
     padding: 0.5em;
-    width: 100%;
+    width: calc(100% - 1em);
   }
   .dialog-content {
     padding: 1em;
-    width: 100%;
+    width: calc(100% - 2em);
   }
 </style>

@@ -45,6 +45,7 @@
     left: 0;
     right: 0;
     bottom: 0;
+    padding-top: 1em;
     display: flex;
     justify-content: center;
     position: fixed;

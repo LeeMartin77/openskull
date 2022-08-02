@@ -1,5 +1,8 @@
 <script lang="ts">
   import { navigate } from 'svelte-routing';
+  import { createEventDispatcher } from 'svelte';
+
+  const dispatch = createEventDispatcher();
   let roomId = '';
   const validRoomId = (aRoomId: string) => {
     let regMatch;
@@ -13,5 +16,13 @@
 <div>
   <h3>Open Room</h3>
   <input bind:value={roomId} />
-  <button on:click={() => navigate(`/rooms/${roomId}`)} disabled={!validRoomId(roomId)}>Go To Room</button>
+  <button
+    on:click={() => {
+      navigate(`/rooms/${roomId}`);
+      dispatch('navigated', {
+        to: `/rooms/${roomId}`
+      });
+    }}
+    disabled={!validRoomId(roomId)}>Go To Room</button
+  >
 </div>

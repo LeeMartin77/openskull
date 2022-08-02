@@ -13,7 +13,11 @@
   }}>Menu</button
 >
 <Dialog {open}>
-  <Menu />
+  <Menu
+    on:navigated={() => {
+      open = false;
+    }}
+  />
 </Dialog>
 
 <style>
