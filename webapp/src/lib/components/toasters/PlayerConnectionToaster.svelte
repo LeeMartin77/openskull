@@ -3,28 +3,30 @@
 
   import { playerConnection, playerConnectionState } from 'src/stores/player';
   import type { OpenskullMessage } from 'src/types/OpenskullMessage';
+  import Dialog from '../dialog/Dialog.svelte';
 
-  let messages: OpenskullMessage[] = [];
-
-  const messageHandler = (msg: OpenskullMessage) => {
-    messages = [...messages, msg];
-  };
+  let refreshDialog: boolean = false;
 
   playerConnection.subscribe((con) => {
-    con && con.on('send', messageHandler);
-    return () => con && con.off('send', messageHandler);
+    con && con.onclose(() => (refreshDialog = true));
+    return () => {};
   });
-  onDestroy(() => $playerConnection.off('send', messageHandler));
+  onDestroy(() => {});
 </script>
+
 <div class="connection-status">
-  {#if $playerConnectionState === "Connected"}
-    <div class="connection-status-icon connected"></div>
-  {:else if $playerConnectionState === "Disconnected"}
-    <div class="connection-status-icon disconnected"></div>
+  {#if $playerConnectionState === 'Connected'}
+    <div class="connection-status-icon connected" />
+  {:else if $playerConnectionState === 'Disconnected'}
+    <div class="connection-status-icon disconnected" />
   {:else}
-    <div class="connection-status-icon changing"></div>
+    <div class="connection-status-icon changing" />
   {/if}
 </div>
+<Dialog open={refreshDialog} hideClose={true}>
+  <h4>Connection to OpenSkull has been lost - please refresh the page.</h4>
+</Dialog>
+
 <!-- {#each messages as message, i}
   <div>
     Received {JSON.stringify(message)}

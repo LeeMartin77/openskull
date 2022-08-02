@@ -1,6 +1,7 @@
 <script lang="ts">
   export let open: boolean = false;
   export let complete: { text: string; action: () => void } | undefined = undefined;
+  export let hideClose: boolean = false;
   const dismiss = () => (open = false);
   const dismissComplete = (fnr: () => void) => {
     fnr();
@@ -11,7 +12,9 @@
 {#if open}
   <div class="lightbox">
     <div class="dialog">
-      <div class="dialog-bar"><button on:click={() => dismiss()}>Close</button></div>
+      <div class="dialog-bar">
+        {#if !hideClose}<button on:click={() => dismiss()}>Close</button>{/if}
+      </div>
       <div class="dialog-content">
         <slot />
       </div>
