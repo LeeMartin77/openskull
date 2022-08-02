@@ -63,7 +63,7 @@
 {#if game}
   <GameEndDialog open={gameComplete} {game} />
   <RoundEndDialog open={roundEnd !== undefined} games={roundEnd} />
-  <div class="game-container {'playerIndex' in game && !game.gameComplete ? "game-container-contoller-offset" : ""}">
+  <div class="game-container {'playerIndex' in game && !game.gameComplete ? 'game-container-contoller-offset' : ''}">
     {#each Array.from({ length: game.playerCount }, (v, i) => i) as index}
       <div>
         <PublicGameDisplay {game} {index} />
@@ -71,16 +71,15 @@
     {/each}
   </div>
   {#if 'playerIndex' in game && !game.gameComplete}
-  <div class="control-container">
+    <div class="control-container">
       <div>
         <GameControls {game} />
       </div>
-  </div>
+    </div>
   {/if}
 {:else if !loading}
   <div>Could not load game.</div>
-{/if}
-{#if loading}
+{:else}
   <div>Loading...</div>
 {/if}
 
@@ -94,7 +93,7 @@
   }
 
   .game-container-contoller-offset {
-    padding-bottom: 420px
+    padding-bottom: 420px;
   }
 
   .control-container {
@@ -103,7 +102,7 @@
     right: 2em;
     bottom: -1px;
     background-color: white;
-    display:flex;
+    display: flex;
     justify-items: center;
     align-items: center;
     padding: 1em 0 4em 0;

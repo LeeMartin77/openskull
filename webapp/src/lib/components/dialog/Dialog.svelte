@@ -61,5 +61,7 @@
   .dialog-content {
     padding: 1em;
     width: calc(100% - 2em);
+    max-height: 70vh;
+    overflow-y: scroll;
   }
 </style>
