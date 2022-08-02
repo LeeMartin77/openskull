@@ -13,14 +13,14 @@
 <button
   class="navigation-button"
   on:click={() => {
-    navigate('games');
+    navigate('/games');
     dispatchNavigated('games');
   }}>Games List</button
 >
 <button
   class="navigation-button"
   on:click={() => {
-    navigate('queues');
+    navigate('/queues');
     dispatchNavigated('queues');
   }}>Game Queues</button
 >
