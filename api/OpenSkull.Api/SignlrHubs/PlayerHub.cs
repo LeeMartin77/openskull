@@ -171,16 +171,16 @@ public class PlayerHub : Hub
   public override async Task OnDisconnectedAsync(Exception? exception)
   {
     object? playerId = null;
-    if (Context.Items.TryGetValue("RoomPlayer", out playerId))
+    if (Context.Items.TryGetValue("RoomPlayer", out playerId) && playerId != null)
     {
-      Guid parsedId = Guid.Parse((string)playerId!);
+      Guid parsedId = Guid.Parse((string)playerId);
       var removedRooms = await _roomStorage.RemovePlayerIdFromAllRooms(parsedId);
       await Task.WhenAll(removedRooms.Select(RoomUpdate));
     }
     object? queuePlayerId = null;
-    if (Context.Items.TryGetValue("QueuePlayer", out queuePlayerId))
+    if (Context.Items.TryGetValue("QueuePlayer", out queuePlayerId) && queuePlayerId != null)
     {
-      Guid parsedId = Guid.Parse((string)playerId!);
+      Guid parsedId = Guid.Parse((string)queuePlayerId);
       await _gameCreationQueue.LeaveQueues(parsedId);
     }
     await base.OnDisconnectedAsync(exception);
