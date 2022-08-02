@@ -21,15 +21,22 @@
   onDestroy(() => $playerConnection.off('send', messageHandler));
 </script>
 
-<Dialog
-  open={newGameId !== undefined}
-  complete={{
-    text: 'Go to Game',
-    action: () => {
+<Dialog hideClose={true} open={newGameId !== undefined}>
+  <p style="font-weight: 700">Your new game is ready!</p>
+  <button
+    class="new-game-button"
+    on:click={() => {
       navigate('/games/' + newGameId);
       newGameId = undefined;
-    }
-  }}
->
-  <p>Your new game is ready!</p>
+    }}>Go to Game!</button
+  >
 </Dialog>
+
+<style>
+  .new-game-button {
+    width: 100%;
+    font-weight: 700;
+    padding: 1em;
+    border: 1px solid black;
+  }
+</style>
