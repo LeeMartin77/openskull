@@ -26,19 +26,31 @@
 </script>
 
 {#if !loading}
-  {#if games.length === 0}
-    <div>No Games</div>
-  {:else}
-    <ul>
+  <div>
+    {#if games.length === 0}
+      No Games
+    {:else}
       {#each games as game (game.id)}
-        <li>
-          <button on:click={() => navigate('/games/' + game.id)}
-            >{game.playerCount} Game: {game.gameComplete ? 'Completed' : 'Ongoing'}</button
-          >
-        </li>
+        <button class="game-button" on:click={() => navigate('/games/' + game.id)}
+          >{game.playerCount} Player Game: {game.gameComplete ? 'Completed' : 'Ongoing'}</button
+        >
       {/each}
-    </ul>
-  {/if}
+    {/if}
+  </div>
 {:else}
   <div>Loading...</div>
 {/if}
+
+<style>
+  .game-button {
+    border: none;
+    width: 100%;
+    font-weight: 700;
+    padding: 1em;
+    margin: 0.5em 0;
+  }
+
+  .game-button:hover {
+    background-color: lightgray;
+  }
+</style>
