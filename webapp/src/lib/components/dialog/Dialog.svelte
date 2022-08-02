@@ -13,7 +13,7 @@
   <div class="lightbox">
     <div class="dialog">
       <div class="dialog-bar">
-        {#if !hideClose}<button on:click={() => dismiss()}>Close</button>{/if}
+        {#if !hideClose}<button class="close-button" on:click={() => dismiss()}>Close</button>{/if}
       </div>
       <div class="dialog-content">
         <slot />
@@ -44,11 +44,19 @@
     box-shadow: 0.25em 0.25em 0.5em 0em rgba(0, 0, 0, 0.2);
     min-width: 160px;
     min-height: 160px;
+    max-width: 90vw;
   }
   .dialog-bar {
+    display: flex;
     border-radius: 1em;
     padding: 0.5em;
     width: calc(100% - 1em);
+  }
+  .close-button {
+    margin-left: auto;
+    margin-right: 0.5em;
+    padding: 0.5em;
+    font-weight: 700;
   }
   .dialog-content {
     padding: 1em;

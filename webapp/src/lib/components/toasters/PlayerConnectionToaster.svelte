@@ -27,12 +27,6 @@
   <h4>Connection to OpenSkull has been lost - please refresh the page.</h4>
 </Dialog>
 
-<!-- {#each messages as message, i}
-  <div>
-    Received {JSON.stringify(message)}
-    <button on:click={() => { messages.splice(i, 1);  messages = messages }}>Dismiss</button>
-  </div>
-{/each} -->
 <style>
   .connection-status {
     position: fixed;
