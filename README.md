@@ -2,7 +2,7 @@
 
 ![API](https://github.com/leemartin77/openskull/actions/workflows/api-dotnet-build-and-test.yml/badge.svg)
 ![API Publish](https://github.com/leemartin77/openskull/actions/workflows/api-docker-publish.yml/badge.svg)
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/leemartin77/openskull)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/leemartin77/openskull)](https://github.com/LeeMartin77/openskull/releases/latest)
 [![Docker Pulls](https://img.shields.io/docker/pulls/leemartin77/openskull-api)](https://hub.docker.com/r/leemartin77/openskull-api)
 
 ![WebApp](https://github.com/leemartin77/openskull/actions/workflows/webapp-build-and-push.yml/badge.svg)
