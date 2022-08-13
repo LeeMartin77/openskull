@@ -102,17 +102,21 @@ builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(
-                      policy  =>
-                      {
-                          policy.WithOrigins(System.Environment.GetEnvironmentVariable("OPENSKULL_WEBAPP_HOST") ?? "http://localhost:3000")
-                            .AllowAnyHeader()
-                            .AllowAnyMethod()
-                            .AllowCredentials();
-                      });
-});
+bool hasHost = System.Environment.GetEnvironmentVariable("OPENSKULL_WEBAPP_HOST") != null;
+
+if (hasHost) {
+    builder.Services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(
+                        policy  =>
+                        {
+                            policy.WithOrigins(System.Environment.GetEnvironmentVariable("OPENSKULL_WEBAPP_HOST")!)
+                                .AllowAnyHeader()
+                                .AllowAnyMethod()
+                                .AllowCredentials();
+                        });
+    });
+}
 
 var app = builder.Build();
 
@@ -133,10 +137,12 @@ app.UseAuthorization();
 
 app.UseVerifyPlayer();
 
-app.UseCors();
+if (hasHost) {
+    app.UseCors();
+}
 
-app.MapHub<PlayerHub>("/player/ws");
-app.MapHub<GameHub>("/game/ws");
+app.MapHub<PlayerHub>("/api/player/ws");
+app.MapHub<GameHub>("/api/game/ws");
 
 using (var serviceScope = app.Services.CreateScope())
 {
@@ -150,6 +156,31 @@ using (var serviceScope = app.Services.CreateScope())
         var gameCreationQueue = services.GetRequiredService<IGameCreationQueue>();
         Task.Run(gameCreationQueue.GameMasterThread);
     }
+}
+
+bool HIDE_CLIENT = false;
+if (!bool.TryParse(System.Environment.GetEnvironmentVariable("HIDE_CLIENT"), out HIDE_CLIENT) || !HIDE_CLIENT) {
+    app.Use(async (context, next) =>
+    {
+    string path = context.Request.Path;
+    if (path.StartsWith("/api"))
+    {
+        await next(context);
+    }
+    else
+    {
+        string directory = Environment.CurrentDirectory;
+        string staticDirectory = "/Static";
+
+        // This will probably fall over with binary data - but that can be future me's problem
+        string fileToSend = File.Exists(directory + staticDirectory + path) ? directory + staticDirectory + path : directory + staticDirectory + "/index.html";
+        var stream = File.OpenRead(fileToSend);
+        string? contentType;
+        new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider().TryGetContentType(fileToSend, out contentType);
+        context.Response.ContentType = contentType ?? "text/html";
+        await context.Response.WriteAsync(await new StreamReader(stream).ReadToEndAsync());
+    }
+    });
 }
 
 app.MapControllers();

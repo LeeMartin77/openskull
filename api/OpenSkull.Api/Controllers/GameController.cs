@@ -65,7 +65,7 @@ public class GameController : ControllerBase
     }
 
     // No tests for this, as this is to enable testing in itself
-    [Route("games/createtestgame")]
+    [Route("api/games/createtestgame")]
     [HttpPost]
     public async Task<ActionResult<Guid>> CreateTestGame([FromBody] TestGameInput input) {
         var result = _gameCreateNew(input.PlayerIds != null ? input.PlayerIds.ToArray() : new Guid[0]);
@@ -83,7 +83,7 @@ public class GameController : ControllerBase
         public int GameSize { get; set; }
     }
 
-    [Route("games")]
+    [Route("api/games")]
     [HttpGet]
     public async Task<ActionResult<IGameView[]>> SearchGames(
         [FromQuery] bool? gameComplete = null,
@@ -113,7 +113,7 @@ public class GameController : ControllerBase
         }).ToArray();
     }
     
-    [Route("games/{gameId}")]
+    [Route("api/games/{gameId}")]
     [HttpGet]
     public async Task<ActionResult<IGameView>> GetGame(Guid gameId) {
         var gameResult = await _gameStorage.GetGameById(gameId);
@@ -132,7 +132,7 @@ public class GameController : ControllerBase
         return new PublicGame(gameId, gameResult.Value.Game, players, gameResult.Value.LastUpdated);
     }
 
-    [Route("games/{gameId}/turn")]
+    [Route("api/games/{gameId}/turn")]
     [HttpPost]
     public async Task<ActionResult<IGameView>> PlayGameTurn(Guid gameId, [FromBody] PlayTurnInputs? inputs = null) {
         Guid? seekPlayerId = VerifyPlayerMiddleware.GetValidatedPlayerIdFromContext(HttpContext);

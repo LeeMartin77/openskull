@@ -1,21 +1,21 @@
 const signalR = require('@microsoft/signalr');
 const https = require('https');
 const axios = require("axios").create({
-  httpsAgent: new https.Agent({  
+  httpsAgent: new https.Agent({
     rejectUnauthorized: false
   })
 });
 const crypto = require("crypto");
 const { v4 } = require("uuid");
 
-const apiRoot = process.env.OPENSKULL_API_ROOT ?? "http://localhost:5248"
+const apiRoot = process.env.OPENSKULL_API_ROOT ?? "http://localhost:5248" + "/api"
 
 test("Join Game :: Can connect to queues and get game created", async () => {
   const TEST_PLAYER_IDS = [
     [crypto.randomUUID(), crypto.randomUUID()],
     [crypto.randomUUID(), crypto.randomUUID()],
     [crypto.randomUUID(), crypto.randomUUID()]
-  ] 
+  ]
 
   const messages = [
     [],
@@ -31,9 +31,9 @@ test("Join Game :: Can connect to queues and get game created", async () => {
 
   TEST_PLAYER_IDS.forEach(async (id, i) => {
     let connection = new signalR.HubConnectionBuilder()
-    .withUrl(apiRoot +`/player/ws`)
-    .configureLogging(signalR.LogLevel.Error)
-    .build();
+      .withUrl(apiRoot + `/player/ws`)
+      .configureLogging(signalR.LogLevel.Error)
+      .build();
 
     connection.on("send", msg => responseHandler(i, msg));
 
@@ -41,7 +41,7 @@ test("Join Game :: Can connect to queues and get game created", async () => {
 
     await connection.send("subscribeToUserId", id[0], id[1])
 
-    while(!messages[i].map(x => x.activity).includes("Subscribed")) {
+    while (!messages[i].map(x => x.activity).includes("Subscribed")) {
       await new Promise(resolve => setTimeout(resolve, 10))
     }
 
@@ -74,9 +74,9 @@ test("Can query, queue, query, leave, query", async () => {
   }
 
   let connection = new signalR.HubConnectionBuilder()
-  .withUrl(apiRoot +`/player/ws`)
-  .configureLogging(signalR.LogLevel.Error)
-  .build();
+    .withUrl(apiRoot + `/player/ws`)
+    .configureLogging(signalR.LogLevel.Error)
+    .build();
 
   connection.on("send", messageHandler);
 
