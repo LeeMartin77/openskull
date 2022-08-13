@@ -48,8 +48,8 @@ jobs:
       uses: docker/setup-buildx-action@v2
       
     - name: Build and Publish the Docker image
-      working-directory: ./api/OpenSkull.Api
+      working-directory: .
       run: |
-        export REPOSITORY="leemartin77/openskull-api"
+        export REPOSITORY="leemartin77/openskull"
         export VERSION=${{ github.event.release.tag_name }}
         docker buildx build --platform linux/arm/v7,linux/arm64/v8,linux/amd64 -t "$REPOSITORY:latest" -t "$REPOSITORY:$VERSION" --push .
