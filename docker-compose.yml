@@ -1,6 +1,6 @@
 services:
   api:
-    build: OpenSkull.Api
+    build: .
     ports:
       - "5248:80"
     environment:
