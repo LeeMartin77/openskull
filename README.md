@@ -9,6 +9,22 @@
 
 I love the card game [Skull](https://www.youtube.com/watch?v=Lu_IgiU4lh8). This is an open source, web based version of this game.
 
+## Try it out locally!
+
+You can run the latest release as a locally served application with the following docker command:
+
+```bash
+docker run --rm -p 3456:80 leemartin77/openskull
+```
+
+The application will then be served to you on [http://localhost:3456](http://localhost:3456)
+
+This won't preserve any state so you'll lose any games when the container exits.
+
+### Docker Image Environment Variables
+
+**Coming soon**
+
 ## The Game
 
 ### Setup
