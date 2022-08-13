@@ -22,6 +22,6 @@ RUN npm run build
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
 WORKDIR /app
-COPY --from=api-build /api/out /app
+COPY --from=server-build /api/out /app
 COPY --from=webapp-build /webapp/dist /app/Static
 ENTRYPOINT ["dotnet", "OpenSkull.Api.dll"]
