@@ -43,13 +43,6 @@ I love the card game [Skull](https://www.youtube.com/watch?v=Lu_IgiU4lh8). This 
 
 ## The Tech
 
-The way the application should work:
-
-- User joins a room. When there are more than 3 players in a room, players can vote to start a game.
-- User can just join a queue of random players.
-  - When there are enough players, a game forms after 10 seconds.
-  - If there are 6 players, a game forms immediately for them
-
 ### Web Client
 
 The web client is a Svelte SPA app
