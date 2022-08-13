@@ -10,20 +10,24 @@
   };
 </script>
 
-<button
-  class="navigation-button"
-  on:click={() => {
-    navigate('/games');
-    dispatchNavigated('games');
-  }}>Games List</button
->
-<button
-  class="navigation-button"
-  on:click={() => {
-    navigate('/queues');
-    dispatchNavigated('queues');
-  }}>Game Queues</button
->
+<div class="navigation-buttons">
+  <a href="https://www.openskull.dev" class="navigation-button">About</a>
+
+  <button
+    class="navigation-button"
+    on:click={() => {
+      navigate('/games');
+      dispatchNavigated('games');
+    }}>Games List</button
+  >
+  <button
+    class="navigation-button"
+    on:click={() => {
+      navigate('/queues');
+      dispatchNavigated('queues');
+    }}>Game Queues</button
+  >
+</div>
 
 <RoomJoinInterface
   on:navigated={({ detail }) => {
@@ -33,12 +37,25 @@
 <UpdatePlayerNickname showDummyButton={true} />
 
 <style>
+  .navigation-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .navigation-button {
     border: none;
-    width: 100%;
-    font-weight: 700;
+    font-weight: 400;
+    line-height: 1em;
     padding: 0.5em;
     margin: 0.5em 0;
+    background-color: #eee;
+    flex: 1;
+    color: black;
+    text-decoration: none;
+    text-align: center;
+    font-size: 14px;
+    cursor: pointer;
   }
 
   .navigation-button:hover {
