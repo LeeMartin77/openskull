@@ -10,6 +10,7 @@
   import type { OpenskullMessage } from 'src/types/OpenskullMessage';
 
   export let gameId: string;
+  export let gameConnection = new HubConnectionBuilder().withUrl(API_ROOT_URL + '/game/ws').build();
 
   let game: PlayerGame | PublicGame = undefined;
   let loading: boolean = true;
@@ -50,8 +51,6 @@
       updateGame();
     }
   };
-
-  const gameConnection = new HubConnectionBuilder().withUrl(API_ROOT_URL + '/game/ws').build();
 
   gameConnection.on('send', messageHandler);
 

@@ -10,7 +10,7 @@ const getOrStoreNewVariable = (key: string, generated: string) => {
   let lstUserID = localStorage.getItem(key);
   if (!lstUserID) {
     lstUserID = generated;
-    localStorage.setItem(OPENSKULL_USER_ID_KEY, lstUserID);
+    localStorage.setItem(key, lstUserID);
   }
   return lstUserID;
 };
@@ -55,7 +55,7 @@ export const playerConnection = readable<HubConnection | undefined>(undefined, f
         'UpdateNickname',
         OPENSKULL_USER_ID,
         OPENSKULL_USER_SECRET,
-        localStorage.getItem(OPENSKULL_USER_NICKNAME_IDENTIFIER)
+        localStorage.getItem(OPENSKULL_USER_NICKNAME_IDENTIFIER) || DEFAULT_USER_NICKNAME
       );
     });
 

@@ -16,6 +16,13 @@
   <button
     class="navigation-button"
     on:click={() => {
+      navigate('/games/solo');
+      dispatchNavigated('games/solo');
+    }}>Solo Play</button
+  >
+  <button
+    class="navigation-button"
+    on:click={() => {
       navigate('/games');
       dispatchNavigated('games');
     }}>Games List</button

@@ -18,8 +18,13 @@ test("Happy Path :: Create Test Game Then Play It Through", async () => {
     [crypto.randomUUID(), crypto.randomUUID()],
     [crypto.randomUUID(), crypto.randomUUID()]
   ]
-  const gameCreateResponse = await axios.post(apiRoot + "/games/createtestgame", {
+  const gameCreateResponse = await axios.post(apiRoot + "/games", {
     playerIds: TEST_PLAYER_IDS.map(x => x[0])
+  }, {
+    headers: {
+      "X-OpenSkull-UserId": TEST_PLAYER_IDS[0][0],
+      "X-OpenSkull-UserSecret": TEST_PLAYER_IDS[0][1]
+    }
   });
   expect(gameCreateResponse.status).toBe(200);
   const gameId = gameCreateResponse.data;

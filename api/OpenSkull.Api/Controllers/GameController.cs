@@ -23,6 +23,9 @@ public enum TurnAction {
     Flip
 }
 
+public class CreateGameInput {
+    public List<Guid>? PlayerIds { get; set; }
+}
 
 [ApiController]
 public class GameController : ControllerBase
@@ -60,14 +63,13 @@ public class GameController : ControllerBase
         _turnFlipCard = tfc;
     }
 
-    public class TestGameInput {
-        public List<Guid>? PlayerIds { get; set; }
-    }
-
-    // No tests for this, as this is to enable testing in itself
-    [Route("api/games/createtestgame")]
+    [Route("api/games")]
     [HttpPost]
-    public async Task<ActionResult<Guid>> CreateTestGame([FromBody] TestGameInput input) {
+    public async Task<ActionResult<Guid>> CreateGame([FromBody] CreateGameInput input) {
+        Guid? seekPlayerId = VerifyPlayerMiddleware.GetValidatedPlayerIdFromContext(HttpContext);
+        if (seekPlayerId == null || input == null || input.PlayerIds == null || !input.PlayerIds.Contains((Guid)seekPlayerId)) {
+            return new BadRequestResult();
+        }
         var result = _gameCreateNew(input.PlayerIds != null ? input.PlayerIds.ToArray() : new Guid[0]);
         if (result.IsFailure) {
             return BadRequest();
