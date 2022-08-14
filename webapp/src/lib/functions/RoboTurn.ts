@@ -28,7 +28,13 @@ export async function playRoboTurn(bot: SoloGameBot, game: PlayerGame): Promise<
     case RoundPhase.Bidding:
       return placeBid(game.id, SKIP_VALUE, botHeaders)
     case RoundPhase.Flipping:
-      // TODO: this is going to be a pain
-      return;
+      if (game.roundPlayerCardsRevealed[game.roundNumber - 1][game.activePlayerIndex].length !== game.roundCountPlayerCardsPlayed[game.roundNumber - 1][game.activePlayerIndex]) {
+        // Own cards left
+        return flipCard(game.id, game.activePlayerIndex);
+      }
+      const flippable = game.roundCountPlayerCardsPlayed[game.roundNumber - 1]
+          .map((playedCount, i) => [playedCount, i])
+          .filter(([playedCount, playerIndex]) => playerIndex !== game.activePlayerIndex && playedCount > game.roundPlayerCardsRevealed[game.roundNumber - 1][playerIndex].length)
+      return flipCard(game.id, flippable[Math.floor(Math.random() * flippable.length)][1], botHeaders);
   }
 }
