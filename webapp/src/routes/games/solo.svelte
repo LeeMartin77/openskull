@@ -11,6 +11,7 @@
 
   let soloGameBots: SoloGameBot[] = [];
   let soloGameId: string;
+  let gameComplete: boolean = false;
 
   const gameConnection = new HubConnectionBuilder().withUrl(API_ROOT_URL + '/game/ws').build();
 
@@ -35,13 +36,14 @@
       soloGameBots = soloGameBotsVal;
     }
   });
-  if (soloGameBots) {
-    CURRENT_SOLO_GAME.subscribe((soloGameIdVal) => {
-      soloGameId = soloGameIdVal;
-    });
-  }
+
+  CURRENT_SOLO_GAME.subscribe((soloGameIdVal) => {
+    soloGameId = soloGameIdVal;
+  });
 
   const createSoloGame = () => {
+    CURRENT_SOLO_GAME.set(null);
+    gameComplete = false;
     fetch(`${API_ROOT_URL}/games`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...generateUserHeaders() },
@@ -62,6 +64,7 @@
       })
         .then((res) => res.json())
         .then((parsed: PlayerGame) => {
+          gameComplete = parsed.gameComplete;
           if (parsed.gameComplete) {
             // game has ended
             return;
@@ -85,8 +88,6 @@
     gameConnection.on('send', turnHandler);
     handleGameUpdate();
   }
-
-  // TODO: Will need to add a "Game Complete - new game?" dialog to the bottom
 </script>
 
 {#if soloGameBots.length === 0}
@@ -94,6 +95,9 @@
 {:else if !soloGameId}
   <button on:click={createSoloGame}>Create New Solo Game</button>
 {:else}
+  {#if gameComplete}
+    <button on:click={createSoloGame}>Create New Solo Game</button>
+  {/if}
   <GameInterface gameId={soloGameId} {gameConnection} />
 {/if}
 
