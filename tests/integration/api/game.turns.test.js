@@ -17,6 +17,11 @@ test("Game Turns Played :: Get websocket turn notification", async () => {
   ]
   const gameCreateResponse = await axios.post(apiRoot + "/games", {
     playerIds: TEST_PLAYER_IDS.map(x => x[0])
+  }, {
+    headers: {
+      "X-OpenSkull-UserId": TEST_PLAYER_IDS[0][0],
+      "X-OpenSkull-UserSecret": TEST_PLAYER_IDS[0][1]
+    }
   });
   expect(gameCreateResponse.status).toBe(200);
   const gameId = gameCreateResponse.data;

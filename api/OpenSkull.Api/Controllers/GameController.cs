@@ -66,6 +66,10 @@ public class GameController : ControllerBase
     [Route("api/games")]
     [HttpPost]
     public async Task<ActionResult<Guid>> CreateGame([FromBody] CreateGameInput input) {
+        Guid? seekPlayerId = VerifyPlayerMiddleware.GetValidatedPlayerIdFromContext(HttpContext);
+        if (seekPlayerId == null || input == null || input.PlayerIds == null || !input.PlayerIds.Contains((Guid)seekPlayerId)) {
+            return new BadRequestResult();
+        }
         var result = _gameCreateNew(input.PlayerIds != null ? input.PlayerIds.ToArray() : new Guid[0]);
         if (result.IsFailure) {
             return BadRequest();
