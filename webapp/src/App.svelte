@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Router, Link, Route } from 'svelte-routing';
+  import { Router, Route } from 'svelte-routing';
+  import SoloGame from './routes/games/solo.svelte';
   import GamesView from './routes/games/[gameId].svelte';
   import GamesList from './routes/games/index.svelte';
   import RoomView from './routes/rooms/[roomId].svelte';
@@ -19,6 +20,7 @@
       <div>
         <Route path="rooms/:roomId" component={RoomView} />
         <Route path="games/:gameId" component={GamesView} />
+        <Route path="games/solo" component={SoloGame} />
         <Route path="games" component={GamesList} />
         <Route path="queues" component={QueuesView} />
         <Route path="/" component={Menu} />
