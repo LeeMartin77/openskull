@@ -1,7 +1,7 @@
 <script lang="ts">
   import { API_ROOT_URL, SKIP_VALUE } from 'src/config';
   import { generateUserHeaders } from 'src/stores/player';
-  import { TurnAction, type PlayerGame } from 'src/types/Game';
+  import { RoundPhase, TurnAction, type PlayerGame } from 'src/types/Game';
 
   export let game: PlayerGame;
 
@@ -20,14 +20,21 @@
 <h3>Place Bid</h3>
 <div>
   <div class="other-buttons">
-
     {#each Array.from({ length: game.roundCountPlayerCardsPlayed[game.roundNumber - 1].reduce((prev, curr) => prev + curr, 1) }, (v, i) => i).filter((x) => x > Math.max(...[0, ...game.currentBids])) as bidNumber}
-    <button class="bid-button" on:click={() => placeBid(bidNumber)} disabled={game.activePlayerIndex !== game.playerIndex}
-      >{bidNumber}</button
-    >
+      <button
+        class="bid-button"
+        on:click={() => placeBid(bidNumber)}
+        disabled={game.activePlayerIndex !== game.playerIndex}>{bidNumber}</button
+      >
     {/each}
   </div>
-  <button class="bid-button withdraw-button" on:click={() => placeBid(SKIP_VALUE)} disabled={game.activePlayerIndex !== game.playerIndex}>Withdraw</button>
+  {#if game.currentRoundPhase === RoundPhase.Bidding}
+    <button
+      class="bid-button withdraw-button"
+      on:click={() => placeBid(SKIP_VALUE)}
+      disabled={game.activePlayerIndex !== game.playerIndex}>Withdraw</button
+    >
+  {/if}
 </div>
 
 <style>
