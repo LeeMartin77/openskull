@@ -1,7 +1,7 @@
 import { SKIP_VALUE } from "src/config";
 import { generateUserHeaders } from "src/stores/player";
 import type { SoloGameBot } from "src/stores/solo";
-import { CardState, RoundPhase, type PlayerGame } from "src/types/Game";
+import { CardState, CardType, RoundPhase, type PlayerGame } from "src/types/Game";
 import { playCard, placeBid, flipCard } from './TurnFunctions';
 
 
@@ -34,8 +34,14 @@ export async function playRoboTurn(bot: SoloGameBot, game: PlayerGame): Promise<
       }
       return placeBid(game.id, Math.floor(Math.random() * game.roundCountPlayerCardsPlayed[game.roundNumber - 1].reduce((prev, curr) => prev + curr, 0) / 2) + 1, botHeaders);
     case RoundPhase.Bidding:
-      const botBid = Math.floor(Math.random() * game.roundCountPlayerCardsPlayed[game.roundNumber - 1].reduce((prev, curr) => prev + curr, 0)) + 1;
+      const maxBid = game.roundCountPlayerCardsPlayed[game.roundNumber - 1].reduce((prev, curr) => prev + curr, 0);
+      let botBid = Math.floor(Math.random() * (maxBid + 1));
       const minBid = Math.max(...game.currentBids) + 1;
+      if (maxBid === minBid && game.playerRoundCardIdsPlayed[game.roundNumber - 1].includes(game.playerCards.find(x => x.type === CardType.Skull).id)) {
+        // This is just so the bot doesn't dive into
+        // bidding the max after playing a skull
+        botBid = SKIP_VALUE;
+      }
       return placeBid(game.id, botBid >= minBid ? botBid : SKIP_VALUE, botHeaders)
     case RoundPhase.Flipping:
       if (game.roundPlayerCardsRevealed[game.roundNumber - 1][game.activePlayerIndex].length !== game.roundCountPlayerCardsPlayed[game.roundNumber - 1][game.activePlayerIndex]) {
