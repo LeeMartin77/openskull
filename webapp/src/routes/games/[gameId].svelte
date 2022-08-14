@@ -20,7 +20,6 @@
   let roundEnd: { prev: PublicGame; curr: PublicGame } | undefined = undefined;
 
   const updateGame = () => {
-    loading = false;
     fetch(API_ROOT_URL + `/games/` + gameId, {
       headers: {
         ...generateUserHeaders()

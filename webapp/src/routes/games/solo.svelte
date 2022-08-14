@@ -12,6 +12,8 @@
   let soloGameBots: SoloGameBot[] = [];
   let soloGameId: string;
   let gameComplete: boolean = false;
+  let gameExists: boolean = false;
+  let loading: boolean = true;
 
   const gameConnection = new HubConnectionBuilder().withUrl(API_ROOT_URL + '/game/ws').build();
 
@@ -38,6 +40,17 @@
   });
 
   CURRENT_SOLO_GAME.subscribe((soloGameIdVal) => {
+    if (soloGameIdVal) {
+      fetch(API_ROOT_URL + '/games/' + soloGameIdVal, { headers: generateUserHeaders() }).then((res) => {
+        if (res.status !== 200) {
+          CURRENT_SOLO_GAME.set(null);
+          gameExists = false;
+        } else {
+          gameExists = true;
+        }
+        loading = false;
+      });
+    }
     soloGameId = soloGameIdVal;
   });
 
@@ -92,13 +105,15 @@
 
 {#if soloGameBots.length === 0}
   <h2>Building Bots...</h2>
-{:else if !soloGameId}
+{:else if (!soloGameId || !gameExists) && !loading}
   <button on:click={createSoloGame}>Create New Solo Game</button>
-{:else}
+{:else if gameExists}
   {#if gameComplete}
     <button on:click={createSoloGame}>Create New Solo Game</button>
   {/if}
   <GameInterface gameId={soloGameId} {gameConnection} />
+{:else}
+  <h1>Loading...</h1>
 {/if}
 
 <style>
