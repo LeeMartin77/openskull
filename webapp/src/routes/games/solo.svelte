@@ -70,7 +70,7 @@
             // It's not this bot's turn
             return;
           }
-          playRoboTurn(parsed);
+          playRoboTurn(bot, parsed);
         });
     });
   };
