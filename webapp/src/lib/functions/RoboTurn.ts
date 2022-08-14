@@ -36,12 +36,12 @@ export async function playRoboTurn(bot: SoloGameBot, game: PlayerGame): Promise<
     case RoundPhase.Bidding:
       const maxBid = game.roundCountPlayerCardsPlayed[game.roundNumber - 1].reduce((prev, curr) => prev + curr, 0);
       let botBid = Math.floor(Math.random() * (maxBid + 1));
-      const minBid = Math.max(...game.currentBids) + 1;
-      if (maxBid === minBid && game.playerRoundCardIdsPlayed[game.roundNumber - 1].includes(game.playerCards.find(x => x.type === CardType.Skull).id)) {
+      if (maxBid === botBid && game.playerRoundCardIdsPlayed[game.roundNumber - 1].includes(game.playerCards.find(x => x.type === CardType.Skull).id)) {
         // This is just so the bot doesn't dive into
         // bidding the max after playing a skull
         botBid = SKIP_VALUE;
       }
+      const minBid = Math.max(...game.currentBids) + 1;
       return placeBid(game.id, botBid >= minBid ? botBid : SKIP_VALUE, botHeaders)
     case RoundPhase.Flipping:
       if (game.roundPlayerCardsRevealed[game.roundNumber - 1][game.activePlayerIndex].length !== game.roundCountPlayerCardsPlayed[game.roundNumber - 1][game.activePlayerIndex]) {
