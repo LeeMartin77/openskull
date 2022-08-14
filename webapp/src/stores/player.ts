@@ -10,7 +10,7 @@ const getOrStoreNewVariable = (key: string, generated: string) => {
   let lstUserID = localStorage.getItem(key);
   if (!lstUserID) {
     lstUserID = generated;
-    localStorage.setItem(OPENSKULL_USER_ID_KEY, lstUserID);
+    localStorage.setItem(key, lstUserID);
   }
   return lstUserID;
 };
