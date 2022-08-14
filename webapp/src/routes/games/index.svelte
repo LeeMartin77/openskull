@@ -23,6 +23,8 @@
     .then((res) => res.json())
     .then((parsed) => (games = parsed))
     .finally(() => (loading = false));
+  // TODO: Add deviation that if game is existing in progress solo
+  // link should instead take them to games/solo
 </script>
 
 {#if !loading}
