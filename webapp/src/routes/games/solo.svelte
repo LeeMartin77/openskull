@@ -111,10 +111,12 @@
 {#if soloGameBots.length === 0}
   <h2>Building Bots...</h2>
 {:else if !soloGameId || (!loading && !gameExists)}
-  <button on:click={createSoloGame}>Create New Solo Game</button>
+  <button class="new-solo-button" on:click={createSoloGame}>Create New Solo Game</button>
 {:else if gameExists}
   {#if gameComplete}
-    <button on:click={createSoloGame}>Create New Solo Game</button>
+    <div class="new-solo-container">
+      <button class="new-solo-button" on:click={createSoloGame}>Create New Solo Game</button>
+    </div>
   {/if}
   <GameInterface gameId={soloGameId} {gameConnection} />
 {:else}
@@ -122,4 +124,26 @@
 {/if}
 
 <style>
+  .new-solo-container {
+    display: flex;
+    width: 100%;
+  }
+  .new-solo-button {
+    border: none;
+    font-weight: 700;
+    line-height: 1em;
+    padding: 1em;
+    margin: 0.5em 0;
+    background-color: #eee;
+    flex: 1;
+    color: black;
+    text-decoration: none;
+    text-align: center;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .new-solo-button:hover {
+    background-color: lightgray;
+  }
 </style>
