@@ -55,7 +55,7 @@ export const playerConnection = readable<HubConnection | undefined>(undefined, f
         'UpdateNickname',
         OPENSKULL_USER_ID,
         OPENSKULL_USER_SECRET,
-        localStorage.getItem(OPENSKULL_USER_NICKNAME_IDENTIFIER)
+        localStorage.getItem(OPENSKULL_USER_NICKNAME_IDENTIFIER) || DEFAULT_USER_NICKNAME
       );
     });
 
