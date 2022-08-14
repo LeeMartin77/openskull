@@ -6,6 +6,8 @@
   import { API_ROOT_URL } from 'src/config';
   import GameInterface from './[gameId].svelte';
   import type { OpenskullMessage } from 'src/types/OpenskullMessage';
+  import type { PlayerGame } from 'src/types/Game';
+  import { playRoboTurn } from 'src/lib/functions/RoboTurn';
 
   let soloGameBots: SoloGameBot[] = [];
   let soloGameId: string;
@@ -50,17 +52,41 @@
       .then((res) => res.json())
       .then((gameId) => CURRENT_SOLO_GAME.set(gameId));
   };
+
+  const handleGameUpdate = () => {
+    soloGameBots.forEach((bot) => {
+      fetch(API_ROOT_URL + `/games/` + soloGameId, {
+        headers: {
+          ...generateUserHeaders(bot.id, bot.secret)
+        }
+      })
+        .then((res) => res.json())
+        .then((parsed: PlayerGame) => {
+          if (parsed.gameComplete) {
+            // game has ended
+            return;
+          }
+          if (parsed.activePlayerIndex !== parsed.playerIndex) {
+            // It's not this bot's turn
+            return;
+          }
+          playRoboTurn(parsed);
+        });
+    });
+  };
+
   if (soloGameId) {
     const turnHandler = (msg: OpenskullMessage) => {
       if (msg.activity === 'Turn' && msg.id === soloGameId) {
-        // Handle Roboturns
+        handleGameUpdate();
       }
     };
 
     gameConnection.on('send', turnHandler);
-
-    //Also - fire turn update at start in case we're starting with a robot turn
+    handleGameUpdate();
   }
+
+  // TODO: Will need to add a "Game Complete - new game?" dialog to the bottom
 </script>
 
 {#if soloGameBots.length === 0}
