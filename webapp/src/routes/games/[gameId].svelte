@@ -54,12 +54,11 @@
 
   gameConnection.on('send', messageHandler);
 
-  gameConnection.start().then(() => gameConnection.send('subscribeToGameId', gameId));
+  gameConnection.start().then(() => gameConnection.send('subscribeToGameId', gameId))
+    .then(() => updateGame());
 
   let gameConnectionLost = false;
   gameConnection.onclose(() => gameConnectionLost = true);
-
-  updateGame();
 </script>
 
 <Dialog open={gameConnectionLost} hideClose={true}>
