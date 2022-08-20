@@ -59,6 +59,11 @@ public class PlayerHub : Hub
       {
         var playerDetails = player.Value;
         await _playerStorage.UpdatePlayer(playerDetails with { Nickname = newNickname });
+
+        if(Context.Items.ContainsKey("RoomsConnected")) 
+        { 
+          await Task.WhenAll((Context.Items["RoomsConnected"]! as string[])!.Select(roomId => RoomUpdate(roomId)));
+        }
       }
     }
   }
@@ -117,6 +122,12 @@ public class PlayerHub : Hub
     }
     await _roomStorage.AddPlayerIdToRoom(roomId, parsedPlayerId);
     Context.Items["RoomPlayer"] = playerId;
+    if(!Context.Items.ContainsKey("RoomsConnected")) 
+    { 
+      Context.Items.Add("RoomsConnected", new string[] { roomId });
+    } else {
+      (Context.Items["RoomsConnected"]! as string[])!.Append(roomId);
+    }
     await RoomUpdate(roomId);
   }
 
@@ -165,6 +176,10 @@ public class PlayerHub : Hub
       throw new InvalidOperationException();
     }
     await _roomStorage.RemovePlayerIdFromRoom(roomId, parsedPlayerId);
+    if(Context.Items.ContainsKey("RoomsConnected")) 
+    { 
+      Context.Items["RoomsConnected"] = (Context.Items["RoomsConnected"]! as string[])!.Where(x => x != roomId).ToArray();
+    }
     await RoomUpdate(roomId);
   }
 
