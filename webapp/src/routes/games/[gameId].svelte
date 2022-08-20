@@ -1,6 +1,7 @@
 <script lang="ts">
   import { HubConnectionBuilder } from '@microsoft/signalr';
   import { API_ROOT_URL } from 'src/config';
+  import Dialog from 'src/lib/components/dialog/Dialog.svelte';
   import GameEndDialog from 'src/lib/components/game/dialogs/GameEndDialog.svelte';
   import RoundEndDialog from 'src/lib/components/game/dialogs/RoundEndDialog.svelte';
   import GameControls from 'src/lib/components/game/GameControls.svelte';
@@ -55,8 +56,15 @@
 
   gameConnection.start().then(() => gameConnection.send('subscribeToGameId', gameId));
 
+  let gameConnectionLost = false;
+  gameConnection.onclose(() => gameConnectionLost = true);
+
   updateGame();
 </script>
+
+<Dialog open={gameConnectionLost} hideClose={true}>
+  <h4>Connection to OpenSkull has been lost - please refresh the page.</h4>
+</Dialog>
 
 {#if game}
   <GameEndDialog open={gameComplete} {game} />
