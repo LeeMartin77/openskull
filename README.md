@@ -3,7 +3,6 @@
 ![API](https://github.com/leemartin77/openskull/actions/workflows/api-dotnet-build-and-test.yml/badge.svg)
 ![API Publish](https://github.com/leemartin77/openskull/actions/workflows/docker-publish.yml/badge.svg)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/leemartin77/openskull)](https://github.com/LeeMartin77/openskull/releases/latest)
-[![Docker Pulls](https://img.shields.io/docker/pulls/leemartin77/openskull-api)](https://hub.docker.com/r/leemartin77/openskull)
 
 ![WebApp](https://github.com/leemartin77/openskull/actions/workflows/webapp-build-and-push.yml/badge.svg)
 
@@ -14,7 +13,13 @@ I love the card game [Skull](https://www.youtube.com/watch?v=Lu_IgiU4lh8). This 
 You can run the latest release as a locally served application with the following docker command:
 
 ```bash
-docker run --rm -p 3456:80 leemartin77/openskull
+docker run --rm -p 3456:80 ghcr.io/leemartin77/openskull
+```
+
+or podman:
+
+```bash
+podman run --rm -p 3456:80 ghcr.io/leemartin77/openskull
 ```
 
 The application will then be served to you on [http://localhost:3456](http://localhost:3456)
