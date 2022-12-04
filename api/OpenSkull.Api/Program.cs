@@ -7,6 +7,7 @@ using OpenSkull.Api.Middleware;
 using Confluent.Kafka;
 using StackExchange.Redis;
 using System.Net;
+using Cassandra;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -82,6 +83,28 @@ switch (System.Environment.GetEnvironmentVariable("STORAGE_SERVICE") ?? "MEMORY"
     }
     builder.Services.AddSingleton<IGameStorage>(new GamePostgresStorage(hostStrings));
     builder.Services.AddSingleton<IPlayerStorage>(new PlayerPostgresStorage(hostStrings));
+    break;
+  case "CASSANDRA":
+    var contactPoints = System.Environment.GetEnvironmentVariable("CASSANDRA_CONTACT_POINTS");
+    int port;
+    var cassUsername = System.Environment.GetEnvironmentVariable("CASSANDRA_USERNAME");
+    var cassPassword = System.Environment.GetEnvironmentVariable("CASSANDRA_PASSWORD");
+    var cassKeyspace = System.Environment.GetEnvironmentVariable("CASSANDRA_KEYSPACE");
+    if (!int.TryParse(System.Environment.GetEnvironmentVariable("CASSANDRA_PORT") ?? "9042", out port) || contactPoints is null || cassUsername is null || cassPassword is null || cassKeyspace is null)
+    {
+      throw new InvalidOperationException("Must provide all cassandra values");
+    }
+    var cluster = Cluster.Builder()
+                        .AddContactPoints(contactPoints)
+                        .WithPort(port)
+                        .WithCredentials(cassUsername, cassPassword)
+                        .Build();
+    if (cluster is null) {
+      throw new InvalidOperationException("Error setting up cassandra Cluster");
+    }
+    builder.Services.AddSingleton<IGameStorage>(new GameCassandraStorage(cluster, cassKeyspace));
+    builder.Services.AddSingleton<IPlayerStorage>(new PlayerCassandraStorage(cluster, cassKeyspace));
+              
     break;
   case "MEMORY":
   default:
