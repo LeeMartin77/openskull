@@ -55,4 +55,4 @@ spec:
                   name: {{ required "api.cassandra.credentialssecret is required" .Values.api.cassandra.credentialssecret }}
                   key: cassandrapassword
             - name: CASSANDRA_KEYSPACE
-              value: {{ required "api.cassandra.keyspace is required" .Values.api.cassandra.contactpoints }}
+              value: {{ required "api.cassandra.keyspace is required" .Values.api.cassandra.keyspace }}
