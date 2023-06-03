@@ -43,7 +43,7 @@ spec:
             - name: DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE
               value: "false"
             - name: CASSANDRA_PORT
-              value: {{ required "api.cassandra.port is required" .Values.api.cassandra.port }}
+              value: {{ required "api.cassandra.port is required" .Values.api.cassandra.port | quote }}
             - name: CASSANDRA_CONTACT_POINTS
               value: {{ required "api.cassandra.contactpoints is required" .Values.api.cassandra.contactpoints }}
             - name: CASSANDRA_USERNAME
