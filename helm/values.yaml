@@ -4,7 +4,7 @@ api:
   replicas: 1
   hostname: play.openskull.dev
   cassandra:
-    port: 9042
+    port: "9042"
     contactpoints:  cassandra.service.svc
     keyspace: openskull
     # expects a "cassandrauser" and "cassandrapassword" data key
