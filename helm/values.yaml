@@ -1,0 +1,10 @@
+api:
+  image: ghcr.io/leemartin77/openskull
+  tag: v0.4.0
+  replicas: 1
+  hostname: play.openskull.dev
+  cassandra:
+    contactpoints:  cassandra.service.svc
+    keyspace: openskull
+    # expects a "cassandrauser" and "cassandrapassword" data key
+    credentialssecret: openskull-casscreds

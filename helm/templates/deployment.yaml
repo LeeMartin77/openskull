@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: openskull-api
+  namespace: {{ .Release.Namespace }}
+  name: openskull-api
+spec:
+  replicas: {{ required "api.replicas is required" .Values.api.replicas }}
+  selector:
+    matchLabels:
+      app: openskull-api
+  template:
+    metadata:
+      labels:
+        app: openskull-api
+      namespace: {{ .Release.Namespace }}
+      name: openskull-api
+    spec:
+      containers:
+        - name: openskull-api
+          image: {{ required "api.image is required" .Values.api.image }}:{{  required "api.tag is required" .Values.api.tag }}
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: 500m
+              memory: 500Mi
+            requests:
+              cpu: 500m
+              memory: 500Mi
+          ports:
+            - name: web
+              containerPort: 80
+          env:
+            - name: OPENSKULL_WEBAPP_HOST
+              value: https://{{ required "api.hostname is required" .Values.api.hostname }}
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: STORAGE_SERVICE
+              value: CASSANDRA
+            - name: GAME_MASTER
+              value: "true"
+            - name: DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE
+              value: "false"
+            - name: CASSANDRA_CONTACT_POINTS
+              value: {{ required "api.cassandra.contactpoints is required" .Values.api.cassandra.contactpoints }}
+            - name: CASSANDRA_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "api.cassandra.credentialssecret is required" .Values.api.cassandra.credentialssecret }}
+                  key: cassandrauser
+            - name: CASSANDRA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "api.cassandra.credentialssecret is required" .Values.api.cassandra.credentialssecret }}
+                  key: cassandrapassword
+            - name: CASSANDRA_KEYSPACE
+              value: {{ required "api.cassandra.keyspace is required" .Values.api.cassandra.contactpoints }}

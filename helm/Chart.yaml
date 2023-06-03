@@ -1,0 +1,6 @@
+apiVersion: v2
+name: openskull-api
+description: API for an open source implementation of Skull
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
