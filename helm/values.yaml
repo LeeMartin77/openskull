@@ -2,7 +2,7 @@ api:
   image: ghcr.io/leemartin77/openskull
   tag: v0.4.0
   replicas: 1
-  hostname: play.openskull.dev
+  hostname: openskull.leejohnmartin.dev
   cassandra:
     port: "9042"
     contactpoints:  cassandra.service.svc

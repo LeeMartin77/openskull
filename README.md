@@ -1,4 +1,4 @@
-# [OpenSkull](https://www.openskull.dev)
+# [OpenSkull](https://openskull.leejohnmartin.dev)
 
 ![API](https://github.com/leemartin77/openskull/actions/workflows/api-dotnet-build-and-test.yml/badge.svg)
 ![API Publish](https://github.com/leemartin77/openskull/actions/workflows/docker-publish.yml/badge.svg)
